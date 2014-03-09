@@ -24,6 +24,7 @@ Game.prototype = {
         return this.creepMap;
     },
     takeHeroTurn: function(code) {
+        this.hero.actionsPerformed += 1;
         if ([12, 13, 14, 15].indexOf(code) !== -1) {
             // get the direction
             this.moveOrAttack(null);

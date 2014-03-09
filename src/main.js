@@ -1,5 +1,8 @@
 var Game = require('./Game');
 var Dijkstra = require('./map/Dijkstra');
+var Renderer = require('./Renderer');
+
+var renderer = new Renderer();
 
 var gameOverState = false;
 var needsRestart = true;
@@ -27,8 +30,12 @@ function turn(code) {
 
     game.hero.actionsPerformed = 0;
 
+    renderer.render(game.tileMap, game.creepMap);
+
+    // TODO: creep stuff
+
     // do dikjstra's on the TileMap to hero location
-    var dikj = new Dijkstra(game.tileMap, game.hero.location[0], game.hero.location[1]);
+    //var dikj = new Dijkstra(game.tileMap, game.hero.location[0], game.hero.location[1]);
 
     // for creep in creepsMap.creeps
     //   for action in creep.actions
@@ -46,7 +53,7 @@ function restart() {
 
 
 function gameOver() {
+    needsRestart = true;
     // display game over
     // listen for keypress to restart
-
 }
