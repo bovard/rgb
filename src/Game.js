@@ -1,98 +1,60 @@
-/* Drives the game. Can be utilized as follows:
-   
-   var myGame = new Game(canvasNodeToRenderOn);
-   myGame.startGame();
-   *** Play game ***
-   myGame.endGame();
-   
-   */
-
 var Hero = require('./creeps/Hero');
-var util = require('./Utility');
-var Renderer = require('./Renderer');
-var Dijkstra = require('./map/Dijkstra.js');
+var TestLevelCreator = require('./levels/TestLevelCreator');
+var CreepMap = require('./map/CreepMap');
+var Direction = require('./map/Direction');
 
-var gameOverState = false;
-var needsRestart = false;
 
-function keyPressEvent(event) {
-    if (needsRestart) {
-        restart.call(this);
-    }
-    if ([12, 13, 14, 15].indexOf(event.code) !== -1) {
-        turn.call(this, event.code);
-    }
-}
-
-function turn(code) {
-    // move the hero with the code
-    this.hero.actionsPerformed++;
-
-    // if the hero has more actions to perform, return
-    if (this.hero.actionsPerformed < this.hero.numActions) {
-        redraw();
-		this.renderer.render(this.currentLevel.getTileMap(), 
-			this.currentLevel.getCreepMap(), this.hero.getRGB())
-        return;
-    }
-
-    // creeps turn, set actionsPerformed to 0!
-    hero.actionsPerformed = 0;
-    hero.endTurn();
-
-    // do dikjstra's on the TileMap to hero location
-	var heroLoc = this.hero.getLocation();
-	this.Dijkstra = new Dijkstra(this.currentLevel.getTileMap(), heroLoc[0], heroLoc[1]);
-
-    // for creep in creepsMap.creeps
-    //   for action in creep.actions
-    //     creep.act()
-    // redraw
-}
-
-// Performs the logic needed to restart the game
-function restart() {
-    needsRestart = false;
-    initGame.call(this);
-}
-
-function gameOver() {
-    // display game over
-    // listen for keypress to restart
-}
-
-// Returns game to initial state. Canvas arg is optional.
-function initGame(canvas) {
-	this.canvas = canvas ? canvas : this.canvas;
-    this.hero = new Hero();
-    this.levels = [];
-    this.currentLevel = null;
-    // add a new level
-    // set currentLevel to 0;
-    this.addHeroToNextLevel();
-	// No need to reinitialize renderer if already initialized
-	this.renderer = !this.renderer ? new Renderer(this.canvas) : this.renderer;
-}
-
-function Game(canvas) {
-    initGame.call(this, canvas);
+function Game(chat, deathCallback) {
+    // TODO: fix this a lot
+    this.hero = new Hero(deathCallback);
+    this.tileMap = TestLevelCreator.createLevel();
+    this.creepMap = new CreepMap(this.tileMap.width, this.tileMap.height);
+    this.chat = chat;
+    this.creepMap.addHeroToMapAtLoc(
+        Math.round(this.tileMap.width / 2),
+        Math.round(this.tileMap.height / 2)
+    );
 }
 
 Game.prototype = {
-	// Registers mouse event handler so game can begin
-	startGame: function() {
-		this.onClickHandler = util.addHandler(this.canvas, "onclick", util.bind(keyPressEvent, this));
-	},
-	// Destroys mouse event handler so game stops updating
-	endGame: function() {
-		util.removeHandler(this.onClickHandler);
-	},
-    addHeroToNextLevel: function() {
+    getTileMap: function() {
+        return this.tileMap;
+    },
+    getCreepMap: function() {
+        return this.creepMap;
+    },
+    takeHeroTurn: function(code) {
+        if ([12, 13, 14, 15].indexOf(code) !== -1) {
+            // get the direction
+            this.moveOrAttack(null);
+        }
 
     },
-    addHeroToPreviousLevel: function() {
+    moveOrAttack: function(dir) {
+        var x = this.hero.location[0] + dir.x;
+        var y = this.hero.location[1] + dir.y;
+        if (!this.tileMap.getTileAtLoc(x, y)) {
+            this.chat.crit("You step into nothingness and feel yourself falling faster and faster into the abyss");
+            this.kill();
+            return;
+        }
+        var creep = this.creepMap.getCreepAtLoc(x, y);
+        if (!creep) {
+            this.creepMap.moveHeroToLoc(x, y);
+            // if it's a stairs, move the hero the appropriate level
+            return;
+        }
+
+        /*
+        if creep:
+            try to hit
+                if hit, damage
+            if creep dead
+                move,
+                absorb animus
+            return;
+         */
+
 
     }
 };
-
-module.exports = Game;

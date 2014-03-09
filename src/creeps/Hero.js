@@ -40,7 +40,7 @@ Hero.prototype = {
     attackMe: function(creep) {
 
         if (!creep.tryToHit(this)) {
-            chat.warn(creep.attackMessage() + " but misses!");
+            this.chat.warn(creep.attackMessage() + " but misses!");
             return;
         }
 
@@ -55,7 +55,7 @@ Hero.prototype = {
                 dmg -= this.shield;
                 this.shield = 0;
             }
-            chat.warn(creep.getName() + " weakens your shield");
+            this.chat.warn(creep.getName() + " weakens your shield");
         }
 
         // then subtract from health
@@ -65,12 +65,12 @@ Hero.prototype = {
             } else {
                 this.health -= dmg;
             }
-            chat.crit(creep.attackMessage() + " YOU!")
+            this.chat.crit(creep.attackMessage() + " YOU!")
         }
 
     },
     kill: function() {
-        chat.crit("You have died! Press Enter to restart");
+        this.chat.crit("You have died! Press Enter to restart");
         this.deathCallback();
     },
     getLocation: function() {
@@ -79,4 +79,4 @@ Hero.prototype = {
     setLocation: function(location) {
         this.location = location;
     }
-}
+};
