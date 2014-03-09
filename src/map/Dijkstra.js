@@ -40,7 +40,7 @@ function expand(loc, map, moveMap) {
 }
 
 
-function Dijstra(map, x, y) {
+function Dijkstra(map, x, y) {
     this.map = map;
 	this.startLoc = [x,y];
     this.moveMap = new Array(this.map.width);
@@ -52,7 +52,7 @@ function Dijstra(map, x, y) {
     calculate(this);
 }
 
-Dijstra.prototype = {
+Dijkstra.prototype = {
     getNextTile: function(x, y) {
 		// Return passed in loc + offset in moveMap
         return [x + this.moveMap[x][y][0], y + this.moveMap[x][y][1]];
@@ -60,4 +60,4 @@ Dijstra.prototype = {
 
 };
 
-module.exports = Dijstra;
+module.exports = Dijkstra;

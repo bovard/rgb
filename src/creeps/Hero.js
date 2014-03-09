@@ -79,5 +79,4 @@ Hero.prototype = {
     setLocation: function(location) {
         this.location = location;
     }
-
 }
