@@ -9,6 +9,11 @@ var Level = {
 	},
 	getCreeps: function() {
 		return this.creepsLoc;
+	},
+	getTileMap: function() {
+		return this.map;
+	},
+	getCreepMap: function() {
+		return this.creepMap;
 	}
-
 }
