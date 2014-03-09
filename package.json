@@ -1,0 +1,22 @@
+{
+  "name": "rgb",
+  "version": "0.0.0",
+  "description": "A 7DRLC 2014 Game",
+  "main": "main.js",
+  "scripts": {
+    "test": "jasmine-node test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "github.com/bovard/rgb.git"
+  },
+  "keywords": [
+    "roguelike"
+  ],
+  "author": "Bovard Tiberi <bovard.tiberi@gmail.com> (http://github.com/bovard)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/bovard/rgb/issues"
+  },
+  "homepage": "https://github.com/bovard/rgb"
+}
