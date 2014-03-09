@@ -1,5 +1,5 @@
 var Game = require('./Game');
-var Dijkstra = require('./map/Dijstra');
+var Dijkstra = require('./map/Dijkstra');
 
 var gameOverState = false;
 var needsRestart = true;
