@@ -1,4 +1,5 @@
 var Game = require('./Game');
+var Dijkstra = require('./map/Dijstra');
 
 var gameOverState = false;
 var needsRestart = true;
@@ -16,20 +17,18 @@ function keyPressEvent(event) {
 
 
 function turn(code) {
-    // move the hero with the code
-    hero.actionsPerformed++;
+    // if code is no good, return
 
-    // if the hero has more actions to perform, return
-    if (hero.actionsPerformed < hero.numActions) {
-        redraw();
+    game.takeHeroTurn(code);
+
+    if (game.hero.actionsPerformed < game.hero.numActions) {
         return;
     }
 
-    // creeps turn, set actionsPerformed to 0!
-    hero.actionsPerformed = 0;
-    hero.endTurn();
+    game.hero.actionsPerformed = 0;
 
     // do dikjstra's on the TileMap to hero location
+    var dikj = new Dijkstra(game.tileMap, game.hero.location[0], game.hero.location[1]);
 
     // for creep in creepsMap.creeps
     //   for action in creep.actions
