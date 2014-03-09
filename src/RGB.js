@@ -16,12 +16,14 @@ RGB.prototype = {
 	},
 	toString: function() {
 		var str = '#';
-		for (var i in [this.red, this.green, this.blue]) {
-			if (i < 16) {
+		var rgbArray = [this.red, this.green, this.blue];
+		for (var i = 0; i < rgbArray.length; i++) {
+			if (rgbArray[i] < 16) {
 				str += "0"
 			}
-			str += i.toString(16);
+			str += rgbArray[i].toString(16);
 		}
+		return str;
 	},
 	toDecimal: function() {
 		return this.red + this.green + this.blue;
