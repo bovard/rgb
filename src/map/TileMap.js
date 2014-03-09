@@ -73,6 +73,9 @@ TileMap.prototype = {
     },
     isUpStairsLoc: function(x, y) {
         return this.upStairs && this.upStairs[0] === x && this.upStairs[1] === y;
+    },
+    getTileFromXYPlusDir: function(x, y, dir) {
+        return this.getTileAtPosition(x + dir.x, y + dir.y);
     }
 };
 

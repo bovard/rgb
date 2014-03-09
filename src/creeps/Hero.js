@@ -78,6 +78,22 @@ Hero.prototype = {
     },
     setLocation: function(location) {
         this.location = location;
+    },
+    moveOrAttack: function(dir, tileMap, creepMap) {
+        var x = this.location[0] + dir.x;
+        var y = this.location[1] + dir.y;
+        if (!tileMap.getTileAtLoc(x, y)) {
+            chat.crit("You step into nothingness and feel yourself falling faster and faster into the abyss");
+            this.kill();
+            return;
+        }
+        var creep = creepMap.getCreepAtLoc(x, y);
+        if (!creep) {
+            creepMap.moveHeroToLoc(x, y);
+            return;
+        }
+
+
     }
 
-}
+};
