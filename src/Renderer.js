@@ -35,6 +35,7 @@ Renderer.prototype = {
 				}
 				// If a creep or the hero resides in this location, draw it
 				if (creepMap.getCreepAtLoc(x, y)) {
+                    console.log(creepMap.getCreepAtLoc(x, y));
 					// If hero, draw without filter
 					this.context.fillStyle = creepMap.heroAtLocation(x, y) ? 
 						creepMap.getCreepAtLoc(x, y).getRGB().toString() :

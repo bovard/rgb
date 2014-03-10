@@ -1,5 +1,6 @@
 /* Hero class. */
 var CoreStats = require('./CoreStats');
+var RGB = require('../RGB');
 
 function Hero(deathCallback, chat) {
     this.health = 10;
@@ -14,6 +15,8 @@ function Hero(deathCallback, chat) {
     this.actionsPerformed = 0;
     this.visionRadiusSquared = 10;
 	this.coreStats = new CoreStats(1, 1);
+    this.rgb = new RGB(255, 255, 255);
+    this.repr = '@';
     //
     //    XXX
     //   XXXXX
@@ -85,6 +88,12 @@ Hero.prototype = {
     },
     setLocation: function(location) {
         this.location = location;
+    },
+    getRGB: function() {
+        return this.rgb;
+    },
+    getRepr: function() {
+        return this.repr;
     }
 };
 
