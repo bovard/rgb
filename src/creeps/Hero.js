@@ -1,3 +1,5 @@
+/* Hero class. */
+var CoreStats = require('./CoreStats');
 
 function Hero(deathCallback, chat) {
     this.health = 10;
@@ -11,6 +13,7 @@ function Hero(deathCallback, chat) {
     this.numActions = 1;
     this.actionsPerformed = 0;
     this.visionRadiusSquared = 10;
+	this.coreStats = new CoreStats(1, 1);
     //
     //    XXX
     //   XXXXX
@@ -37,6 +40,7 @@ Hero.prototype = {
     setNumActions: function(number) {
         this.numActions = number;
     },
+	/* TODO: this becomes obsolete with CoreStats class? */
     attackMe: function(creep) {
 
         if (!creep.tryToHit(this)) {
@@ -69,6 +73,9 @@ Hero.prototype = {
         }
 
     },
+	takeDamage: function(damage) {
+		/* TODO: implement how the hero takes damage, probably borrowing from above attackMe function. */
+	},
     kill: function() {
         this.chat.crit("You have died! Press Enter to restart");
         this.deathCallback();
