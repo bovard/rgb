@@ -14,7 +14,7 @@ function createLevel() {
                 Math.round(Math.random() * 255)
             );
             var tile = new Tile(Tile.FLOOR_TILE, rgb);
-            tileMap.addTileAtLoc(x, y, tile);
+            tileMap.addTileAtXY(x, y, tile);
         }
     }
     return tileMap;

@@ -2,6 +2,7 @@ var Hero = require('./creeps/Hero');
 var TestLevelCreator = require('./levels/TestLevelCreator');
 var CreepMap = require('./map/CreepMap');
 var Direction = require('./map/Direction');
+var Location = require('./map/Location');
 var InputTrigger = require('./InputTrigger');
 
 
@@ -11,9 +12,11 @@ function Game(chat, deathCallback) {
     this.tileMap = TestLevelCreator.createLevel();
     this.creepMap = new CreepMap(this.tileMap.width, this.tileMap.height);
     this.chat = chat;
-    this.creepMap.addHeroToMapAtXY(
-        Math.round(this.tileMap.width / 2),
-        Math.round(this.tileMap.height / 2),
+    this.creepMap.addHeroToMapAtLoc(
+        new Location(
+            Math.round(this.tileMap.width / 2),
+            Math.round(this.tileMap.height / 2)
+        ),
         this.hero
     );
 	this.input = {};

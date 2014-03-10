@@ -1,4 +1,5 @@
 /* Renders the game to the canvas. */
+var Location = require('./map/Location');
 
 function Renderer(canvas) {
 	this.canvas = canvas;
@@ -26,20 +27,21 @@ Renderer.prototype = {
 		// Iterate through tileMap & creepMap and draw tiles & creeps & player.
 		for (var x = 0; x < tileMap.width; x++) {
 			for (var y = 0; y < tileMap.height; y++ ) {
+                var loc = new Location(x, y);
 				// If there is a tile to draw in this location, draw it
-				if (tileMap.getTileAtXY(x, y)) {
-					this.context.fillStyle = tileMap.getTileAtXY(x, y).getRGB(filter).toString();
-					this.context.fillText(tileMap.getTileAtXY(x, y).getRepr(),
+				if (tileMap.getTileAtLoc(loc)) {
+					this.context.fillStyle = tileMap.getTileAtLoc(loc).getRGB(filter).toString();
+					this.context.fillText(tileMap.getTileAtLoc(loc).getRepr(),
 						leftMargin + x * Renderer.TILE_WIDTH_PX, 
 						topMargin + y * Renderer.TILE_HEIGHT_PX);
 				}
 				// If a creep or the hero resides in this location, draw it
-				if (creepMap.getCreepAtXY(x, y)) {
+				if (creepMap.getCreepAtLoc(loc)) {
 					// If hero, draw without filter
-					this.context.fillStyle = creepMap.heroAtXY(x, y) ?
-						creepMap.getCreepAtXY(x, y).getRGB().toString() :
-						creepMap.getCreepAtXY(x, y).getRGB(filter).toString();
-					this.context.fillText(creepMap.getCreepAtXY(x, y).getRepr(),
+					this.context.fillStyle = creepMap.heroAtLoc(loc) ?
+						creepMap.getCreepAtLoc(loc).getRGB().toString() :
+						creepMap.getCreepAtLoc(loc).getRGB(filter).toString();
+					this.context.fillText(creepMap.getCreepAtLoc(loc).getRepr(),
 						leftMargin + x * Renderer.TILE_WIDTH_PX, 
 						topMargin + y * Renderer.TILE_HEIGHT_PX);
 				}

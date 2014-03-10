@@ -1,3 +1,4 @@
+var Location = require('./Location');
 var Tile = require('./Tile');
 
 function TileMap(x, y) {
@@ -12,8 +13,13 @@ function TileMap(x, y) {
 }
 
 TileMap.prototype = {
-	addTileAtLoc: function(x, y, tile) {
-		if (x < 0 || y < 0) {
+    addTileAtLoc: function(loc, tile) {
+        var x = loc.x;
+        var y = loc.y;
+        if (!tile) {
+            throw "Tile not defined!"
+        }
+        if (x < 0 || y < 0) {
 			throw "Tried to add tile to a negative location (" + x + ", " + y + ")";
 		}
 		if (x >= this.width) {
@@ -23,47 +29,54 @@ TileMap.prototype = {
 			throw "Tried to add tile to a location offmap! (" + y + " >= " + this.height + ")";
 		}
 		this.tiles[x][y] = tile;
+    },
+	addTileAtXY: function(x, y, tile) {
+        this.addTileAtLoc(new Location(x, y), tile);
 	},
-    mergeTileAtLoc: function(x, y, tile) {
-        if (x * y < 0) {
-			throw "Tried to add tile to a negative location (" + x + ", " + y + ")";
+    mergeTileAtLoc: function(loc, tile) {
+        if (!tile) {
+            throw "Tile not defined!"
+        }
+        if (loc.x < 0 || loc.y < 0) {
+			throw "Tried to add tile to a negative location (" + loc.x + ", " + loc.y + ")";
 		}
-		if (x >= this.width) {
-			throw "Tried to add tile to a location offmap! (" + x + " >= " + this.width + ")";
+		if (loc.x >= this.width) {
+			throw "Tried to add tile to a location offmap! (" + loc.x + " >= " + this.width + ")";
 		}
-		if (y >= this.height) {
-			throw "Tried to add tile to a location offmap! (" + y + " >= " + this.height + ")";
+		if (loc.y >= this.height) {
+			throw "Tried to add tile to a location offmap! (" + loc.y + " >= " + this.height + ")";
 		}
-        if (this.tiles[x][y]) {
-            this.tiles[x][y] = new Tile(tile.getRepr(), tile.getRGB(this.tiles[x][y].getRGB()))
+        if (this.tiles[loc.x][loc.y]) {
+            this.tiles[loc.x][loc.y] = new Tile(tile.getRepr(), tile.getRGB(this.tiles[loc.x][loc.y].getRGB()))
         } else {
-            this.tiles[x][y] = tile;
+            this.tiles[loc.x][loc.y] = tile;
         }
     },
     getTileAtLoc: function(loc) {
-        return this.getTileAtXY(loc.x, loc.y);
+        if (loc.x < 0 || loc.y < 0) {
+			return;
+		}
+		if (loc.x >= this.width) {
+			return;
+		}
+		if (loc.y >= this.height) {
+			return;
+		}
+		return this.tiles[loc.x][loc.y];
     },
 	getTileAtXY: function(x, y) {
-		if (x < 0 || y < 0) {
-			return;
-		}
-		if (x >= this.width) {
-			return;
-		}
-		if (y >= this.height) {
-			return;
-		}
-		return this.tiles[x][y];
+        return this.getTileAtLoc(new Location(x, y))
+
 	},
-	addStairsUp: function(x, y, rgb) {
+	addStairsUp: function(loc, rgb) {
 		var upStairs = new Tile(Tile.UP_STAIRS, rgb);
-		this.upStairs = [x, y];
-		this.addTileAtLoc(x, y, upStairs);
+		this.upStairs = loc;
+		this.addTileAtXY(loc, upStairs);
 	},
-	addStairsDown: function(x, y, rgb) {
+	addStairsDownAtLoc: function(loc, rgb) {
 		var downStairs = new Tile(Tile.DOWN_STAIRS, rgb);
-		this.downStairs = [x, y];
-		this.addTileAtLoc(x, y, downStairs);
+		this.downStairs = loc;
+		this.addTileAtXY(loc, downStairs);
 	},
 	getUpStairsLoc: function() {
 		return this.upStairs;
@@ -71,14 +84,11 @@ TileMap.prototype = {
 	getDownStairsLoc: function() {
 		return this.downStairs;
 	},
-    isDownStairsLoc: function(x, y) {
-        return this.downStairs && this.downStairs[0] === x && this.downStairs[1] === y;
+    isDownStairsLoc: function(loc) {
+        return this.downStairs && loc.isEqualTo(this.downStairs);
     },
-    isUpStairsLoc: function(x, y) {
-        return this.upStairs && this.upStairs[0] === x && this.upStairs[1] === y;
-    },
-    getTileFromXYPlusDir: function(x, y, dir) {
-        return this.getTileAtPosition(x + dir.x, y + dir.y);
+    isUpStairsLoc: function(loc) {
+        return this.upStairs && loc.isEqualTo(this.upStairs);
     }
 };
 
