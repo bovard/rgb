@@ -31,4 +31,6 @@ RGB.prototype = {
 	isBlack: function() {
 		return this.red === 0 && this.green === 0 && this.blue === 0;
 	}
-}
+};
+
+module.exports = RGB;

@@ -61,7 +61,7 @@ function gameOver() {
 
 // starts the game!
 $(function() {
-    var canvas = $("#canvas")[0];
+    var canvas = $("#myCanvas")[0];
     console.log('found canvas', canvas);
     renderer = new Renderer(canvas);
     restart();

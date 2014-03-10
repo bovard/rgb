@@ -80,3 +80,5 @@ Hero.prototype = {
         this.location = location;
     }
 };
+
+module.exports = Hero;

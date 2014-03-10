@@ -16,3 +16,4 @@ Tile.DOWN_STAIRS = '/';
 
 Tile.prototype = Object.create(GameObject);
 
+module.exports = Tile;

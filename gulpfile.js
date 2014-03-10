@@ -39,13 +39,13 @@ gulp.task('lr-server', function() {
 });
 
 gulp.task('default', function() {  
-    gulp.run('lr-server', 'scripts', 'styles');
+    //gulp.run('lr-server', 'scripts', 'styles');
 
     gulp.watch('src/**', function(event) {
         gulp.run('scripts');
-    })
+    });
 
-    gulp.watch('css/**', function(event) {
-        gulp.run('styles');
-    })
+    //gulp.watch('css/**', function(event) {
+    //    gulp.run('styles');
+    //});
 });
