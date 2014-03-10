@@ -10,6 +10,7 @@ var renderer = null;
 var game;
 
 $(document).keyup(function(event) {
+    console.log("HERE");
     if (needsRestart) {
         restart();
     }
