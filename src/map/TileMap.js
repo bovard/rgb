@@ -40,7 +40,10 @@ TileMap.prototype = {
             this.tiles[x][y] = tile;
         }
     },
-	getTileAtLoc: function(x, y) {
+    getTileAtLoc: function(loc) {
+        return this.getTileAtXY(loc.x, loc.y);
+    },
+	getTileAtXY: function(x, y) {
 		if (x < 0 || y < 0) {
 			return;
 		}

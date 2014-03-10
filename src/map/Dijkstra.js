@@ -28,7 +28,7 @@ function expand(loc, map, moveMap) {
 		// newLoc = loc + offset
 		newLoc = [loc[0] + offsets[i][0], loc[1] + offsets[i][1]];
 		// Is unexplored and has tile?
-		if (!moveMap[newLoc[0]][newLoc[1]] && !!map.getTileAtLoc(newLoc[0], newLoc[1])) {
+		if (!moveMap[newLoc[0]][newLoc[1]] && !!map.getTileAtXY(newLoc[0], newLoc[1])) {
 			// set moveMap[newLoc] = reflected offset (offset * -1)
 			moveMap[newLoc[0]][newLoc[1]] = [offsets[i][0] * -1, offsets[i][1] * -1];
 			// add newLoc to expanded

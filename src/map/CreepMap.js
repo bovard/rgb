@@ -1,3 +1,5 @@
+var Location = require('./Location');
+
 function CreepMap(x, y) {
     this.width = x;
     this.height = y;
@@ -10,18 +12,31 @@ function CreepMap(x, y) {
 }
 
 CreepMap.prototype = {
-    addHeroToMapAtLoc: function(x, y, hero) {
-        this.moveCreepToLoc(x, y, hero);
+    addHeroToMapAtLoc: function(loc, hero) {
+        this.moveCreepToLoc(loc, hero);
         this.hero = hero;
     },
-    addCreepToMapAtLoc: function(x, y, creep) {
-        this.moveCreepToLoc(x, y, creep);
+    addHeroToMapAtXY: function(x, y, hero) {
+        this.moveCreepToXY(x, y, hero);
+        this.hero = hero;
+    },
+    addCreepToMapAtLoc: function(loc, creep) {
+        this.moveCreepToLoc(loc, creep);
         this.creeps.push(creep);
     },
-    moveHeroToLoc: function(x, y) {
-        this.moveCreepToLoc(x, y, this.hero);
+    moveHeroToLoc: function(loc) {
+        this.moveCreepToLoc(loc, this.hero);
     },
-	moveCreepToLoc: function(x, y, creep) {
+    moveHeroToXY: function(x, y) {
+        this.moveCreepToXY(x, y, this.hero);
+    },
+    moveCreepToLoc: function(loc, creep) {
+        this.moveCreepToXY(loc.x, loc.y, creep)
+    },
+	moveCreepToXY: function(x, y, creep) {
+        if (!creep) {
+            throw "Tried to move a creep but no creep specified!";
+        }
 		if (x * y < 0) {
 			throw "Tried to move creep to a negative location (" + x + ", " + y + ")";
 		}
@@ -36,11 +51,14 @@ CreepMap.prototype = {
 		}
 		this.creepsLoc[x][y] = creep;
         if (creep.getLocation()) {
-            this.deleteCreepAtLoc(creep.location[0], creep.location[1]);
+            this.deleteCreepAtXY(creep.location.x, creep.location.y);
         }
-        creep.setLocation([x, y]);
+        creep.setLocation(new Location(x, y));
 	},
-	getCreepAtLoc: function(x, y) {
+    getCreepAtLoc: function(loc) {
+        return this.getCreepAtXY(loc.x, loc.y);
+    },
+	getCreepAtXY: function(x, y) {
 		if (x * y < 0) {
 			return;
 		}
@@ -52,10 +70,16 @@ CreepMap.prototype = {
 		}
 		return this.creepsLoc[x][y];
 	},
-    heroAtLocation: function(x, y) {
-        return this.getCreepAtLoc(x, y) && this.getCreepAtLoc(x, y) === this.hero;
+    heroAtLoc: function(loc) {
+        return this.heroAtXY(loc.x, loc.y);
     },
-	deleteCreepAtLoc: function(x, y) {
+    heroAtXY: function(x, y) {
+        return this.getCreepAtXY(x, y) && this.getCreepAtXY(x, y) === this.hero;
+    },
+    deleteCreepAtLoc: function(loc) {
+        this.creepsLoc[loc.x][loc.y] = undefined;
+    },
+	deleteCreepAtXY: function(x, y) {
 		this.creepsLoc[x][y] = undefined;
 	}
 };

@@ -27,19 +27,19 @@ Renderer.prototype = {
 		for (var x = 0; x < tileMap.width; x++) {
 			for (var y = 0; y < tileMap.height; y++ ) {
 				// If there is a tile to draw in this location, draw it
-				if (tileMap.getTileAtLoc(x, y)) {
-					this.context.fillStyle = tileMap.getTileAtLoc(x, y).getRGB(filter).toString();
-					this.context.fillText(tileMap.getTileAtLoc(x, y).getRepr(), 
+				if (tileMap.getTileAtXY(x, y)) {
+					this.context.fillStyle = tileMap.getTileAtXY(x, y).getRGB(filter).toString();
+					this.context.fillText(tileMap.getTileAtXY(x, y).getRepr(),
 						leftMargin + x * Renderer.TILE_WIDTH_PX, 
 						topMargin + y * Renderer.TILE_HEIGHT_PX);
 				}
 				// If a creep or the hero resides in this location, draw it
-				if (creepMap.getCreepAtLoc(x, y)) {
+				if (creepMap.getCreepAtXY(x, y)) {
 					// If hero, draw without filter
-					this.context.fillStyle = creepMap.heroAtLocation(x, y) ? 
-						creepMap.getCreepAtLoc(x, y).getRGB().toString() :
-						creepMap.getCreepAtLoc(x, y).getRGB(filter).toString();
-					this.context.fillText(creepMap.getCreepAtLoc(x, y).getRepr(), 
+					this.context.fillStyle = creepMap.heroAtXY(x, y) ?
+						creepMap.getCreepAtXY(x, y).getRGB().toString() :
+						creepMap.getCreepAtXY(x, y).getRGB(filter).toString();
+					this.context.fillText(creepMap.getCreepAtXY(x, y).getRepr(),
 						leftMargin + x * Renderer.TILE_WIDTH_PX, 
 						topMargin + y * Renderer.TILE_HEIGHT_PX);
 				}

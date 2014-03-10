@@ -11,7 +11,7 @@ function Game(chat, deathCallback) {
     this.tileMap = TestLevelCreator.createLevel();
     this.creepMap = new CreepMap(this.tileMap.width, this.tileMap.height);
     this.chat = chat;
-    this.creepMap.addHeroToMapAtLoc(
+    this.creepMap.addHeroToMapAtXY(
         Math.round(this.tileMap.width / 2),
         Math.round(this.tileMap.height / 2),
         this.hero
@@ -34,16 +34,15 @@ Game.prototype = {
 		}
     },
     moveOrAttack: function(dir) {
-        var x = this.hero.location[0] + dir.x;
-        var y = this.hero.location[1] + dir.y;
-        if (!this.tileMap.getTileAtLoc(x, y)) {
+        var newLoc = this.hero.location.add(dir);
+        if (!this.tileMap.getTileAtLoc(newLoc)) {
             this.chat.crit("You step into nothingness and feel yourself falling faster and faster into the abyss");
             this.kill();
             return;
         }
-        var creep = this.creepMap.getCreepAtLoc(x, y);
+        var creep = this.creepMap.getCreepAtLoc(newLoc);
         if (!creep) {
-            this.creepMap.moveHeroToLoc(x, y);
+            this.creepMap.moveHeroToLoc(newLoc);
             // if it's a stairs, move the hero the appropriate level
             return;
         }

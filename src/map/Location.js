@@ -13,8 +13,9 @@ Location.prototype = {
         if (!times) {
             times = 1;
         }
-        this.x += times * direction.x;
-        this.y += times * direction.y;
+        var x = this.x + times * direction.x;
+        var y = this.y + times * direction.y;
+        return new Location(x, y);
     },
     distanceSquaredTo: function(location) {
         return Math.pow(this.x - location.x, 2) + Math.pow(this.y - location.y, 2);
