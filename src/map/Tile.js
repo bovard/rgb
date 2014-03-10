@@ -10,7 +10,7 @@ function Tile(repr, rgb) {
 
 }
 
-Tile.FLOOR_TILE = '□';
+Tile.FLOOR_TILE = '[_]';
 Tile.UP_STAIRS = '^';
 Tile.DOWN_STAIRS = '/';
 
