@@ -23,23 +23,9 @@ Location.prototype = {
     directionTo: function(location) {
         var x = location.x - this.x;
         var y = location.y - this.y;
-        if (x === 0 && y === 0) {
-            return Direction.NONE;
-        }
-        if (Math.abs(x) > Math.abs(y)) {
-            if (x * Direction.EAST.x > 0) {
-                return Direction.EAST;
-            } else {
-                return Direction.WEST;
-            }
-        } else {
-            if (y * Direction.NORTH.y > 0) {
-                return Direction.NORTH;
-            } else {
-                return Direction.SOUTH;
-            }
-        }
 
+        // Direction constructor takes care of mapping to scaler direction
+        return new Direction(x, y);
     },
     isAdjacentTo: function(location) {
         var x = location.x - this.x;

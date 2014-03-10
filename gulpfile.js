@@ -40,6 +40,7 @@ gulp.task('lr-server', function() {
 
 gulp.task('default', function() {  
     //gulp.run('lr-server', 'scripts', 'styles');
+    //gulp.run('scripts');
 
     gulp.watch('src/**', function(event) {
         gulp.run('scripts');

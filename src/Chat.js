@@ -3,7 +3,7 @@
 var outputFunctions = [];
 
 function setOutputFunction(fun) {
-    outputFunctions.append(fun);
+    outputFunctions.push(fun);
 }
 
 function _write(message, color) {

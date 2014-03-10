@@ -1,4 +1,5 @@
 var Location = require('./Location');
+var Map = require('./Map');
 var Tile = require('./Tile');
 
 function TileMap(x, y) {
@@ -13,20 +14,16 @@ function TileMap(x, y) {
 }
 
 TileMap.prototype = {
+    locOnMap: Map.locOnMap,
+    projectLocOnMap: Map.projectLocOnMap,
     addTileAtLoc: function(loc, tile) {
         var x = loc.x;
         var y = loc.y;
         if (!tile) {
             throw "Tile not defined!"
         }
-        if (x < 0 || y < 0) {
-			throw "Tried to add tile to a negative location (" + x + ", " + y + ")";
-		}
-		if (x >= this.width) {
-			throw "Tried to add tile to a location offmap! (" + x + " >= " + this.width + ")";
-		}
-		if (y >= this.height) {
-			throw "Tried to add tile to a location offmap! (" + y + " >= " + this.height + ")";
+		if (!this.locOnMap(loc)) {
+            loc = this.projectLocOnMap(loc);
 		}
 		this.tiles[x][y] = tile;
     },
@@ -34,31 +31,24 @@ TileMap.prototype = {
         if (!tile) {
             throw "Tile not defined!"
         }
-        if (loc.x < 0 || loc.y < 0) {
-			throw "Tried to add tile to a negative location (" + loc.x + ", " + loc.y + ")";
+		if (!this.locOnMap(loc)) {
+            loc = this.projectLocOnMap(loc);
 		}
-		if (loc.x >= this.width) {
-			throw "Tried to add tile to a location offmap! (" + loc.x + " >= " + this.width + ")";
-		}
-		if (loc.y >= this.height) {
-			throw "Tried to add tile to a location offmap! (" + loc.y + " >= " + this.height + ")";
-		}
-        if (this.tiles[loc.x][loc.y]) {
-            this.tiles[loc.x][loc.y] = new Tile(tile.getRepr(), tile.getRGB(this.tiles[loc.x][loc.y].getRGB()))
+        var existingTile = this.tiles[loc.x][loc.y];
+        if (existingTile) {
+            this.tiles[loc.x][loc.y] = new Tile(existingTile.getRepr(), tile.getRGB(existingTile.getRGB()))
         } else {
             this.tiles[loc.x][loc.y] = tile;
         }
     },
+    mergeFloorTileAtLoc: function(loc, rgb) {
+        var tile = new Tile(Tile.FLOOR_TILE, rgb);
+        this.mergeTileAtLoc(loc, tile);
+    },
     getTileAtLoc: function(loc) {
-        if (loc.x < 0 || loc.y < 0) {
-			return;
-		}
-		if (loc.x >= this.width) {
-			return;
-		}
-		if (loc.y >= this.height) {
-			return;
-		}
+        if (!this.locOnMap(loc)) {
+            return;
+        }
 		return this.tiles[loc.x][loc.y];
     },
 	getTileAtXY: function(x, y) {

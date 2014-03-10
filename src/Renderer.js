@@ -13,6 +13,7 @@ Renderer.TILE_HEIGHT_PX = 30;
 Renderer.prototype = {
     render: function(tileMap, creepMap, filter) {
 		this.context.save();
+        var hero = creepMap.hero;
 	
 		// Fill canvas with black background
 		this.context.fillStyle = "#000000";
@@ -28,6 +29,10 @@ Renderer.prototype = {
 		for (var x = 0; x < tileMap.width; x++) {
 			for (var y = 0; y < tileMap.height; y++ ) {
                 var loc = new Location(x, y);
+                if (loc.distanceSquaredTo(hero.location) > hero.visionRadiusSquared) {
+                    // COMMENT OUT THE continue TO SEE EVERYTHING
+                    continue;
+                }
 				// If there is a tile to draw in this location, draw it
 				if (tileMap.getTileAtLoc(loc)) {
 					this.context.fillStyle = tileMap.getTileAtLoc(loc).getRGB(filter).toString();

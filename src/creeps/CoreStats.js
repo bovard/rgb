@@ -17,7 +17,11 @@ CoreStats.prototype = {
 	},
 	// Resolves how much damage this entity deals to target entity by comparing core stats
 	resolveDamage: function(targetCoreStats) {
-		return this.str * (this.str / targetCoreStats.str);
+		var dmg = this.str / 10;
+        dmg += (this.str - targetCoreStats.str) / 10;
+        //TODO: add variance
+        return Math.max(1, dmg);
+
 	}
 }
 
