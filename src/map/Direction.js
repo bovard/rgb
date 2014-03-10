@@ -3,10 +3,10 @@ function Direction(x, y) {
     this.y = y;
 }
 
-Direction.NORTH = new Direction(0, 1);
-Direction.EAST = new Direction(0, 1);
-Direction.WEST = new Direction(0, -1);
-Direction.SOUTH = new Direction(-1, 0);
+Direction.NORTH = new Direction(0, -1);
+Direction.EAST = new Direction(1, 0);
+Direction.WEST = new Direction(-1, 0);
+Direction.SOUTH = new Direction(0, 1);
 Direction.NONE = new Direction(0, 0);
 
 Direction.prototype = {
