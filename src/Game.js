@@ -12,7 +12,8 @@ function Game(chat, deathCallback) {
     this.chat = chat;
     this.creepMap.addHeroToMapAtLoc(
         Math.round(this.tileMap.width / 2),
-        Math.round(this.tileMap.height / 2)
+        Math.round(this.tileMap.height / 2),
+        this.hero
     );
 }
 
