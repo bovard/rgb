@@ -30,6 +30,7 @@ function createTestCreepMap(tileMap, mapLevel, heroLevel) {
     var height = tileMap.height;
     var width = tileMap.width;
     var creepMap = new CreepMap(height, width);
+    // TODO: add creeps here!
     return creepMap;
 }
 
