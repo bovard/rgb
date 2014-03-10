@@ -40,7 +40,7 @@ Utility.prototype  = {
 					}
 					bounds.push(arguments[i]);
 					bounds.push(arguments[i + 1]);
-					var util = asteroids.util;
+					var util = this;
 					bounds.sort(function(a, b) {
 					var distFromVal1 = Math.abs(a - val);
 					var distFromVal2 = Math.abs(b - val);
@@ -141,7 +141,7 @@ Utility.prototype  = {
 		   will be deterministic, which can be useful in debugging. */
 		if (low > high) {
 			throw "Error: Utility.rand called with low > high.";
-		} else if (asteroids.settings.get("allowRandom")) {
+		} else if (true) {//if (asteroids.settings.get("allowRandom")) {
 			return Math.floor(Math.random() * (Math.floor(high) - Math.ceil(low) + 1)) + Math.ceil(low);
 		} else {
 			var counter = 0;
