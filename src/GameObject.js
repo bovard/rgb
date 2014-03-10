@@ -1,4 +1,3 @@
-
 var GameObject = {
 	getRepr: function() {
 		return this.repr;
@@ -12,4 +11,3 @@ var GameObject = {
 }
 
 module.exports = GameObject;
-
