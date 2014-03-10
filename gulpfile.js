@@ -6,8 +6,12 @@ var refresh = require('gulp-livereload');
 var lr = require('tiny-lr');  
 var server = lr();
 
+var paths = {
+    main: ['src/main.js']
+};
+
 gulp.task('scripts', function() {  
-    gulp.src(['src/**/*.js'])
+    gulp.src(paths.main)
         .pipe(browserify({
             shim: {
                 jquery: {
@@ -16,7 +20,7 @@ gulp.task('scripts', function() {
                 }
             }
         }))
-        .pipe(concat('dest.js'))
+        .pipe(concat('rgb.js'))
         .pipe(gulp.dest('build'))
         .pipe(refresh(server))
 });

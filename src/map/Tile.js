@@ -1,5 +1,5 @@
 var GameObject = require('../GameObject');
-var RGB = require('.../RGB');
+var RGB = require('../RGB');
 
 function Tile(repr, rgb) {
 	this.repr = repr;

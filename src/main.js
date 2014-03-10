@@ -2,10 +2,10 @@ var Game = require('./Game');
 var Dijkstra = require('./map/Dijkstra');
 var Renderer = require('./Renderer');
 
-var renderer = new Renderer();
 
 var gameOverState = false;
 var needsRestart = true;
+var renderer = null;
 
 var game;
 
@@ -48,6 +48,7 @@ function turn(code) {
 function restart() {
     needsRestart = false;
     game = new Game();
+    renderer.render(game.tileMap, game.creepMap);
 }
 
 
@@ -57,3 +58,11 @@ function gameOver() {
     // display game over
     // listen for keypress to restart
 }
+
+// starts the game!
+$(function() {
+    var canvas = $("#canvas")[0];
+    console.log('found canvas', canvas);
+    renderer = new Renderer(canvas);
+    restart();
+});
