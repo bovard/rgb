@@ -1,4 +1,5 @@
 var Location = require('./Location');
+var Map = require('./Map');
 
 function CreepMap(x, y) {
     this.width = x;
@@ -12,6 +13,8 @@ function CreepMap(x, y) {
 }
 
 CreepMap.prototype = {
+    locOnMap: Map.locOnMap,
+    projectLocOnMap: Map.projectLocOnMap,
     addHeroToMapAtLoc: function(loc, hero) {
         this.moveCreepToLoc(loc, hero);
         this.hero = hero;

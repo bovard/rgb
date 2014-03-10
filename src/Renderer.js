@@ -30,6 +30,7 @@ Renderer.prototype = {
 			for (var y = 0; y < tileMap.height; y++ ) {
                 var loc = new Location(x, y);
                 if (loc.distanceSquaredTo(hero.location) > hero.visionRadiusSquared) {
+                    // COMMENT OUT THE continue TO SEE EVERYTHING
                     continue;
                 }
 				// If there is a tile to draw in this location, draw it
