@@ -30,9 +30,6 @@ TileMap.prototype = {
 		}
 		this.tiles[x][y] = tile;
     },
-	addTileAtXY: function(x, y, tile) {
-        this.addTileAtLoc(new Location(x, y), tile);
-	},
     mergeTileAtLoc: function(loc, tile) {
         if (!tile) {
             throw "Tile not defined!"
@@ -71,12 +68,12 @@ TileMap.prototype = {
 	addStairsUp: function(loc, rgb) {
 		var upStairs = new Tile(Tile.UP_STAIRS, rgb);
 		this.upStairs = loc;
-		this.addTileAtXY(loc, upStairs);
+		this.addTileAtLoc(loc, upStairs);
 	},
 	addStairsDownAtLoc: function(loc, rgb) {
 		var downStairs = new Tile(Tile.DOWN_STAIRS, rgb);
 		this.downStairs = loc;
-		this.addTileAtXY(loc, downStairs);
+		this.addTileAtLoc(loc, downStairs);
 	},
 	getUpStairsLoc: function() {
 		return this.upStairs;

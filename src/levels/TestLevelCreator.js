@@ -1,5 +1,6 @@
 var TileMap = require('../map/TileMap');
 var Tile = require('../map/Tile');
+var Location = require('../map/Location');
 var RGB = require('../RGB');
 
 function createLevel() {
@@ -14,7 +15,7 @@ function createLevel() {
                 Math.round(Math.random() * 255)
             );
             var tile = new Tile(Tile.FLOOR_TILE, rgb);
-            tileMap.addTileAtXY(x, y, tile);
+            tileMap.addTileAtLoc(new Location(x, y), tile);
         }
     }
     return tileMap;
