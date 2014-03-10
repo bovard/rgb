@@ -26,13 +26,13 @@ Location.prototype = {
             return Direction.NONE;
         }
         if (Math.abs(x) > Math.abs(y)) {
-            if (x > 0) {
+            if (x * Direction.EAST.x > 0) {
                 return Direction.EAST;
             } else {
                 return Direction.WEST;
             }
         } else {
-            if (y > 0) {
+            if (y * Direction.NORTH.y > 0) {
                 return Direction.NORTH;
             } else {
                 return Direction.SOUTH;
