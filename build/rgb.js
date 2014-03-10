@@ -14,9 +14,44 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
 },{}],"jquery":[function(require,module,exports){
 module.exports=require('TZeL/P');
 },{}],3:[function(require,module,exports){
+
+
+var outputFunctions = [];
+
+function setOutputFunction(fun) {
+    outputFunctions.push(fun);
+}
+
+function _write(message, color) {
+    for (var i = 0; i < outputFunctions.length; i++) {
+        outputFunctions[i](message, color);
+    }
+}
+
+
+function crit(message) {
+    _write(message, "#FF0000")
+
+}
+
+function warn(message) {
+    _write(message, "FFA500")
+
+}
+
+function log(message) {
+    _write(message, "FFA500")
+}
+
+module.exports = {
+    crit: crit,
+    warn: warn,
+    log: log,
+    setOputFunction: setOutputFunction
+}
+},{}],4:[function(require,module,exports){
 var Hero = require('./creeps/Hero');
-var TestLevelCreator = require('./levels/TestLevelCreator');
-var CreepMap = require('./map/CreepMap');
+var TestLevel = require('./levels/TestLevel');
 var Direction = require('./map/Direction');
 var Location = require('./map/Location');
 var InputTrigger = require('./InputTrigger');
@@ -24,27 +59,22 @@ var InputTrigger = require('./InputTrigger');
 
 function Game(chat, deathCallback) {
     // TODO: fix this a lot
-    this.hero = new Hero(deathCallback);
-    this.tileMap = TestLevelCreator.createLevel();
-    this.creepMap = new CreepMap(this.tileMap.width, this.tileMap.height);
+    this.hero = new Hero(deathCallback, chat);
+    this.levels = [];
+    this.generateNewLevel();
+    this.levelIndex = 0;
+    this.moveHeroToLevel(0);
     this.chat = chat;
-    this.creepMap.addHeroToMapAtLoc(
-        new Location(
-            Math.round(this.tileMap.width / 2),
-            Math.round(this.tileMap.height / 2)
-        ),
-        this.hero
-    );
 	this.input = {};
 	this.initInput();
 }
 
 Game.prototype = {
     getTileMap: function() {
-        return this.tileMap;
+        return this.level.tileMap;
     },
     getCreepMap: function() {
-        return this.creepMap;
+        return this.level.creepMap;
     },
     takeHeroTurn: function(code) {
 		// If there is an InputTrigger for this code, fire it
@@ -54,15 +84,22 @@ Game.prototype = {
     },
     moveOrAttack: function(dir) {
         var newLoc = this.hero.location.add(dir);
-        if (!this.tileMap.getTileAtLoc(newLoc)) {
+        if (!this.level.getTileMap().getTileAtLoc(newLoc)) {
+            console.log("here!");
             this.chat.crit("You step into nothingness and feel yourself falling faster and faster into the abyss");
             this.hero.kill();
             return;
         }
-        var creep = this.creepMap.getCreepAtLoc(newLoc);
+        var creep = this.level.getCreepMap().getCreepAtLoc(newLoc);
         if (!creep) {
-            this.creepMap.moveHeroToLoc(newLoc);
+            this.level.getCreepMap().moveHeroToLoc(newLoc);
             // if it's a stairs, move the hero the appropriate level
+            var level = this.levelIndex;
+            if (this.level.getTileMap().getUpStairsLoc().isEqualTo(newLoc)) {
+                this.moveHeroToLevel(++level);
+            } else if (this.level.getTileMap().getDownStairsLoc().isEqualTo(newLoc) && this.levelIndex != 0) {
+                this.moveHeroToLevel(--level);
+            }
             return;
         }
 
@@ -95,11 +132,29 @@ Game.prototype = {
 			this.hero.actionsPerformed += 1;
 			this.moveOrAttack(Direction.SOUTH);
 		}, this);
-	}
+	},
+    generateNewLevel: function() {
+        this.levels.push(new TestLevel());
+    },
+    moveHeroToLevel: function(index) {
+        if (this.level) {
+            this.level.getCreepMap().removeHero();
+        }
+
+        while (this.levels.length <= index) {
+            this.generateNewLevel();
+        }
+        this.level = this.levels[index];
+        var loc = this.levelIndex < index || (this.levelIndex === 0 && index === 0) ?
+            this.level.getTileMap().getDownStairsLoc() :
+            this.level.getTileMap().getUpStairsLoc();
+        this.levelIndex = index;
+        this.level.getCreepMap().addHeroToMapAtLoc(loc, this.hero);
+    }
 };
 
 module.exports = Game;
-},{"./InputTrigger":5,"./creeps/Hero":9,"./levels/TestLevelCreator":11,"./map/CreepMap":12,"./map/Direction":14,"./map/Location":15}],4:[function(require,module,exports){
+},{"./InputTrigger":6,"./creeps/Hero":10,"./levels/TestLevel":14,"./map/Direction":19,"./map/Location":20}],5:[function(require,module,exports){
 var GameObject = {
 	getRepr: function() {
 		return this.repr;
@@ -113,7 +168,7 @@ var GameObject = {
 }
 
 module.exports = GameObject;
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 /* The idea behind this class is to cleanly tie event codes to game logic. The event codes
    will go into a hash in Game.js and the values will be of type InputTrigger.*/
 function InputTrigger(callback, scope) {
@@ -129,7 +184,7 @@ InputTrigger.prototype = {
 }
 
 module.exports = InputTrigger;
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 
 
 function RGB(red, green, blue) {
@@ -166,7 +221,7 @@ RGB.prototype = {
 };
 
 module.exports = RGB;
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 /* Renders the game to the canvas. */
 var Location = require('./map/Location');
 
@@ -182,6 +237,7 @@ Renderer.TILE_HEIGHT_PX = 30;
 Renderer.prototype = {
     render: function(tileMap, creepMap, filter) {
 		this.context.save();
+        var hero = creepMap.hero;
 	
 		// Fill canvas with black background
 		this.context.fillStyle = "#000000";
@@ -197,6 +253,10 @@ Renderer.prototype = {
 		for (var x = 0; x < tileMap.width; x++) {
 			for (var y = 0; y < tileMap.height; y++ ) {
                 var loc = new Location(x, y);
+                if (loc.distanceSquaredTo(hero.location) > hero.visionRadiusSquared) {
+                    // COMMENT OUT THE continue TO SEE EVERYTHING
+                    continue;
+                }
 				// If there is a tile to draw in this location, draw it
 				if (tileMap.getTileAtLoc(loc)) {
 					this.context.fillStyle = tileMap.getTileAtLoc(loc).getRGB(filter).toString();
@@ -222,7 +282,7 @@ Renderer.prototype = {
 };
 
 module.exports = Renderer;
-},{"./map/Location":15}],8:[function(require,module,exports){
+},{"./map/Location":20}],9:[function(require,module,exports){
 /* Core stats for game entities performing actions. */
 
 function CoreStats(str, agi) {
@@ -242,12 +302,16 @@ CoreStats.prototype = {
 	},
 	// Resolves how much damage this entity deals to target entity by comparing core stats
 	resolveDamage: function(targetCoreStats) {
-		return this.str * (this.str / targetCoreStats.str);
+		var dmg = this.str / 10;
+        dmg += (this.str - targetCoreStats.str) / 10;
+        //TODO: add variance
+        return Math.max(1, dmg);
+
 	}
 }
 
 module.exports = CoreStats;
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 /* Hero class. */
 var CoreStats = require('./CoreStats');
 var RGB = require('../RGB');
@@ -293,16 +357,7 @@ Hero.prototype = {
     setNumActions: function(number) {
         this.numActions = number;
     },
-	/* TODO: this becomes obsolete with CoreStats class? */
-    attackMe: function(creep) {
-
-        if (!creep.tryToHit(this)) {
-            this.chat.warn(creep.attackMessage() + " but misses!");
-            return;
-        }
-
-        var dmg = creep.doDamage(this);
-
+	takeDamage: function(damage) {
         // first subtract from shield if there is one
         if (this.shield > 0) {
             if (this.shield > dmg) {
@@ -324,10 +379,6 @@ Hero.prototype = {
             }
             this.chat.crit(creep.attackMessage() + " YOU!")
         }
-
-    },
-	takeDamage: function(damage) {
-		/* TODO: implement how the hero takes damage, probably borrowing from above attackMe function. */
 	},
     kill: function() {
         this.chat.crit("You have died! Press Enter to restart");
@@ -349,11 +400,15 @@ Hero.prototype = {
 
 module.exports = Hero;
 
-},{"../RGB":6,"./CoreStats":8}],10:[function(require,module,exports){
+},{"../RGB":7,"./CoreStats":9}],11:[function(require,module,exports){
 var Game = require('./Game');
 var Dijkstra = require('./map/Dijkstra');
 var Renderer = require('./Renderer');
+var Chat = require('./Chat');
 
+Chat.setOputFunction(function(message, color) {
+    console.log(message, color);
+});
 
 var gameOverState = false;
 var needsRestart = true;
@@ -365,17 +420,12 @@ $(document).keyup(function(event) {
     console.log("HERE");
     if (needsRestart) {
         restart();
+        return;
     }
 
     if ([37, 38, 39, 40].indexOf(event.keyCode) !== -1) {
         turn(event.keyCode);
     }
-});
-
-
-// binds keys after the browser loads
-$(function() {
-
 });
 
 
@@ -390,7 +440,7 @@ function turn(code) {
 
     game.hero.actionsPerformed = 0;
 
-    renderer.render(game.tileMap, game.creepMap);
+    render();
 
     // TODO: creep stuff
 
@@ -404,11 +454,16 @@ function turn(code) {
 }
 
 
+function render() {
+    renderer.render(game.getTileMap(), game.getCreepMap());
+
+}
+
 
 function restart() {
     needsRestart = false;
-    game = new Game();
-    renderer.render(game.tileMap, game.creepMap);
+    game = new Game(Chat, gameOver);
+    render();
 }
 
 
@@ -426,16 +481,220 @@ $(function() {
     renderer = new Renderer(canvas);
     restart();
 });
-},{"./Game":3,"./Renderer":7,"./map/Dijkstra":13}],11:[function(require,module,exports){
+},{"./Chat":3,"./Game":4,"./Renderer":8,"./map/Dijkstra":18}],12:[function(require,module,exports){
+var Location = require('../map/Location');
+var Direction = require('../map/Direction');
+var Tile = require('../map/Tile');
+var CoarserMap = require('../map/CoarserMap');
+
+var CUT_SIZE = 7;
+
+
+
+function buildNodeAroundLoc(tileMap, loc, rgb, radiusSquared) {
+    console.log("buildingNodeAroundLoc", loc.x, loc.y);
+    loc = tileMap.projectLocOnMap(loc);
+    // random radius
+    if (!radiusSquared) {
+        var sizeRandom = Math.random();
+        if (sizeRandom < .5) {
+            radiusSquared = 4;
+        } else if (sizeRandom < .85) {
+            radiusSquared = 7;
+        } else {
+            radiusSquared = 10
+        }
+    }
+
+    // fill in the tiles
+    var bounds = Math.round(Math.ceil(Math.sqrt(radiusSquared)));
+    for (var x = -bounds; x <= bounds; x++) {
+        for (var y = -bounds; y <= bounds; y++) {
+            var newLoc = new Location(loc.x + x, loc.y + y);
+            if (newLoc.distanceSquaredTo(loc) <= radiusSquared
+                    && tileMap.locOnMap(newLoc)) {
+                tileMap.mergeFloorTileAtLoc(newLoc, rgb)
+            }
+        }
+    }
+}
+
+
+function connectLocs(tileMap, locA, locB, rgb) {
+    locA = tileMap.projectLocOnMap(locA);
+    locB = tileMap.projectLocOnMap(locB);
+    var jaggedPath = Math.random() > .75;
+    var doubleJagged = jaggedPath && Math.random() > .5;
+    while (!locA.isEqualTo(locB)) {
+        var toB = locA.directionTo(locB);
+        if (Math.random() < .15) {
+            toB = toB.rotateLeft();
+        } else if (Math.random() < .15) {
+            toB = toB.rotateRight();
+
+        }
+        tileMap.mergeFloorTileAtLoc(locA, rgb);
+        if (jaggedPath && Math.random() < .25) {
+            tileMap.mergeFloorTileAtLoc(locA.add(toB.rotateLeft()), rgb);
+        }
+        if (doubleJagged && Math.random() < .25) {
+            tileMap.mergeFloorTileAtLoc(locA.add(toB.rotateRight()), rgb);
+        }
+        locA = locA.add(toB);
+    }
+}
+
+
+// searches for a 'true' node in the coarseMap to the South, East, or SouthEast and connects
+function connectCoarseNode(tileMap, coarseMap, loc, rgb) {
+    if (!coarseMap.getValAtLoc(loc)) {
+        return;
+    }
+    // connect EAST
+    if (coarseMap.getValAtLoc(loc.add(Direction.EAST))) {
+        connectLocs(
+            tileMap,
+            coarseMap.getMapLocCenterFromCoarseMapLoc(loc),
+            coarseMap.getMapLocCenterFromCoarseMapLoc(loc.add(Direction.EAST)),
+            rgb
+        );
+    } else if (coarseMap.getValAtLoc(loc.add(Direction.EAST, 2))) {
+        connectLocs(
+            tileMap,
+            coarseMap.getMapLocCenterFromCoarseMapLoc(loc),
+            coarseMap.getMapLocCenterFromCoarseMapLoc(loc.add(Direction.EAST, 2)),
+            rgb
+        );
+    }
+    // connect SOUTH
+    if (coarseMap.getValAtLoc(loc.add(Direction.SOUTH))) {
+        connectLocs(
+            tileMap,
+            coarseMap.getMapLocCenterFromCoarseMapLoc(loc),
+            coarseMap.getMapLocCenterFromCoarseMapLoc(loc.add(Direction.SOUTH)),
+            rgb
+        );
+    } else if (coarseMap.getValAtLoc(loc.add(Direction.SOUTH, 2))) {
+        connectLocs(
+            tileMap,
+            coarseMap.getMapLocCenterFromCoarseMapLoc(loc),
+            coarseMap.getMapLocCenterFromCoarseMapLoc(loc.add(Direction.SOUTH, 2)),
+            rgb
+        );
+    }
+    // connect SOUTH EAST
+    if (coarseMap.getValAtLoc(loc.add(Direction.SOUTH).add(Direction.EAST))) {
+        connectLocs(
+            tileMap,
+            coarseMap.getMapLocCenterFromCoarseMapLoc(loc),
+            coarseMap.getMapLocCenterFromCoarseMapLoc(loc.add(Direction.SOUTH).add(Direction.EAST)),
+            rgb
+        );
+    } else if (coarseMap.getValAtLoc(loc.add(Direction.SOUTH, 2).add(Direction.EAST, 2))) {
+        connectLocs(
+            tileMap,
+            coarseMap.getMapLocCenterFromCoarseMapLoc(loc),
+            coarseMap.getMapLocCenterFromCoarseMapLoc(loc.add(Direction.SOUTH, 2).add(Direction.EAST, 2)),
+            rgb
+        );
+    }
+
+}
+
+
+
+function buildCaveSystem(tileMap, rgb, includeLocs) {
+    // build a coarse map
+    var x, y, loc;
+    var coarseMap = new CoarserMap(tileMap, CUT_SIZE + Math.floor(Math.random() * 6));
+
+
+    // assign teh includedLocs and build path to center of coarse tile
+    if (includeLocs) {
+        for (var i = 0; i < includeLocs.length; i++) {
+            loc = includeLocs[i];
+            var coarseLoc = coarseMap.getCoarseTileLocForMapLoc(loc);
+            coarseMap.setValAtLoc(coarseLoc, true);
+            connectLocs(tileMap, loc, coarseMap.getMapLocCenterFromCoarseMapLoc(coarseLoc), rgb);
+            if (Math.random() > .5) {
+                buildNodeAroundLoc(tileMap, loc, rgb, 5)
+            }
+        }
+    }
+
+    // randomly assign nodes
+    var last = false;
+    console.log('coarseMap height/width:', coarseMap.height, coarseMap.width);
+    for (x = 0; x < coarseMap.width; x++) {
+        for (y = 0; y < coarseMap.height; y++) {
+            if (Math.random() > .5 || !last) {
+                console.log('doing it at ', x, y);
+                last = true;
+                loc = new Location(x, y);
+                coarseMap.setValAtLoc(loc, true);
+                buildNodeAroundLoc(tileMap, coarseMap.getMapLocCenterFromCoarseMapLoc(loc), rgb)
+            } else {
+                last = false;
+            }
+        }
+    }
+
+    // connect nodes
+    for (x = 0; x < coarseMap.width; x++) {
+        for (y = 0; y < coarseMap.height; y++) {
+            loc = new Location(x, y);
+            connectCoarseNode(tileMap, coarseMap, loc, rgb);
+        }
+    }
+
+}
+
+module.exports = {
+    buildCaveSystem: buildCaveSystem
+};
+},{"../map/CoarserMap":16,"../map/Direction":19,"../map/Location":20,"../map/Tile":22}],13:[function(require,module,exports){
+var CreepMap = require('../map/CreepMap');
+
+var Level = {
+	getTileMap: function() {
+		return this.tileMap;
+	},
+	getCreepMap: function() {
+		return this.creepMap;
+	}
+};
+
+module.exports = Level;
+},{"../map/CreepMap":17}],14:[function(require,module,exports){
+var Level = require('./Level');
+var TestLevelCreator = require('./TestLevelCreator');
+
+
+function TestLevel() {
+    this.tileMap = TestLevelCreator.createLevel();
+    this.creepMap = TestLevelCreator.createTestCreepMap(this.tileMap);
+}
+
+TestLevel.prototype = Object.create(Level);
+
+module.exports = TestLevel;
+},{"./Level":13,"./TestLevelCreator":15}],15:[function(require,module,exports){
 var TileMap = require('../map/TileMap');
+var CreepMap = require('../map/CreepMap');
 var Tile = require('../map/Tile');
 var Location = require('../map/Location');
+var CaveBuilder = require('./CaveBuilder');
 var RGB = require('../RGB');
 
-function createLevel() {
+function createTestTileMap(mapLevel, heroLevel) {
+    // TODO: do we need to use hero level?
     var height = 20;
     var width = 20;
     var tileMap = new TileMap(height, width);
+    var downStairs = new Location(2, 2);
+    var upStairs = new Location(17, 17);
+    CaveBuilder.buildCaveSystem(tileMap, new RGB(255, 0, 0), [downStairs, upStairs]);
+    /*
     for (var x = 0; x < width; x++) {
         for (var y = 0; y < height; y++) {
             var rgb = new RGB(
@@ -447,15 +706,68 @@ function createLevel() {
             tileMap.addTileAtLoc(new Location(x, y), tile);
         }
     }
+    */
+    tileMap.addStairsDownAtLoc(new Location(2, 2));
+    tileMap.addStairsUp(new Location(17, 17));
     return tileMap;
+}
+
+function createTestCreepMap(tileMap, mapLevel, heroLevel) {
+    // TODO: use mapLevel and herolevel when making map
+    var height = tileMap.height;
+    var width = tileMap.width;
+    var creepMap = new CreepMap(height, width);
+    // TODO: add creeps here!
+    return creepMap;
 }
 
 
 module.exports = {
-    createLevel: createLevel
+    createLevel: createTestTileMap,
+    createTestCreepMap: createTestCreepMap
 };
-},{"../RGB":6,"../map/Location":15,"../map/Tile":16,"../map/TileMap":17}],12:[function(require,module,exports){
+},{"../RGB":7,"../map/CreepMap":17,"../map/Location":20,"../map/Tile":22,"../map/TileMap":23,"./CaveBuilder":12}],16:[function(require,module,exports){
+var Map = require('./Map');
 var Location = require('./Location');
+
+
+function CoarserMap(map, tileSize) {
+    this.width = Math.ceil(map.width/tileSize);
+    this.height = Math.ceil(map.height/tileSize);
+    this.fineMap = map;
+    this.tileSize = tileSize;
+    this.map = new Array(this.width);
+    for (var i = 0; i < this.width; i++) {
+        this.map[i] = new Array(this.height);
+    }
+}
+
+CoarserMap.prototype = {
+    locOnMap: Map.locOnMap,
+    projectLocOnMap: Map.projectLocOnMap,
+    getValAtLoc: Map.getValAtLoc,
+    setValAtLoc: Map.setValAtLoc,
+    getCoarseTileLocForMapLoc: function(loc) {
+        return new Location(
+            Math.floor(loc.x / this.tileSize),
+            Math.floor(loc.y / this.tileSize)
+        );
+    },
+    getMapLocCenterFromCoarseMapLoc: function(loc) {
+        return new Location(
+            Math.floor(loc.x * this.tileSize + this.tileSize / 2),
+            Math.floor(loc.y * this.tileSize + this.tileSize / 2)
+        );
+    }
+
+};
+
+
+
+module.exports = CoarserMap;
+},{"./Location":20,"./Map":21}],17:[function(require,module,exports){
+var Location = require('./Location');
+var Map = require('./Map');
 
 function CreepMap(x, y) {
     this.width = x;
@@ -469,9 +781,15 @@ function CreepMap(x, y) {
 }
 
 CreepMap.prototype = {
+    locOnMap: Map.locOnMap,
+    projectLocOnMap: Map.projectLocOnMap,
     addHeroToMapAtLoc: function(loc, hero) {
         this.moveCreepToLoc(loc, hero);
         this.hero = hero;
+    },
+    removeHero: function() {
+        this.deleteCreepAtLoc(this.hero.location);
+        this.hero = null;
     },
     addCreepToMapAtLoc: function(loc, creep) {
         this.moveCreepToLoc(loc, creep);
@@ -523,7 +841,7 @@ CreepMap.prototype = {
 };
 
 module.exports = CreepMap;
-},{"./Location":15}],13:[function(require,module,exports){
+},{"./Location":20,"./Map":21}],18:[function(require,module,exports){
 /* Runs Dijkstra to compute moveMap. Each value in moveMap is one of the following offsets 
    indicating shortest direction to startLoc: [0,1], [0,-1], [1,0], [-1,0]. */
 function calculate(dij) {
@@ -587,11 +905,81 @@ Dijkstra.prototype = {
 };
 
 module.exports = Dijkstra;
-},{}],14:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 function Direction(x, y) {
-    this.x = x;
-    this.y = y;
+    var result;
+    if (Math.abs(x) + Math.abs(y) > 1) {
+         if (Math.abs(x) > Math.abs(y)) {
+             if (x * Direction.EAST.x > 0) {
+                 result = Direction.EAST;
+             } else {
+                 result = Direction.WEST;
+             }
+         } else {
+             if (y * Direction.NORTH.y > 0) {
+                 result = Direction.NORTH;
+             } else {
+                 result = Direction.SOUTH;
+             }
+         }
+    }
+    if (result) {
+        this.x = result.x;
+        this.y = result.y;
+    } else {
+        this.x = x;
+        this.y = y;
+    }
 }
+
+Direction.prototype = {
+    rotateRight: function() {
+        if (this.isEqualTo(Direction.NORTH)) {
+            return Direction.EAST;
+        }
+        if (this.isEqualTo(Direction.EAST)) {
+            return Direction.SOUTH;
+        }
+        if (this.isEqualTo(Direction.SOUTH)) {
+            return Direction.WEST
+        }
+        if (this.isEqualTo(Direction.WEST)) {
+            return Direction.NORTH;
+        }
+    },
+    rotateLeft: function() {
+        if (this.isEqualTo(Direction.NORTH)) {
+            return Direction.WEST;
+        }
+        if (this.isEqualTo(Direction.EAST)) {
+            return Direction.NORTH;
+        }
+        if (this.isEqualTo(Direction.SOUTH)) {
+            return Direction.EAST;
+        }
+        if (this.isEqualTo(Direction.WEST)) {
+            return Direction.SOUTH;
+        }
+    },
+    opposite: function() {
+        if (this.isEqualTo(Direction.NORTH)) {
+            return Direction.SOUTH;
+        }
+        if (this.isEqualTo(Direction.EAST)) {
+            return Direction.WEST;
+        }
+        if (this.isEqualTo(Direction.SOUTH)) {
+            return Direction.NORTH
+        }
+        if (this.isEqualTo(Direction.WEST)) {
+            return Direction.EAST;
+        }
+    },
+    isEqualTo: function(dir) {
+        return this.x === dir.x && this.y === dir.y;
+    }
+};
+
 
 Direction.NORTH = new Direction(0, -1);
 Direction.EAST = new Direction(1, 0);
@@ -599,39 +987,10 @@ Direction.WEST = new Direction(-1, 0);
 Direction.SOUTH = new Direction(0, 1);
 Direction.NONE = new Direction(0, 0);
 
-Direction.prototype = {
-    rotateRight: function(dir) {
-        if (dir.x === Direction.NORTH.x && dir.y === Direction.NORTH.y) {
-            return Direction.EAST;
-        }
-        if (dir.x === Direction.EAST.x && dir.y === Direction.EAST.y) {
-            return Direction.SOUTH;
-        }
-        if (dir.x === Direction.SOUTH.x && dir.y === Direction.SOUTH.y) {
-            return Direction.WEST
-        }
-        if (dir.x === Direction.WEST.x && dir.y === Direction.WEST.y) {
-            return Direction.NORTH;
-        }
-    },
-    rotateLeft: function(dir) {
-        if (dir.x === Direction.NORTH.x && dir.y === Direction.NORTH.y) {
-            return Direction.WEST;
-        }
-        if (dir.x === Direction.EAST.x && dir.y === Direction.EAST.y) {
-            return Direction.NORTH;
-        }
-        if (dir.x === Direction.SOUTH.x && dir.y === Direction.SOUTH.y) {
-            return Direction.EAST
-        }
-        if (dir.x === Direction.WEST.x && dir.y === Direction.WEST.y) {
-            return Direction.SOUTH;
-        }
-    }
-};
+
 
 module.exports = Direction;
-},{}],15:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 var Direction = require('./Direction');
 
 function Location(x, y) {
@@ -657,23 +1016,9 @@ Location.prototype = {
     directionTo: function(location) {
         var x = location.x - this.x;
         var y = location.y - this.y;
-        if (x === 0 && y === 0) {
-            return Direction.NONE;
-        }
-        if (Math.abs(x) > Math.abs(y)) {
-            if (x * Direction.EAST.x > 0) {
-                return Direction.EAST;
-            } else {
-                return Direction.WEST;
-            }
-        } else {
-            if (y * Direction.NORTH.y > 0) {
-                return Direction.NORTH;
-            } else {
-                return Direction.SOUTH;
-            }
-        }
 
+        // Direction constructor takes care of mapping to scaler direction
+        return new Direction(x, y);
     },
     isAdjacentTo: function(location) {
         var x = location.x - this.x;
@@ -683,7 +1028,57 @@ Location.prototype = {
 };
 
 module.exports = Location;
-},{"./Direction":14}],16:[function(require,module,exports){
+},{"./Direction":19}],21:[function(require,module,exports){
+var Location = require('./Location');
+
+var Map = {
+    locOnMap: function(loc) {
+        if (loc.x < 0 || loc.y < 0) {
+			return false;
+		}
+		if (loc.x >= this.width) {
+			return false;
+		}
+		if (loc.y >= this.height) {
+			return false;
+		}
+        return true;
+    },
+    projectLocOnMap: function(loc) {
+        if (this.locOnMap(loc)) {
+            return loc;
+        }
+        var x = loc.x;
+        var y = loc.y
+        if (x < 0) {
+            x = 0;
+        } else if (x >= this.width) {
+            x = this.width - 1;
+        }
+        if (y < 0) {
+            y = 0;
+        } else if (y >= this.height) {
+            y = this.height - 1;
+        }
+        return new Location(x, y);
+    },
+    setValAtLoc: function(loc, val) {
+        if (!this.locOnMap(loc)) {
+            throw "Tried to set something offmap!";
+        }
+        this.map[loc.x][loc.y] = val;
+    },
+    getValAtLoc: function(loc) {
+        if (!this.locOnMap(loc)) {
+            return null;
+        }
+        return this.map[loc.x][loc.y];
+    }
+};
+
+
+module.exports = Map;
+},{"./Location":20}],22:[function(require,module,exports){
 var GameObject = require('../GameObject');
 var RGB = require('../RGB');
 
@@ -704,8 +1099,9 @@ Tile.prototype = Object.create(GameObject);
 
 module.exports = Tile;
 
-},{"../GameObject":4,"../RGB":6}],17:[function(require,module,exports){
+},{"../GameObject":5,"../RGB":7}],23:[function(require,module,exports){
 var Location = require('./Location');
+var Map = require('./Map');
 var Tile = require('./Tile');
 
 function TileMap(x, y) {
@@ -720,20 +1116,16 @@ function TileMap(x, y) {
 }
 
 TileMap.prototype = {
+    locOnMap: Map.locOnMap,
+    projectLocOnMap: Map.projectLocOnMap,
     addTileAtLoc: function(loc, tile) {
         var x = loc.x;
         var y = loc.y;
         if (!tile) {
             throw "Tile not defined!"
         }
-        if (x < 0 || y < 0) {
-			throw "Tried to add tile to a negative location (" + x + ", " + y + ")";
-		}
-		if (x >= this.width) {
-			throw "Tried to add tile to a location offmap! (" + x + " >= " + this.width + ")";
-		}
-		if (y >= this.height) {
-			throw "Tried to add tile to a location offmap! (" + y + " >= " + this.height + ")";
+		if (!this.locOnMap(loc)) {
+            loc = this.projectLocOnMap(loc);
 		}
 		this.tiles[x][y] = tile;
     },
@@ -741,31 +1133,24 @@ TileMap.prototype = {
         if (!tile) {
             throw "Tile not defined!"
         }
-        if (loc.x < 0 || loc.y < 0) {
-			throw "Tried to add tile to a negative location (" + loc.x + ", " + loc.y + ")";
+		if (!this.locOnMap(loc)) {
+            loc = this.projectLocOnMap(loc);
 		}
-		if (loc.x >= this.width) {
-			throw "Tried to add tile to a location offmap! (" + loc.x + " >= " + this.width + ")";
-		}
-		if (loc.y >= this.height) {
-			throw "Tried to add tile to a location offmap! (" + loc.y + " >= " + this.height + ")";
-		}
-        if (this.tiles[loc.x][loc.y]) {
-            this.tiles[loc.x][loc.y] = new Tile(tile.getRepr(), tile.getRGB(this.tiles[loc.x][loc.y].getRGB()))
+        var existingTile = this.tiles[loc.x][loc.y];
+        if (existingTile) {
+            this.tiles[loc.x][loc.y] = new Tile(existingTile.getRepr(), tile.getRGB(existingTile.getRGB()))
         } else {
             this.tiles[loc.x][loc.y] = tile;
         }
     },
+    mergeFloorTileAtLoc: function(loc, rgb) {
+        var tile = new Tile(Tile.FLOOR_TILE, rgb);
+        this.mergeTileAtLoc(loc, tile);
+    },
     getTileAtLoc: function(loc) {
-        if (loc.x < 0 || loc.y < 0) {
-			return;
-		}
-		if (loc.x >= this.width) {
-			return;
-		}
-		if (loc.y >= this.height) {
-			return;
-		}
+        if (!this.locOnMap(loc)) {
+            return;
+        }
 		return this.tiles[loc.x][loc.y];
     },
 	getTileAtXY: function(x, y) {
@@ -797,4 +1182,4 @@ TileMap.prototype = {
 };
 
 module.exports = TileMap;
-},{"./Location":15,"./Tile":16}]},{},[10])
+},{"./Location":20,"./Map":21,"./Tile":22}]},{},[11])
