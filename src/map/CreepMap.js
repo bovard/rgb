@@ -16,6 +16,10 @@ CreepMap.prototype = {
         this.moveCreepToLoc(loc, hero);
         this.hero = hero;
     },
+    removeHero: function() {
+        this.deleteCreepAtLoc(this.hero.location);
+        this.hero = null;
+    },
     addCreepToMapAtLoc: function(loc, creep) {
         this.moveCreepToLoc(loc, creep);
         this.creeps.push(creep);

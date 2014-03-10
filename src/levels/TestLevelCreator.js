@@ -1,9 +1,10 @@
 var TileMap = require('../map/TileMap');
+var CreepMap = require('../map/CreepMap');
 var Tile = require('../map/Tile');
 var Location = require('../map/Location');
 var RGB = require('../RGB');
 
-function createLevel() {
+function createTestTileMap() {
     var height = 20;
     var width = 20;
     var tileMap = new TileMap(height, width);
@@ -18,10 +19,20 @@ function createLevel() {
             tileMap.addTileAtLoc(new Location(x, y), tile);
         }
     }
+    tileMap.addStairsDownAtLoc(new Location(2, 2));
+    tileMap.addStairsUp(new Location(17, 17));
     return tileMap;
+}
+
+function createTestCreepMap(tileMap, level) {
+    var height = tileMap.height;
+    var width = tileMap.width;
+    var creepMap = new CreepMap(height, width);
+    return creepMap;
 }
 
 
 module.exports = {
-    createLevel: createLevel
+    createLevel: createTestTileMap,
+    createTestCreepMap: createTestCreepMap
 };

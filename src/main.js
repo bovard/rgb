@@ -37,7 +37,7 @@ function turn(code) {
 
     game.hero.actionsPerformed = 0;
 
-    renderer.render(game.tileMap, game.creepMap);
+    render();
 
     // TODO: creep stuff
 
@@ -51,11 +51,16 @@ function turn(code) {
 }
 
 
+function render() {
+    renderer.render(game.getTileMap(), game.getCreepMap());
+
+}
+
 
 function restart() {
     needsRestart = false;
     game = new Game(Chat, gameOver);
-    renderer.render(game.tileMap, game.creepMap);
+    render();
 }
 
 

@@ -20,7 +20,7 @@ gulp.task('scripts', function() {
                 }
             }
         }))
-        .pipe(concat('rgb.js?cb='+Math.random()))
+        .pipe(concat('rgb.js'))
         .pipe(gulp.dest('build'))
         .pipe(refresh(server))
 });
