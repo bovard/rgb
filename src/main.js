@@ -9,14 +9,21 @@ var renderer = null;
 
 var game;
 
-function keyPressEvent(event) {
+$(document).keyup(function(event) {
     if (needsRestart) {
         restart();
     }
-    if ([12, 13, 14, 15].indexOf(event.code) !== -1) {
-        turn(event.code);
+
+    if ([12, 13, 14, 15].indexOf(event.keyCode) !== -1) {
+        turn(event.keyCode);
     }
-}
+});
+
+
+// binds keys after the browser loads
+$(function() {
+
+});
 
 
 function turn(code) {
