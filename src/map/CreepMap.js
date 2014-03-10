@@ -59,3 +59,5 @@ CreepMap.prototype = {
 		this.creepsLoc[x][y] = undefined;
 	}
 };
+
+module.exports = CreepMap;

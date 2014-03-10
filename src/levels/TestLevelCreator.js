@@ -5,7 +5,7 @@ var RGB = require('../RGB');
 function createLevel() {
     var height = 20;
     var width = 20;
-    var tileMap = new TileMap();
+    var tileMap = new TileMap(height, width);
     for (var x = 0; x < width; x++) {
         for (var y = 0; y < height; y++) {
             var rgb = new RGB(
