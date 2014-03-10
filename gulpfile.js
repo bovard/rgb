@@ -8,24 +8,31 @@ var server = lr();
 
 gulp.task('scripts', function() {  
     gulp.src(['src/**/*.js'])
-        .pipe(browserify())
+        .pipe(browserify({
+            shim: {
+                jquery: {
+                    path: 'lib/jquery-1.11.0.min.js',
+                    exports: '$'
+                }
+            }
+        }))
         .pipe(concat('dest.js'))
         .pipe(gulp.dest('build'))
         .pipe(refresh(server))
-})
+});
 
 gulp.task('styles', function() {  
     gulp.src(['css/**/*.css'])
         .pipe(styl({compress : true}))
         .pipe(gulp.dest('build'))
         .pipe(refresh(server))
-})
+});
 
 gulp.task('lr-server', function() {  
     server.listen(35729, function(err) {
         if(err) return console.log(err);
     });
-})
+});
 
 gulp.task('default', function() {  
     gulp.run('lr-server', 'scripts', 'styles');
@@ -37,4 +44,4 @@ gulp.task('default', function() {
     gulp.watch('css/**', function(event) {
         gulp.run('styles');
     })
-})
+});
