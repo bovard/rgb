@@ -4,7 +4,8 @@ var Tile = require('../map/Tile');
 var Location = require('../map/Location');
 var RGB = require('../RGB');
 
-function createTestTileMap() {
+function createTestTileMap(mapLevel, heroLevel) {
+    // TODO: do we need to use hero level?
     var height = 20;
     var width = 20;
     var tileMap = new TileMap(height, width);
@@ -24,7 +25,8 @@ function createTestTileMap() {
     return tileMap;
 }
 
-function createTestCreepMap(tileMap, level) {
+function createTestCreepMap(tileMap, mapLevel, heroLevel) {
+    // TODO: use mapLevel and herolevel when making map
     var height = tileMap.height;
     var width = tileMap.width;
     var creepMap = new CreepMap(height, width);
