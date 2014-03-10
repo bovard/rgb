@@ -2,6 +2,7 @@ var Hero = require('./creeps/Hero');
 var TestLevelCreator = require('./levels/TestLevelCreator');
 var CreepMap = require('./map/CreepMap');
 var Direction = require('./map/Direction');
+var InputTrigger = require('./InputTrigger');
 
 
 function Game(chat, deathCallback) {
@@ -15,6 +16,8 @@ function Game(chat, deathCallback) {
         Math.round(this.tileMap.height / 2),
         this.hero
     );
+	this.input = {};
+	this.initInput();
 }
 
 Game.prototype = {
@@ -25,12 +28,10 @@ Game.prototype = {
         return this.creepMap;
     },
     takeHeroTurn: function(code) {
-        this.hero.actionsPerformed += 1;
-        if ([12, 13, 14, 15].indexOf(code) !== -1) {
-            // get the direction
-            this.moveOrAttack(null);
-        }
-
+		// If there is an InputTrigger for this code, fire it
+        if (this.input[code]) {
+			this.input[code].fire();
+		}
     },
     moveOrAttack: function(dir) {
         var x = this.hero.location[0] + dir.x;
@@ -58,7 +59,25 @@ Game.prototype = {
          */
 
 
-    }
+    },
+	initInput: function() {
+		this.input[37] = new InputTrigger(function() {
+			this.hero.actionsPerformed += 1;
+			this.moveOrAttack(Direction.WEST);
+		}, this);
+		this.input[38] = new InputTrigger(function() {
+			this.hero.actionsPerformed += 1;
+			this.moveOrAttack(Direction.NORTH);
+		}, this);
+		this.input[39] = new InputTrigger(function() {
+			this.hero.actionsPerformed += 1;
+			this.moveOrAttack(Direction.EAST);
+		}, this);
+		this.input[40] = new InputTrigger(function() {
+			this.hero.actionsPerformed += 1;
+			this.moveOrAttack(Direction.SOUTH);
+		}, this);
+	}
 };
 
 module.exports = Game;
