@@ -39,8 +39,9 @@ Game.prototype = {
     moveOrAttack: function(dir) {
         var newLoc = this.hero.location.add(dir);
         if (!this.tileMap.getTileAtLoc(newLoc)) {
+            console.log("here!");
             this.chat.crit("You step into nothingness and feel yourself falling faster and faster into the abyss");
-            this.kill();
+            this.hero.kill();
             return;
         }
         var creep = this.creepMap.getCreepAtLoc(newLoc);
