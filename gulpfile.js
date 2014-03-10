@@ -20,7 +20,7 @@ gulp.task('scripts', function() {
                 }
             }
         }))
-        .pipe(concat('rgb.js'))
+        .pipe(concat('rgb.js?cb='+Math.random()))
         .pipe(gulp.dest('build'))
         .pipe(refresh(server))
 });
@@ -40,6 +40,7 @@ gulp.task('lr-server', function() {
 
 gulp.task('default', function() {  
     //gulp.run('lr-server', 'scripts', 'styles');
+    //gulp.run('scripts');
 
     gulp.watch('src/**', function(event) {
         gulp.run('scripts');

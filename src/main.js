@@ -1,7 +1,11 @@
 var Game = require('./Game');
 var Dijkstra = require('./map/Dijkstra');
 var Renderer = require('./Renderer');
+var Chat = require('./Chat');
 
+Chat.setOputFunction(function(message, color) {
+    console.log(message, color);
+});
 
 var gameOverState = false;
 var needsRestart = true;
@@ -13,17 +17,12 @@ $(document).keyup(function(event) {
     console.log("HERE");
     if (needsRestart) {
         restart();
+        return;
     }
 
     if ([37, 38, 39, 40].indexOf(event.keyCode) !== -1) {
         turn(event.keyCode);
     }
-});
-
-
-// binds keys after the browser loads
-$(function() {
-
 });
 
 
@@ -55,7 +54,7 @@ function turn(code) {
 
 function restart() {
     needsRestart = false;
-    game = new Game();
+    game = new Game(Chat, gameOver);
     renderer.render(game.tileMap, game.creepMap);
 }
 

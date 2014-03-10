@@ -43,16 +43,7 @@ Hero.prototype = {
     setNumActions: function(number) {
         this.numActions = number;
     },
-	/* TODO: this becomes obsolete with CoreStats class? */
-    attackMe: function(creep) {
-
-        if (!creep.tryToHit(this)) {
-            this.chat.warn(creep.attackMessage() + " but misses!");
-            return;
-        }
-
-        var dmg = creep.doDamage(this);
-
+	takeDamage: function(damage) {
         // first subtract from shield if there is one
         if (this.shield > 0) {
             if (this.shield > dmg) {
@@ -74,10 +65,6 @@ Hero.prototype = {
             }
             this.chat.crit(creep.attackMessage() + " YOU!")
         }
-
-    },
-	takeDamage: function(damage) {
-		/* TODO: implement how the hero takes damage, probably borrowing from above attackMe function. */
 	},
     kill: function() {
         this.chat.crit("You have died! Press Enter to restart");

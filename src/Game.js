@@ -8,7 +8,7 @@ var InputTrigger = require('./InputTrigger');
 
 function Game(chat, deathCallback) {
     // TODO: fix this a lot
-    this.hero = new Hero(deathCallback);
+    this.hero = new Hero(deathCallback, chat);
     this.tileMap = TestLevelCreator.createLevel();
     this.creepMap = new CreepMap(this.tileMap.width, this.tileMap.height);
     this.chat = chat;
@@ -48,6 +48,11 @@ Game.prototype = {
         if (!creep) {
             this.creepMap.moveHeroToLoc(newLoc);
             // if it's a stairs, move the hero the appropriate level
+            if (this.tileMap.getUpStairsLoc().isEqualTo(newLoc)) {
+
+            } else if (this.tileMap.getDownStairsLoc().isEqualTo(newLoc)) {
+
+            }
             return;
         }
 
