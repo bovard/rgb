@@ -25,7 +25,7 @@ Creep.ATTACK_TYPE_RANGED = 2;
 
 util.inherit(Creep, GameObject);
 
-Creep.prototype = {
+util.Extend(Creep, {
 	getHealth: function() { return this.health; },
 	canMove: function(tile) { throw "Creep.canMove: abstract method called"; },
     getAttackMessage: function() { throw "Creep.attackMessage: abstract method called"; },
@@ -33,6 +33,6 @@ Creep.prototype = {
     doDamage: function(hero) { throw "Creep.doDamage: abstract method called"; },
     getLocation: function() { return this.location; },
     setLocation: function(loc) { this.location = loc }
-};
+});
 
 module.exports = Creep;

@@ -28,7 +28,7 @@ function Gnome() {
 util.inherit(Gnome, Creep);
 
 // Making these all abstract for now, we can change if need be
-Gnome.prototype = {
+util.extend(Gnome, {
 	canMove: function(tile) { /* TODO: implement */ },
     getAttackMessage: function() { 
 		return "The gnome swings its tiny pickaxe at you with unsettling determination."; 
@@ -40,6 +40,6 @@ Gnome.prototype = {
 		var damageDealt = this.coreStats.resolveDamage(hero.coreStats);
 		hero.takeDamage(damageDealt);
 	},
-};
+});
 
 module.exports = Gnome;

@@ -23,6 +23,6 @@ CoreStats.prototype = {
         return Math.max(1, dmg);
 
 	}
-}
+};
 
 module.exports = CoreStats;

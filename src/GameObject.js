@@ -1,4 +1,7 @@
-var GameObject = {
+function GameObject() {
+}
+
+GameObject.prototype = {
 	getRepr: function() {
 		return this.repr;
 	},
@@ -8,6 +11,6 @@ var GameObject = {
 		}
 		return this.rgb.mask(filter)
 	},
-}
+};
 
 module.exports = GameObject;
