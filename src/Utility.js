@@ -337,6 +337,11 @@ Utility.prototype  = {
 		prototype.constructor = child;
 		child.prototype = prototype;
 	},
+	extend: function(type, properties) {
+		this.forEachIn(properties, function(property, value) {
+			type.prototype[property] = value;
+		});
+	},
 	bind: function(func, object) {
 		return function() {
 			return func.apply(object,arguments);

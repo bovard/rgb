@@ -1,4 +1,7 @@
-var GameObject = {
+function GameObject() {
+}
+
+GameObject.prototype = {
 	getRepr: function() {
 		return this.repr;
 	},

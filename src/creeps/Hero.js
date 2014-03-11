@@ -1,6 +1,8 @@
 /* Hero class. */
 var CoreStats = require('./CoreStats');
 var RGB = require('../RGB');
+var util = require('./../Utility');
+var GameObject = require('./../GameObject');
 
 function Hero(deathCallback, chat) {
     this.health = 10;
@@ -28,7 +30,9 @@ function Hero(deathCallback, chat) {
     //
 }
 
-Hero.prototype = {
+util.inherit(Hero, GameObject);
+
+util.extend(Hero, {
     endTurn: function() {
         if (this.speedBoost > 0) {
             this.speedBoost--;
@@ -82,6 +86,6 @@ Hero.prototype = {
     getRepr: function() {
         return this.repr;
     }
-};
+});
 
 module.exports = Hero;
