@@ -11,6 +11,6 @@ GameObject.prototype = {
 		}
 		return this.rgb.mask(filter)
 	},
-}
+};
 
 module.exports = GameObject;
