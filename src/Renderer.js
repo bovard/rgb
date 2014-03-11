@@ -1,11 +1,50 @@
 /* Renders the game to the canvas. */
 var Location = require('./map/Location');
+var Tile = require('./map/Tile');
 
 // Transform location to be relative to center & scaled by Renderer.GAME_TO_CANVAS
 function toCanvasSpace(location, centerLoc) {
 	var relativeLoc = new Location(location.x + -centerLoc.x, location.y + -centerLoc.y); 
 	return new Location(relativeLoc.x * Renderer.GAME_TO_CANVAS,
 		relativeLoc.y * Renderer.GAME_TO_CANVAS);
+}
+
+// Draws a tile 
+function drawTile(tile, loc, filter) {
+	this.context.strokeStyle = tile.getRGB(filter).toString();
+	this.context.lineWidth = 2;
+	// Get loc in canvas space
+	canvasLoc = toCanvasSpace(loc, this.centerLoc);
+	this.context.strokeRect(canvasLoc.x - Renderer.TILE_WIDTH/2, 
+		canvasLoc.y - Renderer.TILE_WIDTH/2,
+		Renderer.TILE_WIDTH, 
+		Renderer.TILE_WIDTH);
+	// If this is upstairs or downstairs, draw the symbol as well
+	if (tile.getRepr() !== Tile.FLOOR_TILE) {
+		drawSymbol.call(this, tile, loc, filter, false);
+	}
+} 
+
+/* Draws the appropriate symbol for a:
+	- creep
+	- hero
+	- downstairs tile
+	- upstairs tile
+*/
+function drawSymbol(entity, loc, filter, isHero) {
+	// If hero, draw without filter
+	this.context.fillStyle = isHero ? entity.getRGB().toString() :
+		entity.getRGB(filter).toString();
+	// Set font size
+	this.context.font = "12px Arial";
+	// Get loc in canvas space
+	canvasLoc = toCanvasSpace(loc, this.centerLoc);
+	var txt = entity.getRepr();
+	var txtWidth = this.context.measureText(txt).width;
+	var txtHeight = 6; // txtHeight ~ .5 * font size
+	this.context.fillText(txt,
+		canvasLoc.x - txtWidth/2, 
+		canvasLoc.y + txtHeight/2);
 }
 
 function Renderer(canvas) {
@@ -25,6 +64,7 @@ function Renderer(canvas) {
    the canvas context.
 */
 Renderer.GAME_TO_CANVAS = 18;
+Renderer.TILE_WIDTH = 15;
 
 Renderer.prototype = {
     render: function(tileMap, creepMap, filter) {
@@ -53,24 +93,15 @@ Renderer.prototype = {
                 }
 				// If there is a tile to draw in this location, draw it
 				if (tileMap.getTileAtLoc(loc)) {
-					this.context.fillStyle = tileMap.getTileAtLoc(loc).getRGB(filter).toString();
-					// Get loc in canvas space
-					canvasLoc = toCanvasSpace(loc, this.centerLoc);
-					this.context.fillText(tileMap.getTileAtLoc(loc).getRepr(),
-						canvasLoc.x, 
-						canvasLoc.y);
+					drawTile.call(this, tileMap.getTileAtLoc(loc), loc, filter);
 				}
 				// If a creep or the hero resides in this location, draw it
 				if (creepMap.getCreepAtLoc(loc)) {
-					// If hero, draw without filter
-					this.context.fillStyle = creepMap.heroAtLoc(loc) ?
-						creepMap.getCreepAtLoc(loc).getRGB().toString() :
-						creepMap.getCreepAtLoc(loc).getRGB(filter).toString();
-					// Get loc in canvas space
-					canvasLoc = toCanvasSpace(loc, this.centerLoc);
-					this.context.fillText(creepMap.getCreepAtLoc(loc).getRepr(),
-						canvasLoc.x, 
-						canvasLoc.y);
+					if (creepMap.heroAtLoc(loc)) {
+						drawSymbol.call(this, creepMap.getCreepAtLoc(loc), loc, filter, true);
+					} else {
+						drawSymbol.call(this, creepMap.getCreepAtLoc(loc), loc, filter, false);
+					}
 				}
 			}
 		}
