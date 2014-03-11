@@ -3,13 +3,12 @@ var CreepMap = require('../map/CreepMap');
 var Tile = require('../map/Tile');
 var Location = require('../map/Location');
 var CaveBuilder = require('./CaveBuilder');
+var CaveSpawner = require('./CaveSpawner');
 var RGB = require('../RGB');
+var TestLevel = require('./TestLevel');
 
-function createTestTileMap(mapLevel, heroLevel) {
+function createTestTileMap(tileMap) {
     // TODO: do we need to use hero level?
-    var height = 20;
-    var width = 20;
-    var tileMap = new TileMap(height, width);
     var downStairs = new Location(2, 2);
     var upStairs = new Location(17, 17);
     if (Math.random() < .25) {
@@ -17,7 +16,7 @@ function createTestTileMap(mapLevel, heroLevel) {
     } else if (Math.random() < .25) {
         upStairs = new Location(2, 17);
     }
-    CaveBuilder.buildCaveSystem(tileMap, new RGB(255, 0, 0), [downStairs, upStairs]);
+    var poi = CaveBuilder.buildCaveSystem(tileMap, new RGB(255, 0, 0), [downStairs, upStairs]);
     if (Math.random() < .10) {
         CaveBuilder.buildCaveSystem(tileMap, new RGB(0, 255, 0));
 
@@ -37,20 +36,32 @@ function createTestTileMap(mapLevel, heroLevel) {
     */
     tileMap.addStairsDownAtLoc(downStairs);
     tileMap.addStairsUp(upStairs);
-    return tileMap;
+
+    return poi;
 }
 
-function createTestCreepMap(tileMap, mapLevel, heroLevel) {
-    // TODO: use mapLevel and herolevel when making map
-    var height = tileMap.height;
-    var width = tileMap.width;
+function createTestCreepMap(tileMap, creepMap, poi, mapLevel, heroLevel) {
+    CaveSpawner.spawnCreeps(tileMap, creepMap, poi, new RGB(130, 0, 0), heroLevel);
+}
+
+
+function createLevel(height, width, dungeonLevel, heroLevel) {
+    if (!height) {
+        height = 20;
+    }
+    if (!width) {
+        width = 20;
+    }
+    var tileMap = new TileMap(height, width);
+    var poi = createTestTileMap(tileMap);
     var creepMap = new CreepMap(height, width);
-    // TODO: add creeps here!
-    return creepMap;
+    createTestCreepMap(tileMap, creepMap, poi);
+    return new TestLevel(tileMap, creepMap);
 }
 
 
 module.exports = {
-    createLevel: createTestTileMap,
-    createTestCreepMap: createTestCreepMap
+    createTileMap: createTestTileMap,
+    createTestCreepMap: createTestCreepMap,
+    createLevel: createLevel
 };

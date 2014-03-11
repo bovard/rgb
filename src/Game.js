@@ -1,8 +1,8 @@
 var Hero = require('./creeps/Hero');
 var TestLevel = require('./levels/TestLevel');
 var Direction = require('./map/Direction');
-var Location = require('./map/Location');
 var InputTrigger = require('./InputTrigger');
+var TestLevelCreator = require('./levels/TestLevelCreator');
 
 
 function Game(chat, deathCallback) {
@@ -82,7 +82,7 @@ Game.prototype = {
 		}, this);
 	},
     generateNewLevel: function() {
-        this.levels.push(new TestLevel());
+        this.levels.push(TestLevelCreator.createLevel(20, 20));
     },
     moveHeroToLevel: function(index) {
         if (this.level) {

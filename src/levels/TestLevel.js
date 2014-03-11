@@ -1,10 +1,8 @@
 var Level = require('./Level');
-var TestLevelCreator = require('./TestLevelCreator');
 
-
-function TestLevel() {
-    this.tileMap = TestLevelCreator.createLevel();
-    this.creepMap = TestLevelCreator.createTestCreepMap(this.tileMap);
+function TestLevel(tileMap, creepMap) {
+    this.tileMap = tileMap;
+    this.creepMap = creepMap;
 }
 
 TestLevel.prototype = Object.create(Level);

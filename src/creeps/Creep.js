@@ -25,7 +25,7 @@ Creep.ATTACK_TYPE_RANGED = 2;
 
 util.inherit(Creep, GameObject);
 
-util.Extend(Creep, {
+util.extend(Creep, {
 	getHealth: function() { return this.health; },
 	canMove: function(tile) { throw "Creep.canMove: abstract method called"; },
     getAttackMessage: function() { throw "Creep.attackMessage: abstract method called"; },

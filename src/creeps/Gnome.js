@@ -22,15 +22,14 @@ function Gnome() {
 		4,						 // Aggro Radius^2
 		new RGB(255, 255, 255),  // RGB
 		new CoreStats(2, 1)      // Core stats
-		);	
+		);
+    this.repr = 'g';
 }
 
 util.inherit(Gnome, Creep);
 
-// Making these all abstract for now, we can change if need be
 util.extend(Gnome, {
-	canMove: function(tile) { /* TODO: implement */ },
-    getAttackMessage: function() { 
+    getAttackMessage: function() {
 		return "The gnome swings its tiny pickaxe at you with unsettling determination."; 
 	},
     tryToHit: function(hero) { 

@@ -47,7 +47,6 @@ function connectLocs(tileMap, locA, locB, rgb) {
             toB = toB.rotateLeft();
         } else if (Math.random() < .15) {
             toB = toB.rotateRight();
-
         }
         tileMap.mergeFloorTileAtLoc(locA, rgb);
         if (jaggedPath && Math.random() < .25) {
@@ -123,6 +122,7 @@ function buildCaveSystem(tileMap, rgb, includeLocs) {
     // build a coarse map
     var x, y, loc;
     var coarseMap = new CoarserMap(tileMap, CUT_SIZE + Math.floor(Math.random() * 6));
+    var poi = [];
 
 
     // assign teh includedLocs and build path to center of coarse tile
@@ -148,6 +148,7 @@ function buildCaveSystem(tileMap, rgb, includeLocs) {
                 last = true;
                 loc = new Location(x, y);
                 coarseMap.setValAtLoc(loc, true);
+                poi.push(coarseMap.getMapLocCenterFromCoarseMapLoc(loc));
                 buildNodeAroundLoc(tileMap, coarseMap.getMapLocCenterFromCoarseMapLoc(loc), rgb)
             } else {
                 last = false;
@@ -162,6 +163,8 @@ function buildCaveSystem(tileMap, rgb, includeLocs) {
             connectCoarseNode(tileMap, coarseMap, loc, rgb);
         }
     }
+
+    return poi;
 
 }
 
