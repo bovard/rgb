@@ -13,8 +13,12 @@ function addGnonesNearPoi(tileMap, creepMap, poi) {
             var start = poi[i];
             start = start.add(Direction.randomDir());
             start = start.add(Direction.randomDir());
+            index = 0;
             while(!tileMap.getTileAtLoc(start) || creepMap.getCreepAtLoc(start)) {
                 start = start.add(Direction.randomDir());
+                if(index++ > 10) {
+                    continue;
+                }
             }
             creepMap.addCreepToMapAtLoc(start,  new Gnome());
         }
