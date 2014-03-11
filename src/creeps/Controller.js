@@ -67,6 +67,12 @@ Controller.prototype = {
     },
     getCharacter: function() {
         return this.character;
+    },
+    getCreepMap: function() {
+        return this.creepMap;
+    },
+    getTileMap: function() {
+        return this.tileMap;
     }
 };
 

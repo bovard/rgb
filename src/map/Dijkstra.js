@@ -30,7 +30,7 @@ function expand(loc, map, moveMap) {
 		// newLoc = loc + offset
 		newLoc = [loc[0] + offsets[i][0], loc[1] + offsets[i][1]];
 		// Is unexplored and has tile?
-		if (!moveMap[newLoc[0]][newLoc[1]] && !!map.getTileAtXY(newLoc[0], newLoc[1])) {
+		if (!!map.getTileAtXY(newLoc[0], newLoc[1]) && !moveMap[newLoc[0]][newLoc[1]]) {
 			// set moveMap[newLoc] = reflected offset (offset * -1)
 			moveMap[newLoc[0]][newLoc[1]] = [offsets[i][0] * -1, offsets[i][1] * -1];
 			// add newLoc to expanded
@@ -42,7 +42,9 @@ function expand(loc, map, moveMap) {
 }
 
 
-function Dijkstra(map, x, y) {
+function Dijkstra(map, loc) {
+    var x = loc.x;
+    var y = loc.y;
     this.map = map;
 	this.startLoc = [x,y];
     this.moveMap = new Array(this.map.width);
@@ -57,7 +59,7 @@ function Dijkstra(map, x, y) {
 Dijkstra.prototype = {
     getNextTile: function(loc) {
 		// Return passed in loc + offset in moveMap
-        return new Location(loc.x + this.moveMap[loc.x][loc.y][0], y + this.moveMap[loc.x][loc.y][1]);
+        return new Location(loc.x + this.moveMap[loc.x][loc.y][0], loc.y + this.moveMap[loc.x][loc.y][1]);
     }
 
 };

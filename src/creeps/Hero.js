@@ -16,7 +16,7 @@ function Hero(deathCallback, chat) {
     this.numActions = 1;
     this.actionsPerformed = 0;
     this.visionRadiusSquared = 10;
-	this.coreStats = new CoreStats(1, 1);
+	this.stats = new CoreStats(1, 1);
     this.rgb = new RGB(255, 255, 255);
     this.repr = '@';
     //
@@ -30,7 +30,7 @@ function Hero(deathCallback, chat) {
     //
 }
 
-util.inherit(Hero, Character);
+Hero.prototype = new Character();
 
 util.extend(Hero, {
     endTurn: function() {
@@ -73,7 +73,7 @@ util.extend(Hero, {
     kill: function() {
         this.chat.crit("You have died! Press Enter to restart");
         this.deathCallback();
-    },
+    }
 });
 
 module.exports = Hero;

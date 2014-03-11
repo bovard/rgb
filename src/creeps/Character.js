@@ -9,7 +9,7 @@ function Character(stats, location, maxHealth, numActions, radiusSquared) {
     this.radiusSquared = radiusSquared;
 }
 
-utils.inherit(Character, GameObject);
+Character.prototype = new GameObject();
 
 utils.extend(Character, {
     getHealth: function() { return this.health; },
@@ -30,3 +30,5 @@ utils.extend(Character, {
     kill: function() { throw "Character kill implement me!"; },
     getRadiusSquared: function() { return this.radiusSquared }
 });
+
+module.exports = Character;

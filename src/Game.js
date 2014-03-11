@@ -35,9 +35,10 @@ Game.prototype = {
         for (var i = 0; i < creepControllers.length; i++) {
             var creepController = creepControllers[i];
             if (creepController.isAdjacentToHero()) {
-                this.attackHero();
+                creepController.attackHero();
             } else {
                 var next = dijk.getNextTile(creepController.getCharacter().getLocation());
+                console.log("Dikj is telling me to go to", next.toString(), 'from', creepController.getCharacter().getLocation().toString());
                 var dir = creepController.getCharacter().getLocation().directionTo(next);
                 if (creepController.canMove(dir)) {
                     creepController.move(dir);

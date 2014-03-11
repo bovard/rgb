@@ -24,7 +24,7 @@ function Creep(difficultyLevel, attackType, numActions, maxHealth, aggroRadiusSq
 Creep.ATTACK_TYPE_MELEE = 1;
 Creep.ATTACK_TYPE_RANGED = 2;
 
-util.inherit(Creep, Character);
+Creep.prototype = new Character();
 
 util.extend(Creep, {
     getAttackMessage: function() { throw "Creep.attackMessage: abstract method called"; },

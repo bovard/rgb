@@ -2,15 +2,12 @@ var util = require('./../Utility');
 var Controller = require('./Controller');
 
 function CreepController(tileMap, creepMap, creep) {
-    Controller.call(
-        this,
-        tileMap,
-        creepMap,
-        creep
-    );
+    this.tileMap = tileMap;
+    this.creepMap = creepMap;
+    this.character = creep;
 }
 
-util.inherit(CreepController, Controller);
+CreepController.prototype = new Controller();
 
 util.extend(CreepController, {
     /**
@@ -18,22 +15,22 @@ util.extend(CreepController, {
      * @returns {*}
      */
     isAdjacentToHero: function() {
-        return this.character.getLocation().isAdjacentTo(this.creepMap.getHero().getLocation());
+        return this.getCharacter().getLocation().isAdjacentTo(this.creepMap.getHero().getLocation());
     },
     /**
      * Attacks whatever is in the given direction
      * @param dir
      */
     attack: function(dir) {
-        var loc = this.character.getLocation().add(dir);
+        var loc = this.getCharacter().getLocation().add(dir);
         if (this.isEmpty(loc)) {
             throw "Tried to attack an empty square... :("
         }
-        var target = this.creepMap.getCreepAtLoc(loc);
+        var target = this.getCreepMap().getCreepAtLoc(loc);
 
-        if(this.getStats().resolveHit(target.getStats())) {
-            var dmg = this.getStats().resolveDamage(this.target.getStats());
-            this.target.applyDamage(dmg);
+        if(this.getCharacter().getStats().resolveHit(target.getStats())) {
+            var dmg = this.getCharacter().getStats().resolveDamage(target.getStats());
+            target.applyDamage(dmg);
         }
 
     },
@@ -41,7 +38,7 @@ util.extend(CreepController, {
         if (!this.isAdjacentToHero()) {
             throw "Tried to attack hero but not adjacent!";
         }
-        var dirToHero = this.character.getLocation().directionTo(this.creepMap.getHero());
+        var dirToHero = this.getCharacter().getLocation().directionTo(this.getCreepMap().getHero().getLocation());
         this.attack(dirToHero);
     }
 });

@@ -1,16 +1,13 @@
 var util = require('./../Utility');
 var Controller = require('./Controller');
 
-function HeroController(tileMap, creepMap, creep) {
-    Controller.call(
-        this,
-        tileMap,
-        creepMap,
-        creep
-    );
+function HeroController(tileMap, creepMap, hero) {
+    this.tileMap = tileMap;
+    this.creepMap = creepMap;
+    this.character = hero;
 }
 
-util.inherit(HeroController, Controller);
+HeroController.prototype = new Controller();
 
 util.extend(HeroController, {
     /**
