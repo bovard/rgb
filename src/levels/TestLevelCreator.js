@@ -13,7 +13,7 @@ function createTestTileMap(mapLevel, heroLevel) {
     var downStairs = new Location(2, 2);
     var upStairs = new Location(17, 17);
     CaveBuilder.buildCaveSystem(tileMap, new RGB(255, 0, 0), [downStairs, upStairs]);
-    if (Math.random() > .10) {
+    if (Math.random() < .10) {
         CaveBuilder.buildCaveSystem(tileMap, new RGB(0, 255, 0));
 
     }
