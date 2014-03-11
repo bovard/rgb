@@ -42,12 +42,6 @@ Renderer.prototype = {
 		
 		// Scale by zoom factor
 		this.context.scale(this.zoomFactor,this.zoomFactor);
-		
-		// Calculate left and top canvas margins in order to keep tiles centered in the canvas
-		var leftMargin = (this.canvas.width - Renderer.TILE_WIDTH_PX * tileMap.width) / 2;
-		if (leftMargin < 0) throw "Renderer.render: canvas width cannot accommodate tileMap width.";
-		var topMargin = (this.canvas.height - Renderer.TILE_HEIGHT_PX * tileMap.height) / 2;
-		if (topMargin < 0) throw "Renderer.render: canvas height cannot accommodate tileMap height.";
 	
 		// Iterate through tileMap & creepMap and draw tiles & creeps & player.
 		for (var x = 0; x < tileMap.width; x++) {
