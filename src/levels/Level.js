@@ -27,6 +27,15 @@ Level.prototype = {
 		return this.creepMap;
 	},
     getCreepControllers: function() {
+        var toRemove = [];
+        for (var i = 0; i < this.creepControllers.length; i++) {
+            if (this.creepControllers[i].getCharacter().isDead()) {
+                toRemove.push(this.creepControllers[i]);
+            }
+        }
+        for (i = 0; i < toRemove.length; i++) {
+            this.creepControllers.splice(this.creepControllers.indexOf(toRemove[i]), 1);
+        }
         return this.creepControllers;
     }
 };

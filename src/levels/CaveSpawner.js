@@ -22,7 +22,9 @@ function addGnonesNearPoi(tileMap, creepMap, poi, rgb) {
             if (index < 10) {
                 gnome = new Gnome();
                 gnomes.push(gnome);
-                creepMap.addCreepToMapAtLoc(start, gnome);
+                if (!start.isEqualTo(tileMap.getDownStairsLoc()) && !start.isEqualTo(tileMap.getUpStairsLoc())) {
+                    creepMap.addCreepToMapAtLoc(start, gnome);
+                }
             }
         }
     }

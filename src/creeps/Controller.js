@@ -71,9 +71,15 @@ Controller.prototype = {
     getCreepMap: function() {
         return this.creepMap;
     },
+    setCreepMap: function(creepMap) {
+        this.creepMap = creepMap;
+    },
     getTileMap: function() {
         return this.tileMap;
-    }
+    },
+    setTileMap: function(tileMap) {
+        this.tileMap = tileMap;
+    },
 };
 
 module.exports = Controller;

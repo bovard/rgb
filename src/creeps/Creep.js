@@ -28,6 +28,8 @@ Creep.prototype = new Character();
 
 util.extend(Creep, {
     getAttackMessage: function() { throw "Creep.attackMessage: abstract method called"; },
+    getAggroRange: function() { return this.aggroRadiusSquared; },
+    kill: function() {}
 });
 
 console.log(Creep);

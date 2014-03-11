@@ -40,6 +40,10 @@ util.extend(CreepController, {
         }
         var dirToHero = this.getCharacter().getLocation().directionTo(this.getCreepMap().getHero().getLocation());
         this.attack(dirToHero);
+    },
+    aggroHero: function() {
+        return this.getCharacter().getLocation().distanceSquaredTo(this.getCreepMap().getHero().getLocation()) <= this.getCharacter().getAggroRange();
+
     }
 });
 

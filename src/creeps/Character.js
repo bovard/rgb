@@ -1,19 +1,22 @@
 var GameObject = require('../GameObject');
 var utils = require('../Utility');
 
-function Character(stats, location, maxHealth, numActions, radiusSquared) {
+function Character(stats, location, maxHealth, numActions, radiusSquared, name) {
     this.stats = stats;
     this.location = location;
     this.health = maxHealth;
     this.numActions = numActions;
     this.radiusSquared = radiusSquared;
+    this.name = name;
 }
 
 Character.prototype = new GameObject();
 
 utils.extend(Character, {
+    setHealth: function(health) { this.health = health; },
     getHealth: function() { return this.health; },
     applyDamage: function(damage) {
+        console.log("Applying damage to ", this.name);
         this.health -= damage;
         if (this.health > 0) {
             return false;
@@ -27,7 +30,7 @@ utils.extend(Character, {
     getStats: function() {return this.stats;},
     getNumActions: function() {return this.numActions; },
     isDead: function() {return this.health <= 0; },
-    kill: function() { throw "Character kill implement me!"; },
+    kill: function() { throw "Character.kill implement me!"; },
     getRadiusSquared: function() { return this.radiusSquared }
 });
 

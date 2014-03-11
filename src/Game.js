@@ -3,11 +3,13 @@ var TestLevel = require('./levels/TestLevel');
 var Direction = require('./map/Direction');
 var InputTrigger = require('./InputTrigger');
 var TestLevelCreator = require('./levels/TestLevelCreator');
+var HeroController = require('./creeps/HeroController');
 
 
 function Game(chat, deathCallback) {
     // TODO: fix this a lot
     this.hero = new Hero(deathCallback, chat);
+    this.heroController = new HeroController(null, null, this.hero);
     this.levels = [];
     this.generateNewLevel();
     this.levelIndex = 0;
@@ -32,11 +34,12 @@ Game.prototype = {
     },
     takeCreepTurns: function(dijk) {
         var creepControllers = this.level.getCreepControllers();
+        var toRemove = [];
         for (var i = 0; i < creepControllers.length; i++) {
             var creepController = creepControllers[i];
             if (creepController.isAdjacentToHero()) {
                 creepController.attackHero();
-            } else {
+            } else if(creepController.aggroHero()) {
                 var next = dijk.getNextTile(creepController.getCharacter().getLocation());
                 console.log("Dikj is telling me to go to", next.toString(), 'from', creepController.getCharacter().getLocation().toString());
                 var dir = creepController.getCharacter().getLocation().directionTo(next);
@@ -44,60 +47,32 @@ Game.prototype = {
                     creepController.move(dir);
                 }
             }
-
-
         }
 
     },
-    moveOrAttack: function(dir) {
-        var newLoc = this.hero.location.add(dir);
-        if (!this.level.getTileMap().getTileAtLoc(newLoc)) {
-            console.log("here!");
-            this.chat.crit("You step into nothingness and feel yourself falling faster and faster into the abyss");
-            this.hero.kill();
-            return;
+    moveOrAttackHero: function(dir) {
+        this.heroController.moveOrAttack(dir);
+        var level = this.levelIndex;
+        var newLoc = this.heroController.getCharacter().getLocation();
+        if (this.getTileMap().getUpStairsLoc().isEqualTo(newLoc)) {
+            this.moveHeroToLevel(++level);
+        } else if (this.level.getTileMap().getDownStairsLoc().isEqualTo(newLoc) && this.levelIndex != 0) {
+            this.moveHeroToLevel(--level);
         }
-        var creep = this.level.getCreepMap().getCreepAtLoc(newLoc);
-        if (!creep) {
-            this.level.getCreepMap().moveHeroToLoc(newLoc);
-            // if it's a stairs, move the hero the appropriate level
-            var level = this.levelIndex;
-            if (this.level.getTileMap().getUpStairsLoc().isEqualTo(newLoc)) {
-                this.moveHeroToLevel(++level);
-            } else if (this.level.getTileMap().getDownStairsLoc().isEqualTo(newLoc) && this.levelIndex != 0) {
-                this.moveHeroToLevel(--level);
-            }
-            return;
-        }
-
-        /*
-        if character:
-            try to hit
-                if hit, damage
-            if character dead
-                move,
-                absorb animus
-            return;
-         */
-
 
     },
 	initInput: function() {
 		this.input[37] = new InputTrigger(function() {
-			this.hero.actionsPerformed += 1;
-			this.moveOrAttack(Direction.WEST);
+			this.moveOrAttackHero(Direction.WEST);
 		}, this);
 		this.input[38] = new InputTrigger(function() {
-			this.hero.actionsPerformed += 1;
-			this.moveOrAttack(Direction.NORTH);
+			this.moveOrAttackHero(Direction.NORTH);
 		}, this);
 		this.input[39] = new InputTrigger(function() {
-			this.hero.actionsPerformed += 1;
-			this.moveOrAttack(Direction.EAST);
+			this.moveOrAttackHero(Direction.EAST);
 		}, this);
 		this.input[40] = new InputTrigger(function() {
-			this.hero.actionsPerformed += 1;
-			this.moveOrAttack(Direction.SOUTH);
+			this.moveOrAttackHero(Direction.SOUTH);
 		}, this);
 	},
     generateNewLevel: function() {
@@ -117,6 +92,8 @@ Game.prototype = {
             this.level.getTileMap().getUpStairsLoc();
         this.levelIndex = index;
         this.level.getCreepMap().addHeroToMapAtLoc(loc, this.hero);
+        this.heroController.setCreepMap(this.level.getCreepMap());
+        this.heroController.setTileMap(this.level.getTileMap());
     }
 };
 

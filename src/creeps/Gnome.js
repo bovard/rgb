@@ -14,9 +14,11 @@ var RGB = require('./../RGB');
 var CoreStats = require('./CoreStats');
 
 function Gnome() {
+    this.name = 'Gnome';
     this.difficultyLevel = 1;
     this.attackType = Creep.ATTACK_TYPE_MELEE;
     this.numActions = 1;
+    this.health = 5;
     this.maxHealth = 5;
     this.aggroRadiusSquared = 4;
     this.rgb = new RGB(255, 255, 255);
