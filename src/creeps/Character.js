@@ -1,12 +1,12 @@
 var GameObject = require('../GameObject');
 var utils = require('../Utility');
 
-function Character(stats, location, maxHealth, numActions) {
+function Character(stats, location, maxHealth, numActions, radiusSquared) {
     this.stats = stats;
     this.location = location;
     this.health = maxHealth;
     this.numActions = numActions;
-
+    this.radiusSquared = radiusSquared;
 }
 
 utils.inherit(Character, GameObject);
@@ -27,5 +27,6 @@ utils.extend(Character, {
     getStats: function() {return this.stats;},
     getNumActions: function() {return this.numActions; },
     isDead: function() {return this.health <= 0; },
-    kill: function() { throw "Character kill implement me!"; }
+    kill: function() { throw "Character kill implement me!"; },
+    getRadiusSquared: function() { return this.radiusSquared }
 });
