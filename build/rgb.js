@@ -1,4 +1,6 @@
-require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"TZeL/P":[function(require,module,exports){
+require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"jquery":[function(require,module,exports){
+module.exports=require('TZeL/P');
+},{}],"TZeL/P":[function(require,module,exports){
 (function (global){
 (function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
 /*! jQuery v1.11.0 | (c) 2005, 2014 jQuery Foundation, Inc. | jquery.org/license */
@@ -11,8 +13,6 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
 }).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],"jquery":[function(require,module,exports){
-module.exports=require('TZeL/P');
 },{}],3:[function(require,module,exports){
 
 
@@ -53,13 +53,15 @@ module.exports = {
 var Hero = require('./creeps/Hero');
 var TestLevel = require('./levels/TestLevel');
 var Direction = require('./map/Direction');
-var Location = require('./map/Location');
 var InputTrigger = require('./InputTrigger');
+var TestLevelCreator = require('./levels/TestLevelCreator');
+var HeroController = require('./creeps/HeroController');
 
 
 function Game(chat, deathCallback) {
     // TODO: fix this a lot
     this.hero = new Hero(deathCallback, chat);
+    this.heroController = new HeroController(null, null, this.hero);
     this.levels = [];
     this.generateNewLevel();
     this.levelIndex = 0;
@@ -82,59 +84,51 @@ Game.prototype = {
 			this.input[code].fire();
 		}
     },
-    moveOrAttack: function(dir) {
-        var newLoc = this.hero.location.add(dir);
-        if (!this.level.getTileMap().getTileAtLoc(newLoc)) {
-            console.log("here!");
-            this.chat.crit("You step into nothingness and feel yourself falling faster and faster into the abyss");
-            this.hero.kill();
-            return;
-        }
-        var creep = this.level.getCreepMap().getCreepAtLoc(newLoc);
-        if (!creep) {
-            this.level.getCreepMap().moveHeroToLoc(newLoc);
-            // if it's a stairs, move the hero the appropriate level
-            var level = this.levelIndex;
-            if (this.level.getTileMap().getUpStairsLoc().isEqualTo(newLoc)) {
-                this.moveHeroToLevel(++level);
-            } else if (this.level.getTileMap().getDownStairsLoc().isEqualTo(newLoc) && this.levelIndex != 0) {
-                this.moveHeroToLevel(--level);
+    takeCreepTurns: function(dijk) {
+        var creepControllers = this.level.getCreepControllers();
+        var toRemove = [];
+        for (var i = 0; i < creepControllers.length; i++) {
+            var creepController = creepControllers[i];
+            if (creepController.isAdjacentToHero()) {
+                creepController.attackHero();
+            } else if(creepController.aggroHero()) {
+                var next = dijk.getNextTile(creepController.getCharacter().getLocation());
+                console.log("Dikj is telling me to go to", next.toString(), 'from', creepController.getCharacter().getLocation().toString());
+                var dir = creepController.getCharacter().getLocation().directionTo(next);
+                if (creepController.canMove(dir)) {
+                    creepController.move(dir);
+                }
             }
-            return;
         }
 
-        /*
-        if creep:
-            try to hit
-                if hit, damage
-            if creep dead
-                move,
-                absorb animus
-            return;
-         */
-
+    },
+    moveOrAttackHero: function(dir) {
+        this.heroController.moveOrAttack(dir);
+        var level = this.levelIndex;
+        var newLoc = this.heroController.getCharacter().getLocation();
+        if (this.getTileMap().getUpStairsLoc().isEqualTo(newLoc)) {
+            this.moveHeroToLevel(++level);
+        } else if (this.level.getTileMap().getDownStairsLoc().isEqualTo(newLoc) && this.levelIndex != 0) {
+            this.moveHeroToLevel(--level);
+        }
 
     },
 	initInput: function() {
 		this.input[37] = new InputTrigger(function() {
-			this.hero.actionsPerformed += 1;
-			this.moveOrAttack(Direction.WEST);
+			this.moveOrAttackHero(Direction.WEST);
 		}, this);
 		this.input[38] = new InputTrigger(function() {
-			this.hero.actionsPerformed += 1;
-			this.moveOrAttack(Direction.NORTH);
+			this.moveOrAttackHero(Direction.NORTH);
 		}, this);
 		this.input[39] = new InputTrigger(function() {
-			this.hero.actionsPerformed += 1;
-			this.moveOrAttack(Direction.EAST);
+			this.moveOrAttackHero(Direction.EAST);
 		}, this);
 		this.input[40] = new InputTrigger(function() {
-			this.hero.actionsPerformed += 1;
-			this.moveOrAttack(Direction.SOUTH);
+			this.moveOrAttackHero(Direction.SOUTH);
 		}, this);
 	},
     generateNewLevel: function() {
-        this.levels.push(new TestLevel());
+        this.levels.push(TestLevelCreator.createLevel(50, 50));
     },
     moveHeroToLevel: function(index) {
         if (this.level) {
@@ -150,12 +144,17 @@ Game.prototype = {
             this.level.getTileMap().getUpStairsLoc();
         this.levelIndex = index;
         this.level.getCreepMap().addHeroToMapAtLoc(loc, this.hero);
+        this.heroController.setCreepMap(this.level.getCreepMap());
+        this.heroController.setTileMap(this.level.getTileMap());
     }
 };
 
 module.exports = Game;
-},{"./InputTrigger":6,"./creeps/Hero":10,"./levels/TestLevel":14,"./map/Direction":19,"./map/Location":20}],5:[function(require,module,exports){
-var GameObject = {
+},{"./InputTrigger":6,"./creeps/Hero":16,"./creeps/HeroController":17,"./levels/TestLevel":22,"./levels/TestLevelCreator":23,"./map/Direction":27}],5:[function(require,module,exports){
+function GameObject() {
+}
+
+GameObject.prototype = {
 	getRepr: function() {
 		return this.repr;
 	},
@@ -165,7 +164,7 @@ var GameObject = {
 		}
 		return this.rgb.mask(filter)
 	},
-}
+};
 
 module.exports = GameObject;
 },{}],6:[function(require,module,exports){
@@ -181,7 +180,7 @@ InputTrigger.prototype = {
 	fire: function() {
 		this.callback.apply(this.scope, this.args);
 	}
-}
+};
 
 module.exports = InputTrigger;
 },{}],7:[function(require,module,exports){
@@ -217,37 +216,102 @@ RGB.prototype = {
 	},
 	isBlack: function() {
 		return this.red === 0 && this.green === 0 && this.blue === 0;
-	}
+	},
+    merge: function(rgb) {
+        return new RGB(
+            Math.max(this.red, rgb.red),
+            Math.max(this.green, rgb.green),
+            Math.max(this.blue, rgb.blue)
+        )
+    }
 };
 
 module.exports = RGB;
 },{}],8:[function(require,module,exports){
 /* Renders the game to the canvas. */
 var Location = require('./map/Location');
+var Tile = require('./map/Tile');
+
+// Transform location to be relative to center & scaled by Renderer.GAME_TO_CANVAS
+function toCanvasSpace(location, centerLoc) {
+	var relativeLoc = new Location(location.x + -centerLoc.x, location.y + -centerLoc.y); 
+	return new Location(relativeLoc.x * Renderer.GAME_TO_CANVAS,
+		relativeLoc.y * Renderer.GAME_TO_CANVAS);
+}
+
+// Draws a tile 
+function drawTile(tile, loc, filter) {
+	this.context.strokeStyle = tile.getRGB(filter).toString();
+	this.context.lineWidth = 2;
+	// Get loc in canvas space
+	canvasLoc = toCanvasSpace(loc, this.centerLoc);
+	this.context.strokeRect(canvasLoc.x - Renderer.TILE_WIDTH/2, 
+		canvasLoc.y - Renderer.TILE_WIDTH/2,
+		Renderer.TILE_WIDTH, 
+		Renderer.TILE_WIDTH);
+	// If this is upstairs or downstairs, draw the symbol as well
+	if (tile.getRepr() !== Tile.FLOOR_TILE) {
+		drawSymbol.call(this, tile, loc, filter, false);
+	}
+} 
+
+/* Draws the appropriate symbol for a:
+	- creep
+	- hero
+	- downstairs tile
+	- upstairs tile
+*/
+function drawSymbol(entity, loc, filter, isHero) {
+	// If hero, draw without filter
+	this.context.fillStyle = isHero ? entity.getRGB().toString() :
+		entity.getRGB(filter).toString();
+	// Set font size
+	this.context.font = "12px Arial";
+	// Get loc in canvas space
+	canvasLoc = toCanvasSpace(loc, this.centerLoc);
+	var txt = entity.getRepr();
+	var txtWidth = this.context.measureText(txt).width;
+	var txtHeight = 6; // txtHeight ~ .5 * font size
+	this.context.fillText(txt,
+		canvasLoc.x - txtWidth/2, 
+		canvasLoc.y + txtHeight/2);
+}
 
 function Renderer(canvas) {
 	this.canvas = canvas;
 	this.context = canvas.getContext("2d");
+	// Determines the game location that the canvas should be centered on
+	this.centerLoc = null;
+	this.zoomFactor = 1; // 1.1 would be 10% magnification
 }
 
-// Tile width and height in pixels
-Renderer.TILE_WIDTH_PX = 30;
-Renderer.TILE_HEIGHT_PX = 30;
+/* Scale factor going between game coordinates and canvas coordinates 
+   i.e. game<x * GAME_TO_CANVAS,y * GAME_TO_CANVAS> = canvas<x,y> 
+	
+   Basically, this changes how far apart the objects are rendered. We'll want to
+   keep this at a number that jives with the object asset size (read: font size).
+   !!!IMPORTANT NOTE!!!: Don't use this for zoom! Zoom is accomplished by scaling 
+   the canvas context.
+*/
+Renderer.GAME_TO_CANVAS = 18;
+Renderer.TILE_WIDTH = 15;
 
 Renderer.prototype = {
     render: function(tileMap, creepMap, filter) {
 		this.context.save();
         var hero = creepMap.hero;
+		this.centerLoc = hero.getLocation();
+		var canvasLoc;
 	
 		// Fill canvas with black background
 		this.context.fillStyle = "#000000";
         this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
 		
-		// Calculate left and top canvas margins in order to keep tiles centered in the canvas
-		var leftMargin = (this.canvas.width - Renderer.TILE_WIDTH_PX * tileMap.width) / 2;
-		if (leftMargin < 0) throw "Renderer.render: canvas width cannot accommodate tileMap width.";
-		var topMargin = (this.canvas.height - Renderer.TILE_HEIGHT_PX * tileMap.height) / 2;
-		if (topMargin < 0) throw "Renderer.render: canvas height cannot accommodate tileMap height.";
+		// Center grid at canvas center
+		this.context.translate(this.canvas.width/2, this.canvas.height/2);
+		
+		// Scale by zoom factor
+		this.context.scale(this.zoomFactor,this.zoomFactor);
 	
 		// Iterate through tileMap & creepMap and draw tiles & creeps & player.
 		for (var x = 0; x < tileMap.width; x++) {
@@ -255,24 +319,19 @@ Renderer.prototype = {
                 var loc = new Location(x, y);
                 if (loc.distanceSquaredTo(hero.location) > hero.visionRadiusSquared) {
                     // COMMENT OUT THE continue TO SEE EVERYTHING
-                    continue;
+                    //continue;
                 }
 				// If there is a tile to draw in this location, draw it
 				if (tileMap.getTileAtLoc(loc)) {
-					this.context.fillStyle = tileMap.getTileAtLoc(loc).getRGB(filter).toString();
-					this.context.fillText(tileMap.getTileAtLoc(loc).getRepr(),
-						leftMargin + x * Renderer.TILE_WIDTH_PX, 
-						topMargin + y * Renderer.TILE_HEIGHT_PX);
+					drawTile.call(this, tileMap.getTileAtLoc(loc), loc, filter);
 				}
-				// If a creep or the hero resides in this location, draw it
+				// If a character or the hero resides in this location, draw it
 				if (creepMap.getCreepAtLoc(loc)) {
-					// If hero, draw without filter
-					this.context.fillStyle = creepMap.heroAtLoc(loc) ?
-						creepMap.getCreepAtLoc(loc).getRGB().toString() :
-						creepMap.getCreepAtLoc(loc).getRGB(filter).toString();
-					this.context.fillText(creepMap.getCreepAtLoc(loc).getRepr(),
-						leftMargin + x * Renderer.TILE_WIDTH_PX, 
-						topMargin + y * Renderer.TILE_HEIGHT_PX);
+					if (creepMap.heroAtLoc(loc)) {
+						drawSymbol.call(this, creepMap.getCreepAtLoc(loc), loc, filter, true);
+					} else {
+						drawSymbol.call(this, creepMap.getCreepAtLoc(loc), loc, filter, false);
+					}
 				}
 			}
 		}
@@ -282,7 +341,503 @@ Renderer.prototype = {
 };
 
 module.exports = Renderer;
-},{"./map/Location":20}],9:[function(require,module,exports){
+},{"./map/Location":28,"./map/Tile":30}],9:[function(require,module,exports){
+
+var Utility = {
+	/* Bound value */
+	bound: function(val, low, high) {
+		if (low > high) {
+			throw "Error: Utility.bound called with low > high.";
+		} else if (val < low) {
+			return low;
+		} else if (val > high) {
+			return high;
+		} else {
+			return val;
+		}
+	},
+	// Bounds a value to within a set of ranges. If value is outside of all ranges,
+	// value will be bound to the low/high of the closest range. range arguments should
+	// take the form: low, high, low, high.
+	boundRanges: function(val) {
+		if (arguments.length < 3 || arguments.length % 2 === 0) {
+			throw "Error: Utility.boundRanges called with incorrect number of arguments.";
+		} else {
+			var i = 1;
+			while (i < arguments.length - 1) {
+				if (arguments[i] > arguments[i + 1]) {
+					throw "Error: Utility.boundRanges called with invalid range.";
+				}
+				if (val >= arguments[i] && val <= arguments[i + 1]) {
+					// In range
+					return val;
+				} else if (i === arguments.length - 2 || val < arguments[i + 2]) {
+					var bounds = [];
+					if (i !== 1) {
+						bounds.push(arguments[i - 1]);
+					}
+					if (i !== arguments.length - 2) {
+						bounds.push(arguments[i+2]);
+					}
+					bounds.push(arguments[i]);
+					bounds.push(arguments[i + 1]);
+					var util = this;
+					bounds.sort(function(a, b) {
+					var distFromVal1 = Math.abs(a - val);
+					var distFromVal2 = Math.abs(b - val);
+					return util.op("sortAsc").call(null, distFromVal1, distFromVal2);
+					});
+					return bounds.shift();
+				}
+				i += 2;
+			}
+		}
+	},
+	/* Wrap Value */
+	wrap: function(val,low,high) {
+		if (low > high) {
+			throw "Error: Utility.wrap called with low > high.";
+		} else if (val > high){
+			return low + val - high;
+		} else if (val < low) {
+			return high - (low - val);
+		} else {
+			return val;
+		}
+	},
+	/* Tester functions */
+	isInstanceTest: function(constructor) {
+		return function(obj) {
+			if (obj instanceof(constructor)) {
+				return true;
+			} else {
+				return false;
+			}
+		};
+	},
+	/* Partial*/
+	partial: function (func) {
+		var presetArgs = this.asArray(arguments, 1);
+		var util = this;
+		return function() {
+		   return func.apply(null, presetArgs.concat(util.asArray(arguments)));
+		};
+	},
+	/* Sort obj */
+	sortObjAsc: function(prop) {
+		var util = this;
+		return function(obj1, obj2) {
+			util.op("sortAsc").call(null, obj1[prop], obj2[prop]);
+		};
+	},
+	sortObjDsc: function(prop) {
+		var util = this;
+		return function(obj1, obj2) {
+			util.op("sortDesc").call(null, obj1[prop], obj2[prop]);
+		};
+	},
+	/* Operator/Sorting functions */
+	op: function(op) {
+		switch(op) {
+			case "===":
+				return function(a, b) {
+					return a === b;
+				};
+			break;
+			case "!==":
+				return function(a, b) {
+					return a !== b;
+				};
+			break;
+			case "sortAsc":
+				return function(a, b) {
+					if (a < b) {
+						return -1
+					} else if(a > b) {
+						return 1;
+					} else {
+						return 0;
+					}
+				};
+			break;
+			case "sortDesc":
+				return function(a, b) {
+					if (a < b) {
+						return 1
+					} else if(a > b) {
+						return -1;
+					} else {
+						return 0;
+					}
+				};
+			break;
+			default:
+				throw "Error: op called with unknown operator.";
+		}
+	},
+	/* Random number */
+	rand: function(low, high) {
+		/* This function will simulate random number generation if "allowRandom" in the global
+		   settings object is turned off. The significance of this is that the simulated version
+		   will be deterministic, which can be useful in debugging. */
+		if (low > high) {
+			throw "Error: Utility.rand called with low > high.";
+		} else if (true) {//if (asteroids.settings.get("allowRandom")) {
+			return Math.floor(Math.random() * (Math.floor(high) - Math.ceil(low) + 1)) + Math.ceil(low);
+		} else {
+			var counter = 0;
+			if (!this.pseudoRandom) {
+				this.pseudoRandom = function(low, high) {
+					counter += 7;
+					this.bound(counter, 0, 10000);
+					return counter % (Math.floor(high) - Math.ceil(low) + 1) + Math.ceil(low);
+				};
+			}
+			return this.pseudoRandom.call(this, low, high);
+		}
+	},
+	randomArray: function(length, low, high) {
+		var randArray = [];
+		for(var i = 0; i < length; ++i) {
+			randArray.push(rand(low,high));
+		}
+		return randArray;
+	},
+	/* Array tools */
+	asArray: function(quasiArray, start) {
+		var result = [];
+		for(var i = (start || 0); i < quasiArray.length; ++i) {
+			result.push(quasiArray[i]);
+		}
+		return result;
+	},
+	forEach: function(array, func) {
+		for(var i = 0; i < array.length; ++i) {
+			func(array[i]);
+		}
+	},
+	test: function(testFunc, array) {
+		var result = false;
+		try {
+			this.forEach(array, function(element) {
+				if (testFunc(element)) {
+					result = true;
+					throw "allDone";
+				}
+			});
+		} catch(exception) {
+			if (exception !== "allDone") {
+				throw exception;
+			}
+		}
+
+		return result;
+	},
+	hasValue: function(array, val) {
+		return test( function(element) {
+			if (element === val) {
+				return true;
+			} else {
+				return false;
+			}
+		}, array);
+	},
+	filter: function(test, array) {
+		var result = [];
+		this.forEach(array, function(element) {
+			if( test(element) )
+				result.push(element);
+		});
+		return result;
+	},
+	copy: function(array) {
+		var result = [];
+		this.forEach(array, function(element) {
+			result.push(element);
+		});
+		return result;
+	},
+	map: function(action, array) {
+		var result = [];
+		this.forEach(array, function(element) {
+			result.push(action(element));
+		});
+		return result;
+	},
+	reduce: function(combine, base, array) {
+		this.forEach(array, function(element) {
+			base = combine(base, element);
+		});
+		return base;
+	},
+	/* DOM tools */
+	$: function(id) {
+		return document.getElementById(id);
+	},
+	setNodeAttribute: function(node, attribute, value) {
+		if( attribute == "class" ) {
+			node.className = value;
+		} else if( attribute == "checked" ) {
+			node.defaultChecked = value;
+		} else if( attribute == "for" ) {
+			node.htmlFor = value;
+		} else if( attribute == "style" ) {
+			node.style.cssText = value;
+		} else {
+			node.setAttribute(attribute, value);
+		}
+	},
+	dom: function(name, attributes) {
+		var node = document.createElement(name);
+		var util = this;
+		if( attributes ) {
+			this.forEachIn(attributes, function(name, value) {
+				util.setNodeAttribute(node, name, value);
+			});
+		}
+		for(var i = 2; i < arguments.length; ++i) {
+			var child = arguments[i];
+			if( typeof child == "string" )
+				child = document.createTextNode(child);
+			node.appendChild(child);
+		}
+		return node;
+	},
+	domAppend: function(node, name, attributes) {
+		node.appendChild(
+			utility.dom.apply(this, Array.prototype.slice.call(arguments, 1)));
+	},
+	deleteNode: function(node) {
+		if( node.parentNode ) {
+			node.parentNode.removeChild(node);
+		}
+	},
+	/* Browser events */
+	registerEventHandler: function(node, event, handler) {
+		if( typeof node.addEventListener == "function" ) {
+			node.addEventListener(event, handler, false);
+		} else {
+			node.attachEvent("on" + event, handler);
+		}
+	},
+	unregisterEventHandler: function(node, event, handler) {
+		if( typeof node.removeEventListener == "function" ) {
+			node.removeEventListener(event, handler, false);
+		} else {
+			node.detachEvent("on" + event, handler);
+		}
+	},
+	normalizeEvent: function(event) {
+		if (!event.stopPropagation) {
+			event.stopPropagation = function() {this.cancelBubble = true;};
+			event.preventDefault = function() {this.returnValue = false;};
+		}
+		if (!event.stop) {
+			event.stop = function() {
+				this.stopPropagation();
+				this.preventDefault();
+			};
+		}
+
+		if (event.srcElement && !event.target)
+			event.target = event.srcElement;
+		if ((event.toElement || event.fromElement) && !event.relatedTarget)
+			event.relatedTarget = event.toElement || event.fromElement;
+		if (event.clientX != undefined && event.pageX == undefined) {
+			event.pageX = event.clientX + document.body.scrollLeft;
+			event.pageY = event.clientY + document.body.scrollTop;
+		}
+		if (event.type == "keypress") {
+			if (event.charCode === 0 || event.charCode == undefined)
+				event.character = String.fromCharCode(event.keyCode);
+			else
+				event.character = String.fromCharCode(event.charCode);
+		}
+
+		return event;
+	},
+	addHandler: function(node, type, handler) {
+		var util = this;
+		function wrapHandler(event) {
+			handler(util.normalizeEvent(event || window.event));
+		}
+		this.registerEventHandler(node, type, wrapHandler);
+		return {node: node, type: type, handler: wrapHandler};
+	},
+	removeHandler: function(object) {
+		this.unregisterEventHandler(object.node, object.type, object.handler);
+	},
+	/* OOP helpers */
+	clone: function(object) {
+		function DummyConstructor() {}
+		DummyConstructor.prototype = object;
+		return new DummyConstructor();
+	},
+	inherit: function(child, parent) {
+		var prototype = this.clone(parent.prototype);
+		prototype.constructor = child;
+		child.prototype = prototype;
+	},
+	extend: function(type, properties) {
+		this.forEachIn(properties, function(property, value) {
+			type.prototype[property] = value;
+		});
+	},
+	bind: function(func, object) {
+		return function() {
+			return func.apply(object,arguments);
+		};
+	},
+	method: function(object, name) {
+		return function() {
+			return object[name].apply(object, arguments);
+		};
+	},
+	/* Object manipulation */
+	forEachIn: function(object, action) {
+		for(var property in object) {
+			if( Object.prototype.hasOwnProperty.call(object, property) &&
+				Object.prototype.propertyIsEnumerable.call(object, property) ) {
+				action(property, object[property]);
+			}
+		}
+	},
+	copy: function(object) {
+		var copy = {};
+		this.forEachIn(object, function(prop, val) {
+			copy[prop] = val;
+		});
+		return copy;
+	}
+};
+
+// Export as singleton
+module.exports = Utility;
+},{}],10:[function(require,module,exports){
+var GameObject = require('../GameObject');
+var utils = require('../Utility');
+
+function Character(stats, location, maxHealth, numActions, radiusSquared, name) {
+    this.stats = stats;
+    this.location = location;
+    this.health = maxHealth;
+    this.numActions = numActions;
+    this.radiusSquared = radiusSquared;
+    this.name = name;
+}
+
+Character.prototype = new GameObject();
+
+utils.extend(Character, {
+    setHealth: function(health) { this.health = health; },
+    getHealth: function() { return this.health; },
+    applyDamage: function(damage) {
+        console.log("Applying damage to ", this.name);
+        this.health -= damage;
+        if (this.health > 0) {
+            return false;
+        } else {
+            this.kill();
+            return true;
+        }
+    },
+    getLocation: function() { return this.location; },
+    setLocation: function(loc) { this.location = loc },
+    getStats: function() {return this.stats;},
+    getNumActions: function() {return this.numActions; },
+    isDead: function() {return this.health <= 0; },
+    kill: function() { throw "Character.kill implement me!"; },
+    getRadiusSquared: function() { return this.radiusSquared }
+});
+
+module.exports = Character;
+},{"../GameObject":5,"../Utility":9}],11:[function(require,module,exports){
+function Controller(tileMap, creepMap, character) {
+    this.tileMap = tileMap;
+    this.creepMap = creepMap;
+    this.character = character;
+}
+
+Controller.prototype = {
+    /**
+     * Checks if the tile is empty before moving
+     * @param dir direction to move
+     * @returns {*}
+     */
+    canMove: function(dir) {
+        return this.isEmpty(this.character.getLocation().add(dir));
+    },
+    /**
+     * Checks to see if you can see the tile before moving
+     * @param dir direction to move
+     * @returns {boolean|*}
+     */
+    canSafeMove: function(dir) {
+        var loc = this.character.getLocation().add(dir);
+        return this.isViewableTile(loc)
+            && this.isEmpty(loc)
+            && this.character.getLocation().isAdjacentTo(loc);
+    },
+    /**
+     * Returns whether or not the character can 'see' the tile
+     * @param loc
+     * @returns {boolean}
+     */
+    isViewableTile: function(loc) {
+        var tile = this.tileMap.getTileAtLoc(loc);
+        if (!tile) {
+            return false;
+        }
+        return !tile.getRGB(this.character.getRGB()).isBlack();
+    },
+    /**
+     * Returns if the given tile is empty
+     * @param loc
+     * @returns {boolean}
+     */
+    isEmpty: function(loc) {
+        return !this.creepMap.getCreepAtLoc(loc);
+    },
+    /**
+     * Moves the character in the given direction is possible!
+     * @param dir
+     */
+    move: function(dir) {
+        if (!dir) {
+            throw "can't move in dir " + dir;
+        }
+        if (!this.canMove(dir)) {
+            throw "Can't move in that dir " + dir;
+        }
+        this.creepMap.moveCreepToLoc(this.character.getLocation().add(dir), this.character);
+    },
+
+    /**
+     * Attacks whatever is in the given direction
+     * @param dir
+     */
+    attack: function(dir) {
+        throw "Controller attack, implement me!"
+    },
+    getCharacter: function() {
+        return this.character;
+    },
+    getCreepMap: function() {
+        return this.creepMap;
+    },
+    setCreepMap: function(creepMap) {
+        this.creepMap = creepMap;
+    },
+    getTileMap: function() {
+        return this.tileMap;
+    },
+    setTileMap: function(tileMap) {
+        this.tileMap = tileMap;
+    },
+};
+
+module.exports = Controller;
+},{}],12:[function(require,module,exports){
 /* Core stats for game entities performing actions. */
 
 function CoreStats(str, agi) {
@@ -308,15 +863,154 @@ CoreStats.prototype = {
         return Math.max(1, dmg);
 
 	}
-}
+};
 
 module.exports = CoreStats;
-},{}],10:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
+/* Generic creep class which provides a base from which to specialize. */
+var GameObject = require('./../GameObject');
+var Character = require('./Character');
+var util = require('./../Utility');
+
+function Creep(difficultyLevel, attackType, numActions, maxHealth, aggroRadiusSquared, 
+	rgb, coreStats) {
+	// Attributes
+	this.difficultyLevel = difficultyLevel; // 1-?, used by map generation alg
+	this.attackType = attackType; // Creep.ATTACK_TYPE_*
+	this.numActions = numActions;
+	this.maxHealth = maxHealth;
+	this.aggroRadiusSquared = aggroRadiusSquared;
+	this.rgb = rgb;
+	this.coreStats = coreStats;
+	
+	// Status
+	this.actionsPerformed = 0;
+	this.health = this.maxHealth;
+	this.location = null;
+}
+
+// Class constants
+Creep.ATTACK_TYPE_MELEE = 1;
+Creep.ATTACK_TYPE_RANGED = 2;
+
+Creep.prototype = new Character();
+
+util.extend(Creep, {
+    getAttackMessage: function() { throw "Creep.attackMessage: abstract method called"; },
+    getAggroRange: function() { return this.aggroRadiusSquared; },
+    kill: function() {}
+});
+
+console.log(Creep);
+console.log(Creep.prototype);
+
+module.exports = Creep;
+},{"./../GameObject":5,"./../Utility":9,"./Character":10}],14:[function(require,module,exports){
+var util = require('./../Utility');
+var Controller = require('./Controller');
+
+function CreepController(tileMap, creepMap, creep) {
+    this.tileMap = tileMap;
+    this.creepMap = creepMap;
+    this.character = creep;
+}
+
+CreepController.prototype = new Controller();
+
+util.extend(CreepController, {
+    /**
+     * Checks to see if the creep is adjacent to the hero
+     * @returns {*}
+     */
+    isAdjacentToHero: function() {
+        return this.getCharacter().getLocation().isAdjacentTo(this.creepMap.getHero().getLocation());
+    },
+    /**
+     * Attacks whatever is in the given direction
+     * @param dir
+     */
+    attack: function(dir) {
+        var loc = this.getCharacter().getLocation().add(dir);
+        if (this.isEmpty(loc)) {
+            throw "Tried to attack an empty square... :("
+        }
+        var target = this.getCreepMap().getCreepAtLoc(loc);
+
+        if(this.getCharacter().getStats().resolveHit(target.getStats())) {
+            var dmg = this.getCharacter().getStats().resolveDamage(target.getStats());
+            target.applyDamage(dmg);
+        }
+
+    },
+    attackHero: function() {
+        if (!this.isAdjacentToHero()) {
+            throw "Tried to attack hero but not adjacent!";
+        }
+        var dirToHero = this.getCharacter().getLocation().directionTo(this.getCreepMap().getHero().getLocation());
+        this.attack(dirToHero);
+    },
+    aggroHero: function() {
+        return this.getCharacter().getLocation().distanceSquaredTo(this.getCreepMap().getHero().getLocation()) <= this.getCharacter().getAggroRange();
+
+    }
+});
+
+module.exports = CreepController;
+
+},{"./../Utility":9,"./Controller":11}],15:[function(require,module,exports){
+/* Gnome creep. Properties:
+   * Difficulty Level: very easy  
+   * Attack Range: melee
+   * Actions: 1
+   * Str/Agi: 2/1
+   * Max Health: 5
+   * Aggro Radius^2: 4
+   * RGB: #FFFFFF
+*/
+
+var Creep = require('./Creep');
+var util = require('./../Utility');
+var RGB = require('./../RGB');
+var CoreStats = require('./CoreStats');
+
+function Gnome() {
+    this.name = 'Gnome';
+    this.difficultyLevel = 1;
+    this.attackType = Creep.ATTACK_TYPE_MELEE;
+    this.numActions = 1;
+    this.health = 5;
+    this.maxHealth = 5;
+    this.aggroRadiusSquared = 4;
+    this.rgb = new RGB(255, 255, 255);
+    this.stats = new CoreStats(2, 1);
+    this.repr = 'g';
+}
+
+Gnome.prototype = new Creep();
+
+util.extend(Gnome, {
+    getAttackMessage: function() {
+		return "The gnome swings its tiny pickaxe at you with unsettling determination."; 
+	},
+    tryToHit: function(hero) { 
+		return this.coreStats.resolveHit(hero.coreStats); 
+	},
+    doDamage: function(hero) { 
+		var damageDealt = this.coreStats.resolveDamage(hero.coreStats);
+		hero.takeDamage(damageDealt);
+	}
+});
+
+module.exports = Gnome;
+},{"./../RGB":7,"./../Utility":9,"./CoreStats":12,"./Creep":13}],16:[function(require,module,exports){
 /* Hero class. */
 var CoreStats = require('./CoreStats');
+var Character = require('./Character');
 var RGB = require('../RGB');
+var util = require('./../Utility');
 
 function Hero(deathCallback, chat) {
+    this.name = "Aver";
     this.health = 10;
     this.maxHealth = 10;
     this.shield = 0;
@@ -328,7 +1022,7 @@ function Hero(deathCallback, chat) {
     this.numActions = 1;
     this.actionsPerformed = 0;
     this.visionRadiusSquared = 10;
-	this.coreStats = new CoreStats(1, 1);
+	this.stats = new CoreStats(5, 5);
     this.rgb = new RGB(255, 255, 255);
     this.repr = '@';
     //
@@ -342,7 +1036,9 @@ function Hero(deathCallback, chat) {
     //
 }
 
-Hero.prototype = {
+Hero.prototype = new Character();
+
+util.extend(Hero, {
     endTurn: function() {
         if (this.speedBoost > 0) {
             this.speedBoost--;
@@ -383,24 +1079,64 @@ Hero.prototype = {
     kill: function() {
         this.chat.crit("You have died! Press Enter to restart");
         this.deathCallback();
-    },
-    getLocation: function() {
-        return this.location;
-    },
-    setLocation: function(location) {
-        this.location = location;
-    },
-    getRGB: function() {
-        return this.rgb;
-    },
-    getRepr: function() {
-        return this.repr;
     }
-};
+});
 
 module.exports = Hero;
 
-},{"../RGB":7,"./CoreStats":9}],11:[function(require,module,exports){
+},{"../RGB":7,"./../Utility":9,"./Character":10,"./CoreStats":12}],17:[function(require,module,exports){
+var util = require('./../Utility');
+var Controller = require('./Controller');
+
+function HeroController(tileMap, creepMap, hero) {
+    this.tileMap = tileMap;
+    this.creepMap = creepMap;
+    this.character = hero;
+}
+
+HeroController.prototype = new Controller();
+
+util.extend(HeroController, {
+    /**
+     * Attacks whatever is in the given direction
+     * @param dir
+     */
+    attack: function(dir) {
+        var loc = this.character.getLocation().add(dir);
+        if (this.isEmpty(loc)) {
+            throw "Tried to attack an empty square... :("
+        }
+        var target = this.getCreepMap().getCreepAtLoc(loc);
+
+        if(this.getCharacter().getStats().resolveHit(target.getStats())) {
+            var dmg = this.getCharacter().getStats().resolveDamage(target.getStats());
+            target.applyDamage(dmg);
+            console.log(target.name, target.getHealth());
+            if (target.isDead()) {
+                console.log("We killed it!");
+                this.getCharacter().setHealth(this.getCharacter().maxHealth);
+                this.getCreepMap().deleteCreepAtLoc(loc);
+                this.getCreepMap().moveHeroToLoc(loc);
+            }
+        }
+
+    },
+    moveOrAttack: function(dir) {
+        this.getCharacter().actionsPerformed += 1;
+        var toMove = this.getCharacter().location.add(dir);
+        var creep = this.getCreepMap().getCreepAtLoc(toMove);
+        if (!this.getTileMap().getTileAtLoc(toMove)) {
+            this.getCharacter().kill();
+        } else if (!creep) {
+            this.getCreepMap().moveHeroToLoc(toMove);
+        } else if (creep) {
+            this.attack(dir);
+        }
+    }
+});
+
+module.exports = HeroController;
+},{"./../Utility":9,"./Controller":11}],18:[function(require,module,exports){
 var Game = require('./Game');
 var Dijkstra = require('./map/Dijkstra');
 var Renderer = require('./Renderer');
@@ -417,7 +1153,6 @@ var renderer = null;
 var game;
 
 $(document).keyup(function(event) {
-    console.log("HERE");
     if (needsRestart) {
         restart();
         return;
@@ -442,15 +1177,11 @@ function turn(code) {
 
     render();
 
-    // TODO: creep stuff
-
     // do dikjstra's on the TileMap to hero location
-    //var dikj = new Dijkstra(game.tileMap, game.hero.location[0], game.hero.location[1]);
+    var dikj = new Dijkstra(game.getTileMap(), game.hero.getLocation());
 
-    // for creep in creepsMap.creeps
-    //   for action in creep.actions
-    //     creep.act()
-    // redraw
+    game.takeCreepTurns(dikj);
+    render();
 }
 
 
@@ -481,7 +1212,7 @@ $(function() {
     renderer = new Renderer(canvas);
     restart();
 });
-},{"./Chat":3,"./Game":4,"./Renderer":8,"./map/Dijkstra":18}],12:[function(require,module,exports){
+},{"./Chat":3,"./Game":4,"./Renderer":8,"./map/Dijkstra":26}],19:[function(require,module,exports){
 var Location = require('../map/Location');
 var Direction = require('../map/Direction');
 var Tile = require('../map/Tile');
@@ -531,7 +1262,6 @@ function connectLocs(tileMap, locA, locB, rgb) {
             toB = toB.rotateLeft();
         } else if (Math.random() < .15) {
             toB = toB.rotateRight();
-
         }
         tileMap.mergeFloorTileAtLoc(locA, rgb);
         if (jaggedPath && Math.random() < .25) {
@@ -607,6 +1337,7 @@ function buildCaveSystem(tileMap, rgb, includeLocs) {
     // build a coarse map
     var x, y, loc;
     var coarseMap = new CoarserMap(tileMap, CUT_SIZE + Math.floor(Math.random() * 6));
+    var poi = [];
 
 
     // assign teh includedLocs and build path to center of coarse tile
@@ -632,6 +1363,7 @@ function buildCaveSystem(tileMap, rgb, includeLocs) {
                 last = true;
                 loc = new Location(x, y);
                 coarseMap.setValAtLoc(loc, true);
+                poi.push(coarseMap.getMapLocCenterFromCoarseMapLoc(loc));
                 buildNodeAroundLoc(tileMap, coarseMap.getMapLocCenterFromCoarseMapLoc(loc), rgb)
             } else {
                 last = false;
@@ -647,53 +1379,140 @@ function buildCaveSystem(tileMap, rgb, includeLocs) {
         }
     }
 
+    return poi;
+
 }
 
 module.exports = {
     buildCaveSystem: buildCaveSystem
 };
-},{"../map/CoarserMap":16,"../map/Direction":19,"../map/Location":20,"../map/Tile":22}],13:[function(require,module,exports){
-var CreepMap = require('../map/CreepMap');
+},{"../map/CoarserMap":24,"../map/Direction":27,"../map/Location":28,"../map/Tile":30}],20:[function(require,module,exports){
 
-var Level = {
+// all of the creeps one would find in a cave!
+var Gnome = require('../creeps/Gnome');
+var Direction = require('../map/Direction');
+var Location = require('../map/Location');
+
+
+
+function addGnonesNearPoi(tileMap, creepMap, poi, rgb) {
+    var gnome;
+    var gnomes = [];
+    for (var i = 0; i < poi.length; i++) {
+        var numGnomes = Math.ceil(Math.random() * 3);
+        for (var j = 0; j < numGnomes; j++) {
+            var start = poi[i];
+            start = start.add(Direction.randomDir());
+            start = start.add(Direction.randomDir());
+            index = 0;
+            while((!tileMap.getTileAtLoc(start) || creepMap.getCreepAtLoc(start)) && ++index < 10) {
+                start = start.add(Direction.randomDir());
+            }
+            if (index < 10) {
+                gnome = new Gnome();
+                gnomes.push(gnome);
+                if (!start.isEqualTo(tileMap.getDownStairsLoc()) && !start.isEqualTo(tileMap.getUpStairsLoc())) {
+                    creepMap.addCreepToMapAtLoc(start, gnome);
+                }
+            }
+        }
+    }
+    return gnomes;
+}
+
+
+function spawnCreeps(tileMap, creepMap, poi, rgb, heroLevel) {
+    return addGnonesNearPoi(tileMap, creepMap, poi, rgb);
+}
+
+
+module.exports = {
+    spawnCreeps: spawnCreeps
+};
+},{"../creeps/Gnome":15,"../map/Direction":27,"../map/Location":28}],21:[function(require,module,exports){
+var CreepMap = require('../map/CreepMap');
+var CreepController = require('../creeps/CreepController');
+
+
+function createCreepControllers(tileMap, creepMap, creeps) {
+    var controllers = [];
+    for (var i = 0; i < creeps.length; i++) {
+        controllers.push(
+            new CreepController(tileMap, creepMap, creeps[i])
+        )
+    }
+    return controllers;
+}
+
+function Level(tileMap, creepMap, creeps) {
+    this.tileMap = tileMap;
+    this.creepMap = creepMap;
+    this.creepControllers = createCreepControllers(tileMap, creepMap, creeps);
+
+}
+
+Level.prototype = {
 	getTileMap: function() {
 		return this.tileMap;
 	},
 	getCreepMap: function() {
 		return this.creepMap;
-	}
+	},
+    getCreepControllers: function() {
+        var toRemove = [];
+        for (var i = 0; i < this.creepControllers.length; i++) {
+            if (this.creepControllers[i].getCharacter().isDead()) {
+                toRemove.push(this.creepControllers[i]);
+            }
+        }
+        for (i = 0; i < toRemove.length; i++) {
+            this.creepControllers.splice(this.creepControllers.indexOf(toRemove[i]), 1);
+        }
+        return this.creepControllers;
+    }
 };
 
 module.exports = Level;
-},{"../map/CreepMap":17}],14:[function(require,module,exports){
+},{"../creeps/CreepController":14,"../map/CreepMap":25}],22:[function(require,module,exports){
 var Level = require('./Level');
-var TestLevelCreator = require('./TestLevelCreator');
+var utils = require('./../Utility');
 
-
-function TestLevel() {
-    this.tileMap = TestLevelCreator.createLevel();
-    this.creepMap = TestLevelCreator.createTestCreepMap(this.tileMap);
+function TestLevel(tileMap, creepMap, creeps) {
+    Level.call(
+        this,
+        tileMap,
+        creepMap,
+        creeps
+    );
 }
 
-TestLevel.prototype = Object.create(Level);
+utils.inherit(TestLevel, Level);
 
 module.exports = TestLevel;
-},{"./Level":13,"./TestLevelCreator":15}],15:[function(require,module,exports){
+},{"./../Utility":9,"./Level":21}],23:[function(require,module,exports){
 var TileMap = require('../map/TileMap');
 var CreepMap = require('../map/CreepMap');
 var Tile = require('../map/Tile');
 var Location = require('../map/Location');
 var CaveBuilder = require('./CaveBuilder');
+var CaveSpawner = require('./CaveSpawner');
 var RGB = require('../RGB');
+var TestLevel = require('./TestLevel');
 
-function createTestTileMap(mapLevel, heroLevel) {
+function createTestTileMap(tileMap) {
     // TODO: do we need to use hero level?
-    var height = 20;
-    var width = 20;
-    var tileMap = new TileMap(height, width);
     var downStairs = new Location(2, 2);
-    var upStairs = new Location(17, 17);
-    CaveBuilder.buildCaveSystem(tileMap, new RGB(255, 0, 0), [downStairs, upStairs]);
+    var upStairs = new Location(tileMap.width - 3, tileMap.height - 3);
+    if (Math.random() < .25) {
+        upStairs = new Location(tileMap.width - 3, 2);
+    } else if (Math.random() < .25) {
+        upStairs = new Location(2, tileMap.height - 3);
+    }
+    var poi = CaveBuilder.buildCaveSystem(tileMap, new RGB(255, 0, 0), [downStairs, upStairs]);
+    if (Math.random() < .10) {
+        CaveBuilder.buildCaveSystem(tileMap, new RGB(0, 255, 0));
+
+    }
     /*
     for (var x = 0; x < width; x++) {
         for (var y = 0; y < height; y++) {
@@ -707,26 +1526,38 @@ function createTestTileMap(mapLevel, heroLevel) {
         }
     }
     */
-    tileMap.addStairsDownAtLoc(new Location(2, 2));
-    tileMap.addStairsUp(new Location(17, 17));
-    return tileMap;
+    tileMap.addStairsDownAtLoc(downStairs);
+    tileMap.addStairsUp(upStairs);
+
+    return poi;
 }
 
-function createTestCreepMap(tileMap, mapLevel, heroLevel) {
-    // TODO: use mapLevel and herolevel when making map
-    var height = tileMap.height;
-    var width = tileMap.width;
+function createTestCreepMap(tileMap, creepMap, poi, mapLevel, heroLevel) {
+    return CaveSpawner.spawnCreeps(tileMap, creepMap, poi, new RGB(130, 0, 0), heroLevel);
+}
+
+
+function createLevel(height, width, dungeonLevel, heroLevel) {
+    if (!height) {
+        height = 20;
+    }
+    if (!width) {
+        width = 20;
+    }
+    var tileMap = new TileMap(height, width);
+    var poi = createTestTileMap(tileMap);
     var creepMap = new CreepMap(height, width);
-    // TODO: add creeps here!
-    return creepMap;
+    var creeps = createTestCreepMap(tileMap, creepMap, poi);
+    return new TestLevel(tileMap, creepMap, creeps);
 }
 
 
 module.exports = {
-    createLevel: createTestTileMap,
-    createTestCreepMap: createTestCreepMap
+    createTileMap: createTestTileMap,
+    createTestCreepMap: createTestCreepMap,
+    createLevel: createLevel
 };
-},{"../RGB":7,"../map/CreepMap":17,"../map/Location":20,"../map/Tile":22,"../map/TileMap":23,"./CaveBuilder":12}],16:[function(require,module,exports){
+},{"../RGB":7,"../map/CreepMap":25,"../map/Location":28,"../map/Tile":30,"../map/TileMap":31,"./CaveBuilder":19,"./CaveSpawner":20,"./TestLevel":22}],24:[function(require,module,exports){
 var Map = require('./Map');
 var Location = require('./Location');
 
@@ -765,7 +1596,7 @@ CoarserMap.prototype = {
 
 
 module.exports = CoarserMap;
-},{"./Location":20,"./Map":21}],17:[function(require,module,exports){
+},{"./Location":28,"./Map":29}],25:[function(require,module,exports){
 var Location = require('./Location');
 var Map = require('./Map');
 
@@ -776,7 +1607,6 @@ function CreepMap(x, y) {
 	for (var i = 0; i < x; i++) {
 		this.creepsLoc[i] = new Array(y);
 	}
-    this.creeps = [];
     this.hero = null;
 }
 
@@ -793,26 +1623,25 @@ CreepMap.prototype = {
     },
     addCreepToMapAtLoc: function(loc, creep) {
         this.moveCreepToLoc(loc, creep);
-        this.creeps.push(creep);
     },
     moveHeroToLoc: function(loc) {
         this.moveCreepToLoc(loc, this.hero);
     },
     moveCreepToLoc: function(loc, creep) {
         if (!creep) {
-            throw "Tried to move a creep but no creep specified!";
+            throw "Tried to move a character but no character specified!";
         }
 		if (loc.x < 0 || loc.y < 0) {
-			throw "Tried to move creep to a negative location (" + loc.x + ", " + loc.y + ")";
+			throw "Tried to move character to a negative location (" + loc.x + ", " + loc.y + ")";
 		}
 		if (loc.x >= this.width) {
-			throw "Tried to move creep to a location offmap! (" + loc.x + " >= " + this.width + ")";
+			throw "Tried to move character to a location offmap! (" + loc.x + " >= " + this.width + ")";
 		}
 		if (loc.y >= this.height) {
-			throw "Tried to move creep to a location offmap! (" + loc.y + " >= " + this.height + ")";
+			throw "Tried to move character to a location offmap! (" + loc.y + " >= " + this.height + ")";
 		}
 		if (this.creepsLoc[loc.x][loc.y]) {
-			throw "There is already a creep there: " + this.creepsLoc[loc.x][loc.y];
+			throw "There is already a character there: " + this.creepsLoc[loc.x][loc.y];
 		}
 		this.creepsLoc[loc.x][loc.y] = creep;
         if (creep.getLocation()) {
@@ -837,12 +1666,17 @@ CreepMap.prototype = {
     },
     deleteCreepAtLoc: function(loc) {
         this.creepsLoc[loc.x][loc.y] = undefined;
+    },
+    getHero: function() {
+        return this.hero;
     }
 };
 
 module.exports = CreepMap;
-},{"./Location":20,"./Map":21}],18:[function(require,module,exports){
-/* Runs Dijkstra to compute moveMap. Each value in moveMap is one of the following offsets 
+},{"./Location":28,"./Map":29}],26:[function(require,module,exports){
+var Location = require('./Location');
+
+/* Runs Dijkstra to compute moveMap. Each value in moveMap is one of the following offsets
    indicating shortest direction to startLoc: [0,1], [0,-1], [1,0], [-1,0]. */
 function calculate(dij) {
     /* Init open list with start loc & mark a [0,0] on movemap at hero loc 
@@ -872,7 +1706,7 @@ function expand(loc, map, moveMap) {
 		// newLoc = loc + offset
 		newLoc = [loc[0] + offsets[i][0], loc[1] + offsets[i][1]];
 		// Is unexplored and has tile?
-		if (!moveMap[newLoc[0]][newLoc[1]] && !!map.getTileAtXY(newLoc[0], newLoc[1])) {
+		if (!!map.getTileAtXY(newLoc[0], newLoc[1]) && !moveMap[newLoc[0]][newLoc[1]]) {
 			// set moveMap[newLoc] = reflected offset (offset * -1)
 			moveMap[newLoc[0]][newLoc[1]] = [offsets[i][0] * -1, offsets[i][1] * -1];
 			// add newLoc to expanded
@@ -884,7 +1718,9 @@ function expand(loc, map, moveMap) {
 }
 
 
-function Dijkstra(map, x, y) {
+function Dijkstra(map, loc) {
+    var x = loc.x;
+    var y = loc.y;
     this.map = map;
 	this.startLoc = [x,y];
     this.moveMap = new Array(this.map.width);
@@ -897,15 +1733,15 @@ function Dijkstra(map, x, y) {
 }
 
 Dijkstra.prototype = {
-    getNextTile: function(x, y) {
+    getNextTile: function(loc) {
 		// Return passed in loc + offset in moveMap
-        return [x + this.moveMap[x][y][0], y + this.moveMap[x][y][1]];
+        return new Location(loc.x + this.moveMap[loc.x][loc.y][0], loc.y + this.moveMap[loc.x][loc.y][1]);
     }
 
 };
 
 module.exports = Dijkstra;
-},{}],19:[function(require,module,exports){
+},{"./Location":28}],27:[function(require,module,exports){
 function Direction(x, y) {
     var result;
     if (Math.abs(x) + Math.abs(y) > 1) {
@@ -977,7 +1813,7 @@ Direction.prototype = {
     },
     isEqualTo: function(dir) {
         return this.x === dir.x && this.y === dir.y;
-    }
+    },
 };
 
 
@@ -987,10 +1823,24 @@ Direction.WEST = new Direction(-1, 0);
 Direction.SOUTH = new Direction(0, 1);
 Direction.NONE = new Direction(0, 0);
 
+Direction.randomDir = function() {
+    var random = Math.random();
+    if (random < .25) {
+        return Direction.NORTH;
+    }
+    if (random < .50) {
+        return Direction.EAST;
+    }
+    if (random < .75) {
+        return Direction.WEST;
+    }
+    return Direction.SOUTH;
+};
+
 
 
 module.exports = Direction;
-},{}],20:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 var Direction = require('./Direction');
 
 function Location(x, y) {
@@ -1024,11 +1874,14 @@ Location.prototype = {
         var x = location.x - this.x;
         var y = location.y - this.y;
         return Math.abs(x) + Math.abs(y) <= 1;
+    },
+    toString: function() {
+        return '[' + this.x + ', ' + this.y + ']';
     }
 };
 
 module.exports = Location;
-},{"./Direction":19}],21:[function(require,module,exports){
+},{"./Direction":27}],29:[function(require,module,exports){
 var Location = require('./Location');
 
 var Map = {
@@ -1078,9 +1931,10 @@ var Map = {
 
 
 module.exports = Map;
-},{"./Location":20}],22:[function(require,module,exports){
+},{"./Location":28}],30:[function(require,module,exports){
 var GameObject = require('../GameObject');
 var RGB = require('../RGB');
+var util = require('./../Utility');
 
 function Tile(repr, rgb) {
 	this.repr = repr;
@@ -1095,11 +1949,11 @@ Tile.FLOOR_TILE = '[_]';
 Tile.UP_STAIRS = '^';
 Tile.DOWN_STAIRS = '/';
 
-Tile.prototype = Object.create(GameObject);
+util.inherit(Tile, GameObject);
 
 module.exports = Tile;
 
-},{"../GameObject":5,"../RGB":7}],23:[function(require,module,exports){
+},{"../GameObject":5,"../RGB":7,"./../Utility":9}],31:[function(require,module,exports){
 var Location = require('./Location');
 var Map = require('./Map');
 var Tile = require('./Tile');
@@ -1138,7 +1992,10 @@ TileMap.prototype = {
 		}
         var existingTile = this.tiles[loc.x][loc.y];
         if (existingTile) {
-            this.tiles[loc.x][loc.y] = new Tile(existingTile.getRepr(), tile.getRGB(existingTile.getRGB()))
+            this.tiles[loc.x][loc.y] = new Tile(
+                existingTile.getRepr(),
+                tile.getRGB().merge(existingTile.getRGB())
+            );
         } else {
             this.tiles[loc.x][loc.y] = tile;
         }
@@ -1182,4 +2039,4 @@ TileMap.prototype = {
 };
 
 module.exports = TileMap;
-},{"./Location":20,"./Map":21,"./Tile":22}]},{},[11])
+},{"./Location":28,"./Map":29,"./Tile":30}]},{},[18])
