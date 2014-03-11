@@ -35,8 +35,8 @@ function createTestTileMap(mapLevel, heroLevel) {
         }
     }
     */
-    tileMap.addStairsDownAtLoc(new Location(2, 2));
-    tileMap.addStairsUp(new Location(17, 17));
+    tileMap.addStairsDownAtLoc(downStairs);
+    tileMap.addStairsUp(upStairs);
     return tileMap;
 }
 
