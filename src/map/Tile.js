@@ -1,5 +1,6 @@
 var GameObject = require('../GameObject');
 var RGB = require('../RGB');
+var util = require('./../Utility');
 
 function Tile(repr, rgb) {
 	this.repr = repr;
@@ -14,6 +15,6 @@ Tile.FLOOR_TILE = '[_]';
 Tile.UP_STAIRS = '^';
 Tile.DOWN_STAIRS = '/';
 
-Tile.prototype = Object.create(GameObject);
+util.inherit(Tile, GameObject);
 
 module.exports = Tile;

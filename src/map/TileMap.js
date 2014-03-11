@@ -36,7 +36,10 @@ TileMap.prototype = {
 		}
         var existingTile = this.tiles[loc.x][loc.y];
         if (existingTile) {
-            this.tiles[loc.x][loc.y] = new Tile(existingTile.getRepr(), tile.getRGB(existingTile.getRGB()))
+            this.tiles[loc.x][loc.y] = new Tile(
+                existingTile.getRepr(),
+                tile.getRGB().merge(existingTile.getRGB())
+            );
         } else {
             this.tiles[loc.x][loc.y] = tile;
         }

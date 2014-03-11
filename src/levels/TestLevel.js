@@ -1,12 +1,15 @@
 var Level = require('./Level');
-var TestLevelCreator = require('./TestLevelCreator');
+var utils = require('./../Utility');
 
-
-function TestLevel() {
-    this.tileMap = TestLevelCreator.createLevel();
-    this.creepMap = TestLevelCreator.createTestCreepMap(this.tileMap);
+function TestLevel(tileMap, creepMap, creeps) {
+    Level.call(
+        this,
+        tileMap,
+        creepMap,
+        creeps
+    );
 }
 
-TestLevel.prototype = Object.create(Level);
+utils.inherit(TestLevel, Level);
 
 module.exports = TestLevel;

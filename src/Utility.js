@@ -1,8 +1,5 @@
-/* Utility functions. */
-function Utility() {
-}
 
-Utility.prototype  = {
+var Utility = {
 	/* Bound value */
 	bound: function(val, low, high) {
 		if (low > high) {
@@ -337,6 +334,11 @@ Utility.prototype  = {
 		prototype.constructor = child;
 		child.prototype = prototype;
 	},
+	extend: function(type, properties) {
+		this.forEachIn(properties, function(property, value) {
+			type.prototype[property] = value;
+		});
+	},
 	bind: function(func, object) {
 		return function() {
 			return func.apply(object,arguments);
@@ -366,4 +368,4 @@ Utility.prototype  = {
 };
 
 // Export as singleton
-module.exports = new Utility();
+module.exports = Utility;

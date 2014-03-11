@@ -14,7 +14,6 @@ var renderer = null;
 var game;
 
 $(document).keyup(function(event) {
-    console.log("HERE");
     if (needsRestart) {
         restart();
         return;
@@ -39,15 +38,11 @@ function turn(code) {
 
     render();
 
-    // TODO: creep stuff
-
     // do dikjstra's on the TileMap to hero location
-    //var dikj = new Dijkstra(game.tileMap, game.hero.location[0], game.hero.location[1]);
+    var dikj = new Dijkstra(game.getTileMap(), game.hero.getLocation());
 
-    // for creep in creepsMap.creeps
-    //   for action in creep.actions
-    //     creep.act()
-    // redraw
+    game.takeCreepTurns(dikj);
+    render();
 }
 
 

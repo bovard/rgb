@@ -69,7 +69,7 @@ Direction.prototype = {
     },
     isEqualTo: function(dir) {
         return this.x === dir.x && this.y === dir.y;
-    }
+    },
 };
 
 
@@ -78,6 +78,20 @@ Direction.EAST = new Direction(1, 0);
 Direction.WEST = new Direction(-1, 0);
 Direction.SOUTH = new Direction(0, 1);
 Direction.NONE = new Direction(0, 0);
+
+Direction.randomDir = function() {
+    var random = Math.random();
+    if (random < .25) {
+        return Direction.NORTH;
+    }
+    if (random < .50) {
+        return Direction.EAST;
+    }
+    if (random < .75) {
+        return Direction.WEST;
+    }
+    return Direction.SOUTH;
+};
 
 
 

@@ -30,7 +30,14 @@ RGB.prototype = {
 	},
 	isBlack: function() {
 		return this.red === 0 && this.green === 0 && this.blue === 0;
-	}
+	},
+    merge: function(rgb) {
+        return new RGB(
+            Math.max(this.red, rgb.red),
+            Math.max(this.green, rgb.green),
+            Math.max(this.blue, rgb.blue)
+        )
+    }
 };
 
 module.exports = RGB;

@@ -14,23 +14,22 @@ var RGB = require('./../RGB');
 var CoreStats = require('./CoreStats');
 
 function Gnome() {
-	Creep.call(this, 
-		1, 						 // Difficulty Level
-		Creep.ATTACK_TYPE_MELEE, // Attack Range
-		1,                       // Actions
-		5,                       // Max Health
-		4,						 // Aggro Radius^2
-		new RGB(255, 255, 255),  // RGB
-		new CoreStats(2, 1)      // Core stats
-		);	
+    this.name = 'Gnome';
+    this.difficultyLevel = 1;
+    this.attackType = Creep.ATTACK_TYPE_MELEE;
+    this.numActions = 1;
+    this.health = 5;
+    this.maxHealth = 5;
+    this.aggroRadiusSquared = 4;
+    this.rgb = new RGB(255, 255, 255);
+    this.stats = new CoreStats(2, 1);
+    this.repr = 'g';
 }
 
-util.inherit(Gnome, Creep);
+Gnome.prototype = new Creep();
 
-// Making these all abstract for now, we can change if need be
-Gnome.prototype = {
-	canMove: function(tile) { /* TODO: implement */ },
-    getAttackMessage: function() { 
+util.extend(Gnome, {
+    getAttackMessage: function() {
 		return "The gnome swings its tiny pickaxe at you with unsettling determination."; 
 	},
     tryToHit: function(hero) { 
@@ -39,7 +38,7 @@ Gnome.prototype = {
     doDamage: function(hero) { 
 		var damageDealt = this.coreStats.resolveDamage(hero.coreStats);
 		hero.takeDamage(damageDealt);
-	},
-};
+	}
+});
 
 module.exports = Gnome;
