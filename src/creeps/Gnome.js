@@ -38,7 +38,7 @@ util.extend(Gnome, {
     doDamage: function(hero) { 
 		var damageDealt = this.coreStats.resolveDamage(hero.coreStats);
 		hero.takeDamage(damageDealt);
-	},
+	}
 });
 
 module.exports = Gnome;

@@ -10,11 +10,11 @@ var TestLevel = require('./TestLevel');
 function createTestTileMap(tileMap) {
     // TODO: do we need to use hero level?
     var downStairs = new Location(2, 2);
-    var upStairs = new Location(17, 17);
+    var upStairs = new Location(tileMap.width - 3, tileMap.height - 3);
     if (Math.random() < .25) {
-        upStairs = new Location(17, 2);
+        upStairs = new Location(tileMap.width - 3, 2);
     } else if (Math.random() < .25) {
-        upStairs = new Location(2, 17);
+        upStairs = new Location(2, tileMap.height - 3);
     }
     var poi = CaveBuilder.buildCaveSystem(tileMap, new RGB(255, 0, 0), [downStairs, upStairs]);
     if (Math.random() < .10) {
@@ -41,7 +41,7 @@ function createTestTileMap(tileMap) {
 }
 
 function createTestCreepMap(tileMap, creepMap, poi, mapLevel, heroLevel) {
-    CaveSpawner.spawnCreeps(tileMap, creepMap, poi, new RGB(130, 0, 0), heroLevel);
+    return CaveSpawner.spawnCreeps(tileMap, creepMap, poi, new RGB(130, 0, 0), heroLevel);
 }
 
 
@@ -55,8 +55,8 @@ function createLevel(height, width, dungeonLevel, heroLevel) {
     var tileMap = new TileMap(height, width);
     var poi = createTestTileMap(tileMap);
     var creepMap = new CreepMap(height, width);
-    createTestCreepMap(tileMap, creepMap, poi);
-    return new TestLevel(tileMap, creepMap);
+    var creeps = createTestCreepMap(tileMap, creepMap, poi);
+    return new TestLevel(tileMap, creepMap, creeps);
 }
 
 

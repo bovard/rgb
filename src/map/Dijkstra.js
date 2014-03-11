@@ -1,4 +1,6 @@
-/* Runs Dijkstra to compute moveMap. Each value in moveMap is one of the following offsets 
+var Location = require('./Location');
+
+/* Runs Dijkstra to compute moveMap. Each value in moveMap is one of the following offsets
    indicating shortest direction to startLoc: [0,1], [0,-1], [1,0], [-1,0]. */
 function calculate(dij) {
     /* Init open list with start loc & mark a [0,0] on movemap at hero loc 
@@ -53,9 +55,9 @@ function Dijkstra(map, x, y) {
 }
 
 Dijkstra.prototype = {
-    getNextTile: function(x, y) {
+    getNextTile: function(loc) {
 		// Return passed in loc + offset in moveMap
-        return [x + this.moveMap[x][y][0], y + this.moveMap[x][y][1]];
+        return new Location(loc.x + this.moveMap[loc.x][loc.y][0], y + this.moveMap[loc.x][loc.y][1]);
     }
 
 };

@@ -30,6 +30,24 @@ Game.prototype = {
 			this.input[code].fire();
 		}
     },
+    takeCreepTurns: function(dijk) {
+        var creepControllers = this.level.getCreepControllers();
+        for (var i = 0; i < creepControllers.length; i++) {
+            var creepController = creepControllers[i];
+            if (creepController.isAdjacentToHero()) {
+                this.attackHero();
+            } else {
+                var next = dijk.getNextTile(creepController.getCharacter().getLocation());
+                var dir = creepController.getCharacter().getLocation().directionTo(next);
+                if (creepController.canMove(dir)) {
+                    creepController.move(dir);
+                }
+            }
+
+
+        }
+
+    },
     moveOrAttack: function(dir) {
         var newLoc = this.hero.location.add(dir);
         if (!this.level.getTileMap().getTileAtLoc(newLoc)) {
@@ -52,10 +70,10 @@ Game.prototype = {
         }
 
         /*
-        if creep:
+        if character:
             try to hit
                 if hit, damage
-            if creep dead
+            if character dead
                 move,
                 absorb animus
             return;
@@ -82,7 +100,7 @@ Game.prototype = {
 		}, this);
 	},
     generateNewLevel: function() {
-        this.levels.push(TestLevelCreator.createLevel(20, 20));
+        this.levels.push(TestLevelCreator.createLevel(50, 50));
     },
     moveHeroToLevel: function(index) {
         if (this.level) {

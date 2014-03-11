@@ -66,7 +66,7 @@ Renderer.prototype = {
 						canvasLoc.x, 
 						canvasLoc.y);
 				}
-				// If a creep or the hero resides in this location, draw it
+				// If a character or the hero resides in this location, draw it
 				if (creepMap.getCreepAtLoc(loc)) {
 					// If hero, draw without filter
 					this.context.fillStyle = creepMap.heroAtLoc(loc) ?
