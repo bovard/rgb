@@ -1,10 +1,11 @@
 /* Hero class. */
 var CoreStats = require('./CoreStats');
+var Character = require('./Character');
 var RGB = require('../RGB');
 var util = require('./../Utility');
-var GameObject = require('./../GameObject');
 
 function Hero(deathCallback, chat) {
+    this.name = "Aver";
     this.health = 10;
     this.maxHealth = 10;
     this.shield = 0;
@@ -16,7 +17,7 @@ function Hero(deathCallback, chat) {
     this.numActions = 1;
     this.actionsPerformed = 0;
     this.visionRadiusSquared = 10;
-	this.coreStats = new CoreStats(1, 1);
+	this.stats = new CoreStats(5, 5);
     this.rgb = new RGB(255, 255, 255);
     this.repr = '@';
     //
@@ -30,7 +31,7 @@ function Hero(deathCallback, chat) {
     //
 }
 
-util.inherit(Hero, GameObject);
+Hero.prototype = new Character();
 
 util.extend(Hero, {
     endTurn: function() {
@@ -73,18 +74,6 @@ util.extend(Hero, {
     kill: function() {
         this.chat.crit("You have died! Press Enter to restart");
         this.deathCallback();
-    },
-    getLocation: function() {
-        return this.location;
-    },
-    setLocation: function(location) {
-        this.location = location;
-    },
-    getRGB: function() {
-        return this.rgb;
-    },
-    getRepr: function() {
-        return this.repr;
     }
 });
 

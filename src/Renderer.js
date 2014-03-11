@@ -95,7 +95,7 @@ Renderer.prototype = {
 				if (tileMap.getTileAtLoc(loc)) {
 					drawTile.call(this, tileMap.getTileAtLoc(loc), loc, filter);
 				}
-				// If a creep or the hero resides in this location, draw it
+				// If a character or the hero resides in this location, draw it
 				if (creepMap.getCreepAtLoc(loc)) {
 					if (creepMap.heroAtLoc(loc)) {
 						drawSymbol.call(this, creepMap.getCreepAtLoc(loc), loc, filter, true);

@@ -1,5 +1,6 @@
 /* Generic creep class which provides a base from which to specialize. */
 var GameObject = require('./../GameObject');
+var Character = require('./Character');
 var util = require('./../Utility');
 
 function Creep(difficultyLevel, attackType, numActions, maxHealth, aggroRadiusSquared, 
@@ -23,16 +24,15 @@ function Creep(difficultyLevel, attackType, numActions, maxHealth, aggroRadiusSq
 Creep.ATTACK_TYPE_MELEE = 1;
 Creep.ATTACK_TYPE_RANGED = 2;
 
-util.inherit(Creep, GameObject);
+Creep.prototype = new Character();
 
 util.extend(Creep, {
-	getHealth: function() { return this.health; },
-	canMove: function(tile) { throw "Creep.canMove: abstract method called"; },
     getAttackMessage: function() { throw "Creep.attackMessage: abstract method called"; },
-    tryToHit: function(hero) { throw "Creep.tryToHit: abstract method called"; },
-    doDamage: function(hero) { throw "Creep.doDamage: abstract method called"; },
-    getLocation: function() { return this.location; },
-    setLocation: function(loc) { this.location = loc }
+    getAggroRange: function() { return this.aggroRadiusSquared; },
+    kill: function() {}
 });
+
+console.log(Creep);
+console.log(Creep.prototype);
 
 module.exports = Creep;

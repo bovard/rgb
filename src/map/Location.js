@@ -31,6 +31,9 @@ Location.prototype = {
         var x = location.x - this.x;
         var y = location.y - this.y;
         return Math.abs(x) + Math.abs(y) <= 1;
+    },
+    toString: function() {
+        return '[' + this.x + ', ' + this.y + ']';
     }
 };
 

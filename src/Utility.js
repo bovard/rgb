@@ -1,8 +1,5 @@
-/* Utility functions. */
-function Utility() {
-}
 
-Utility.prototype  = {
+var Utility = {
 	/* Bound value */
 	bound: function(val, low, high) {
 		if (low > high) {
@@ -371,4 +368,4 @@ Utility.prototype  = {
 };
 
 // Export as singleton
-module.exports = new Utility();
+module.exports = Utility;

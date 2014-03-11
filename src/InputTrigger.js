@@ -10,6 +10,6 @@ InputTrigger.prototype = {
 	fire: function() {
 		this.callback.apply(this.scope, this.args);
 	}
-}
+};
 
 module.exports = InputTrigger;
