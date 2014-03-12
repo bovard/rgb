@@ -45,6 +45,28 @@ Game.prototype = {
                 var dir = creepController.getCharacter().getLocation().directionTo(next);
                 if (creepController.canMove(dir)) {
                     creepController.move(dir);
+                } else {
+                    // TODO: remove this once we have improved dikjstra's
+                    // move to the closest square to the hero
+                    var loc = creepController.getCharacter().getLocation();
+                    var heroLoc = creepController.getCreepMap().getHero().getLocation();
+                    var left = 100000;
+                    var right = 100000;
+                    var canMove = false;
+                    if (creepController.canMove(dir.rotateLeft())) {
+                        canMove = true;
+                        left = loc.add(dir.rotateLeft()).distanceSquaredTo(heroLoc)
+                    } else if (creepController.canMove(dir.rotateRight())) {
+                        canMove = true;
+                        right = loc.add(dir.rotateRight()).distanceSquaredTo(heroLoc)
+                    }
+                    if (canMove) {
+                        if (left < right) {
+                            creepController.move(dir.rotateLeft());
+                        } else {
+                            creepController.move(dir.rotateRight());
+                        }
+                    }
                 }
             }
         }
@@ -94,6 +116,9 @@ Game.prototype = {
         this.level.getCreepMap().addHeroToMapAtLoc(loc, this.hero);
         this.heroController.setCreepMap(this.level.getCreepMap());
         this.heroController.setTileMap(this.level.getTileMap());
+    },
+    getHero: function() {
+        return this.hero;
     }
 };
 

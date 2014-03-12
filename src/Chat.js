@@ -31,5 +31,5 @@ module.exports = {
     crit: crit,
     warn: warn,
     log: log,
-    setOputFunction: setOutputFunction
-}
+    setOutputFunction: setOutputFunction
+};

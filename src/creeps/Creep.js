@@ -12,7 +12,7 @@ function Creep(difficultyLevel, attackType, numActions, maxHealth, aggroRadiusSq
 	this.maxHealth = maxHealth;
 	this.aggroRadiusSquared = aggroRadiusSquared;
 	this.rgb = rgb;
-	this.coreStats = coreStats;
+	this.stats = coreStats;
 	
 	// Status
 	this.actionsPerformed = 0;

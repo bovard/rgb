@@ -5,6 +5,7 @@ function CreepController(tileMap, creepMap, creep) {
     this.tileMap = tileMap;
     this.creepMap = creepMap;
     this.character = creep;
+    this.aggroed = false;
 }
 
 CreepController.prototype = new Controller();
@@ -15,6 +16,9 @@ util.extend(CreepController, {
      * @returns {*}
      */
     isAdjacentToHero: function() {
+        var ourLoc = this.getCharacter().getLocation();
+        var theirLoc = this.creepMap.getHero().getLocation();
+        var adj = ourLoc.isAdjacentTo(theirLoc);
         return this.getCharacter().getLocation().isAdjacentTo(this.creepMap.getHero().getLocation());
     },
     /**
@@ -42,8 +46,12 @@ util.extend(CreepController, {
         this.attack(dirToHero);
     },
     aggroHero: function() {
-        return this.getCharacter().getLocation().distanceSquaredTo(this.getCreepMap().getHero().getLocation()) <= this.getCharacter().getAggroRange();
-
+        var sees = this.getCharacter().getLocation().distanceSquaredTo(this.getCreepMap().getHero().getLocation()) <= this.getCharacter().getAggroRange();
+        if (sees) {
+            // once we see the hero, don't stop chasing till he's dead!
+            this.aggroed = true;
+        }
+        return this.aggroed;
     }
 });
 

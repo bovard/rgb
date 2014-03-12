@@ -10,7 +10,7 @@ Controller.prototype = {
      * @param dir direction to move
      * @returns {*}
      */
-    canMove: function(dir) {
+    canMoveUnsafe: function(dir) {
         return this.isEmpty(this.character.getLocation().add(dir));
     },
     /**
@@ -18,7 +18,7 @@ Controller.prototype = {
      * @param dir direction to move
      * @returns {boolean|*}
      */
-    canSafeMove: function(dir) {
+    canMove: function(dir) {
         var loc = this.character.getLocation().add(dir);
         return this.isViewableTile(loc)
             && this.isEmpty(loc)

@@ -7,12 +7,14 @@ function Direction(x, y) {
              } else {
                  result = Direction.WEST;
              }
+             y = 0;
          } else {
              if (y * Direction.NORTH.y > 0) {
                  result = Direction.NORTH;
              } else {
                  result = Direction.SOUTH;
              }
+             x = 0;
          }
     }
     if (result) {
