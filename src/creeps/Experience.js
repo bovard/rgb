@@ -21,7 +21,8 @@ Experience.prototype = {
         // each level is 50 xp
         return (this.getLevel() + 1) * 50;
     },
-    levelUp: function() { throw "Experience.levelUp abstract called!"}
+    levelUp: function() { throw "Experience.levelUp abstract called!"},
+    getLevel: function() { return this.level; }
 };
 
 module.exports = Experience;

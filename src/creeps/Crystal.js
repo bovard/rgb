@@ -17,7 +17,12 @@ Utility.extend(Crystal, {
     },
     getRGB: function() {
         return this.rgb;
-    }
+    },
+    applyKillEffects: function(hero, victim) {
+        // TODO: possibly add RGB vs victim RGB in this calc?
+        var toAdd = victim.getMaxHealth() * (this.rgb.toDecimal() / 255);
+        hero.addHealth(toAdd);
+    },
 
 });
 

@@ -16,11 +16,11 @@ function Hero(deathCallback, chat) {
     this.numActions = 1;
     this.actionsPerformed = 0;
 	this.stats = new CoreStats(1, CoreStats.HeroStatGain, CoreStats.HeoStatSeed);
-    this.health = this.stats.getMaxHP();
+    this.health = this.stats.getMaxHealth();
     console.log("made hero with hp:", this.health);
     this.rgb = new RGB(255, 255, 255);
     this.repr = '@';
-    this.crystals = [new Crystal(new RGB(125, 0, 0)), new Crystal(new RGB(0, 255, 0))];
+    this.crystals = [new Crystal(new RGB(125, 0, 0)), new Crystal(new RGB(0, 125, 0))];
     this.crystal = this.crystals[0];
     //
     //    XXX
@@ -77,6 +77,7 @@ util.extend(Hero, {
     gainXPForKill: function(target) {
         this.stats.gainXPForKill(target);
         this.crystal.gainXPForKill(target);
+        this.crystal.applyKillEffects(this, target);
     },
     getVisionRadiusSquared: function() {
         return this.stats.getLevel() + 10;
@@ -90,6 +91,11 @@ util.extend(Hero, {
     },
     isHero: function() {
         return true;
+    },
+    switchCrystals: function(index) {
+        console.log("Crystal color is ", this.crystal.getRGB().toString());
+        this.crystal = this.crystals[index];
+        console.log("Crystal color is now ", this.crystal.getRGB().toString());
     }
 });
 

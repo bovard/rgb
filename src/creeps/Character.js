@@ -13,10 +13,14 @@ Character.prototype = new GameObject();
 
 utils.extend(Character, {
     setHealth: function(health) { this.health = health; },
+    addHealth: function(toAdd) {
+        this.health += toAdd;
+        this.health = Math.min(this.stats.getMaxHealth(), this.health);
+    },
     getHealth: function() { return this.health; },
     getMaxHealth: function() {
         if (this.stats) {
-            return this.stats.getMaxHP();
+            return this.stats.getMaxHealth();
         } else {
             return 10;
         }

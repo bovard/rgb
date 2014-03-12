@@ -28,8 +28,7 @@ util.extend(HeroController, {
             console.log(target.name, target.getHealth());
             if (target.isDead()) {
                 console.log("We killed it!");
-                console.log("Setting health to", this.getCharacter().getMaxHealth());
-                this.getCharacter().setHealth(this.getCharacter().getMaxHealth());
+                this.getCharacter().gainXPForKill(target);
                 this.getCreepMap().deleteCreepAtLoc(loc);
                 this.getCreepMap().moveHeroToLoc(loc);
             }
@@ -37,7 +36,6 @@ util.extend(HeroController, {
 
     },
     moveOrAttack: function(dir) {
-        this.getCharacter().actionsPerformed += 1;
         var toMove = this.getCharacter().location.add(dir);
         var creep = this.getCreepMap().getCreepAtLoc(toMove);
         if (!this.getTileMap().getTileAtLoc(toMove)) {

@@ -21,10 +21,10 @@ function Gnome() {
     this.radiusSquared = 4;
     this.rgb = new RGB(125, 0, 0);
     this.stats = new CoreStats(1);
-    this.health = this.stats.getMaxHP();
+    this.health = this.stats.getMaxHealth();
     this.repr = 'g';
     this.location = null;
-    console.log("Making gnome with health", this.stats.getMaxHP())
+    console.log("Making gnome with health", this.stats.getMaxHealth())
 }
 
 Gnome.prototype = new Creep();

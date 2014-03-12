@@ -3,9 +3,9 @@ var Utility = require('../Utility');
 /* Core stats for game entities performing actions. */
 
 function CoreStats(level, statGain, seed) {
-    this.str = (seed && seed.str) || 8;
-    this.agi = (seed && seed.agi) || 8;
-    this.con = (seed && seed.con) || 8;
+    this.str = (seed && seed.str) || 10;
+    this.agi = (seed && seed.agi) || 10;
+    this.con = (seed && seed.con) || 10;
     this.level = 0;
     this.statGain = statGain || {
         str: 1,
@@ -57,7 +57,7 @@ Utility.extend(CoreStats, {
         return Math.max(1, dmg);
 
 	},
-    getMaxHP: function() {
+    getMaxHealth: function() {
         return Math.round(this.con);
     },
     levelUp: function() {
@@ -80,9 +80,6 @@ Utility.extend(CoreStats, {
         }
 
         this.level++;
-    },
-    getLevel: function() {
-        return this.level;
     }
 });
 

@@ -29,7 +29,9 @@ Game.prototype = {
     takeHeroTurn: function(code) {
 		// If there is an InputTrigger for this code, fire it
         if (this.input[code]) {
+            console.log("taking hero turn with code", code);
 			this.input[code].fire();
+            this.hero.actionsPerformed += 1;
 		}
     },
     takeCreepTurns: function(dijk) {
@@ -83,6 +85,9 @@ Game.prototype = {
         }
 
     },
+    switchCrystals: function(num) {
+        this.hero.switchCrystals(num);
+    },
 	initInput: function() {
 		this.input[37] = new InputTrigger(function() {
 			this.moveOrAttackHero(Direction.WEST);
@@ -96,6 +101,12 @@ Game.prototype = {
 		this.input[40] = new InputTrigger(function() {
 			this.moveOrAttackHero(Direction.SOUTH);
 		}, this);
+        this.input[49] = new InputTrigger(function() {
+            this.switchCrystals(0);
+        }, this);
+        this.input[50] = new InputTrigger(function() {
+            this.switchCrystals(1);
+        }, this);
 	},
     generateNewLevel: function() {
         this.levels.push(TestLevelCreator.createLevel(50, 50));
