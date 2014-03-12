@@ -36,15 +36,53 @@ function drawSymbol(entity, loc, filter, isHero) {
 	this.context.fillStyle = isHero ? entity.getRGB().toString() :
 		entity.getRGB(filter).toString();
 	// Set font size
-	this.context.font = "12px Arial";
+	this.context.font = Renderer.FONT;
 	// Get loc in canvas space
 	canvasLoc = toCanvasSpace(loc, this.centerLoc);
 	var txt = entity.getRepr();
 	var txtWidth = this.context.measureText(txt).width;
-	var txtHeight = 6; // txtHeight ~ .5 * font size
+	var txtHeight = parseInt(Renderer.FONT) * .5; // approx height
 	this.context.fillText(txt,
 		canvasLoc.x - txtWidth/2, 
 		canvasLoc.y + txtHeight/2);
+}
+
+// Draws HUD for hero
+function drawHud(hero) {
+	this.context.font = Renderer.HUD_FONT;
+	/********************** Draw health *******************************/
+	this.context.fillStyle = Renderer.HUD_HEALTH_COLOR;
+	var txtWidth = this.context.measureText(Renderer.HUD_HEALTH_SYM).width;
+	var wholeHealthSymbols = parseInt(hero.health / Renderer.HUD_HEALTH_SYM_COUNT);
+	var percentage = 
+		(hero.health % Renderer.HUD_HEALTH_SYM_COUNT) / Renderer.HUD_HEALTH_SYM_COUNT;
+	
+	var loc = new Location(Renderer.HUD_OFFSET.x, Renderer.HUD_OFFSET.y);
+	for (var i = 0; i < wholeHealthSymbols; i++, loc.x += txtWidth ) {
+		drawHudSymbol.call(this, Renderer.HUD_HEALTH_SYM, loc, 1); 
+	}
+	
+	if (percentage > 0) {
+		drawHudSymbol.call(this, Renderer.HUD_HEALTH_SYM, loc, percentage);
+	}
+}
+
+/* Draws a HUD symbol or a left-to-right percentage of a HUD symbol. The percentage 
+   allows for the HUD to store more count information in a smaller space. */
+function drawHudSymbol(symbol, loc, percentage) {
+	var txtWidth = this.context.measureText(symbol).width;
+	var txtHeight = parseInt(Renderer.HUD_FONT) * .5; // approx height
+	this.context.save();
+	this.context.beginPath();
+	/* The height of the clipping rects here doesn't matter, just make sure they are
+	   tall enough to not clip horizontally. */
+	this.context.rect(loc.x - txtWidth/2, loc.y - 5 * txtHeight,
+		txtWidth * percentage, 5 * txtHeight);
+	this.context.clip();
+	this.context.fillText(symbol,
+		loc.x - txtWidth/2, 
+		loc.y + txtHeight/2);
+	this.context.restore();
 }
 
 function Renderer(canvas) {
@@ -52,7 +90,7 @@ function Renderer(canvas) {
 	this.context = canvas.getContext("2d");
 	// Determines the game location that the canvas should be centered on
 	this.centerLoc = null;
-	this.zoomFactor = 1; // 1.1 would be 10% magnification
+	this.zoomFactor = 2; // 1.1 would be 10% magnification
 }
 
 /* Scale factor going between game coordinates and canvas coordinates 
@@ -65,6 +103,13 @@ function Renderer(canvas) {
 */
 Renderer.GAME_TO_CANVAS = 18;
 Renderer.TILE_WIDTH = 15;
+Renderer.FONT = "12px Arial";
+Renderer.HUD_OFFSET = new Location(-100,-100);
+Renderer.HUD_FONT = "24px Arial";
+Renderer.HUD_HEALTH_SYM = "*";
+// Each HUD_HEALTH_SYM represents HUD_HEALTH_SYM_COUNT health
+Renderer.HUD_HEALTH_SYM_COUNT = 2;
+Renderer.HUD_HEALTH_COLOR = "#FF0000";
 
 Renderer.prototype = {
     render: function(tileMap, creepMap, filter) {
@@ -89,7 +134,7 @@ Renderer.prototype = {
                 var loc = new Location(x, y);
                 if (loc.distanceSquaredTo(hero.location) > hero.visionRadiusSquared) {
                     // COMMENT OUT THE continue TO SEE EVERYTHING
-                    //continue;
+                    continue;
                 }
 				// If there is a tile to draw in this location, draw it
 				if (tileMap.getTileAtLoc(loc)) {
@@ -105,6 +150,9 @@ Renderer.prototype = {
 				}
 			}
 		}
+		
+		// Draw HUD
+		drawHud.call(this, hero);
 		
 		this.context.restore();
     }
