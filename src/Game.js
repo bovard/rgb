@@ -30,6 +30,7 @@ Game.prototype = {
 		// If there is an InputTrigger for this code, fire it
         if (this.input[code]) {
 			this.input[code].fire();
+            this.hero.actionsPerformed++;
 		}
     },
     takeCreepTurns: function(dijk) {
