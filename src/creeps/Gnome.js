@@ -23,6 +23,7 @@ function Gnome() {
     this.stats = new CoreStats(1);
     this.health = this.stats.getMaxHP();
     this.repr = 'g';
+    this.location = null;
     console.log("Making gnome with health", this.stats.getMaxHP())
 }
 

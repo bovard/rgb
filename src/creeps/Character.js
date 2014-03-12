@@ -1,9 +1,8 @@
 var GameObject = require('../GameObject');
 var utils = require('../Utility');
 
-function Character(stats, location, numActions, radiusSquared, name) {
+function Character(stats, numActions, radiusSquared, name) {
     this.stats = stats;
-    this.location = location;
     this.health = this.getMaxHealth();
     this.numActions = numActions;
     this.radiusSquared = radiusSquared;
