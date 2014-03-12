@@ -82,6 +82,7 @@ Game.prototype = {
 		// If there is an InputTrigger for this code, fire it
         if (this.input[code]) {
 			this.input[code].fire();
+            this.hero.actionsPerformed++;
 		}
     },
     takeCreepTurns: function(dijk) {
@@ -135,6 +136,9 @@ Game.prototype = {
         }
 
     },
+    switchCrystals: function(num) {
+        this.hero.switchCrystals(num);
+    },
 	initInput: function() {
 		this.input[37] = new InputTrigger(function() {
 			this.moveOrAttackHero(Direction.WEST);
@@ -148,6 +152,12 @@ Game.prototype = {
 		this.input[40] = new InputTrigger(function() {
 			this.moveOrAttackHero(Direction.SOUTH);
 		}, this);
+        this.input[49] = new InputTrigger(function() {
+            this.switchCrystals(0);
+        }, this);
+        this.input[50] = new InputTrigger(function() {
+            this.switchCrystals(1);
+        }, this);
 	},
     generateNewLevel: function() {
         this.levels.push(TestLevelCreator.createLevel(50, 50));
@@ -175,7 +185,7 @@ Game.prototype = {
 };
 
 module.exports = Game;
-},{"./InputTrigger":6,"./creeps/Hero":16,"./creeps/HeroController":17,"./levels/TestLevel":22,"./levels/TestLevelCreator":23,"./map/Direction":27}],5:[function(require,module,exports){
+},{"./InputTrigger":6,"./creeps/Hero":18,"./creeps/HeroController":19,"./levels/TestLevel":24,"./levels/TestLevelCreator":25,"./map/Direction":29}],5:[function(require,module,exports){
 function GameObject() {
 }
 
@@ -248,7 +258,23 @@ RGB.prototype = {
             Math.max(this.green, rgb.green),
             Math.max(this.blue, rgb.blue)
         )
+    },
+    add: function(rgb) {
+        return new RGB(
+            Math.min(255, this.red + rgb.red),
+            Math.min(255, this.green + rgb.green),
+            Math.min(255, this.blue + rgb.blue)
+        );
+    },
+    getUnitVector: function() {
+        return new RGB(
+            Math.min(1, this.red),
+            Math.min(1, this.green),
+            Math.min(1, this.blue)
+        )
+
     }
+
 };
 
 module.exports = RGB;
@@ -413,7 +439,7 @@ Renderer.prototype = {
 };
 
 module.exports = Renderer;
-},{"./map/Location":28,"./map/Tile":30}],9:[function(require,module,exports){
+},{"./map/Location":30,"./map/Tile":32}],9:[function(require,module,exports){
 
 var Utility = {
 	/* Bound value */
@@ -789,9 +815,8 @@ module.exports = Utility;
 var GameObject = require('../GameObject');
 var utils = require('../Utility');
 
-function Character(stats, location, numActions, radiusSquared, name) {
+function Character(stats, numActions, radiusSquared, name) {
     this.stats = stats;
-    this.location = location;
     this.health = this.getMaxHealth();
     this.numActions = numActions;
     this.radiusSquared = radiusSquared;
@@ -802,10 +827,14 @@ Character.prototype = new GameObject();
 
 utils.extend(Character, {
     setHealth: function(health) { this.health = health; },
+    addHealth: function(toAdd) {
+        this.health += toAdd;
+        this.health = Math.min(this.stats.getMaxHealth(), this.health);
+    },
     getHealth: function() { return this.health; },
     getMaxHealth: function() {
         if (this.stats) {
-            return this.stats.getMaxHP();
+            return this.stats.getMaxHealth();
         } else {
             return 10;
         }
@@ -818,8 +847,10 @@ utils.extend(Character, {
         }
 
     },
-    applyDamage: function(damage) {
-        console.log("Applying damage to ", this.name);
+    applyDamage: function(damage, rgb) {
+        // calculate the amount of damage you can do
+        damage *= Math.min(2, rgb.mask(this.getRGB()).toDecimal() / this.getRGB().toDecimal());
+        console.log("Applying", damage, " damage to", this.getName());
         this.health -= damage;
         if (this.health > 0) {
             return false;
@@ -834,7 +865,8 @@ utils.extend(Character, {
     getNumActions: function() {return this.numActions; },
     isDead: function() {return this.health <= 0; },
     kill: function() { throw "Character.kill implement me!"; },
-    getRadiusSquared: function() { return this.radiusSquared }
+    getRadiusSquared: function() { return this.radiusSquared },
+    getName: function() { return this.name; }
 });
 
 module.exports = Character;
@@ -848,6 +880,7 @@ function Controller(tileMap, creepMap, character) {
 Controller.prototype = {
     /**
      * Checks if the tile is empty before moving
+     * can fall off map if you do this. :)
      * @param dir direction to move
      * @returns {*}
      */
@@ -921,16 +954,37 @@ Controller.prototype = {
     setTileMap: function(tileMap) {
         this.tileMap = tileMap;
     },
+    getCreepsInRadiusSquared: function() {
+        var creeps = [];
+        var radiusSquared = this.getCharacter().getRadiusSquared();
+        var radius = Math.ceil(Math.sqrt(radiusSquared));
+        var loc = this.getCharacter().getLocation();
+        for (var x = -radius; x <= radius; x++) {
+            for (var y = -radius; y <= radius; y++) {
+                if (x === 0 && y === 0) {
+                    continue;
+                }
+                var newLoc = loc.addXY(x, y);
+                var creep = this.getCreepMap().getCreepAtLoc(newLoc);
+                if (creep && loc.distanceSquaredTo(newLoc) <= radiusSquared && !creep.isHero()) {
+                    creeps.push(creep);
+                }
+            }
+        }
+        return creeps;
+    }
 };
 
 module.exports = Controller;
 },{}],12:[function(require,module,exports){
+var Experience = require('./Experience');
+var Utility = require('../Utility');
 /* Core stats for game entities performing actions. */
 
 function CoreStats(level, statGain, seed) {
-    this.str = 1 || seed.str;
-    this.agi = 1 || seed.str;
-    this.con = 1 || seed.str;
+    this.str = (seed && seed.str) || 10;
+    this.agi = (seed && seed.agi) || 10;
+    this.con = (seed && seed.con) || 10;
     this.level = 0;
     this.statGain = statGain || {
         str: 1,
@@ -940,9 +994,24 @@ function CoreStats(level, statGain, seed) {
     for (var i = 0; i < level; i++) {
         this.levelUp();
     }
+    this.experience = 0;
 }
 
-CoreStats.prototype = {
+CoreStats.HeroStatGain = {
+    str: 1.1,
+    agi: 1.1,
+    con: 1.1
+};
+
+CoreStats.HeoStatSeed = {
+    str: 10,
+    agi: 10,
+    con: 10
+}
+
+CoreStats.prototype = new Experience();
+
+Utility.extend(CoreStats, {
 	// Resolves whether this entity successfully hits target entity by comparing core stats
 	resolveHit: function(targetCoreStats) {
 		var chanceToHit = Math.atan(this.agi / targetCoreStats.agi) / (Math.PI/2);
@@ -967,7 +1036,7 @@ CoreStats.prototype = {
         return Math.max(1, dmg);
 
 	},
-    getMaxHP: function() {
+    getMaxHealth: function() {
         return Math.round(this.con);
     },
     levelUp: function() {
@@ -990,14 +1059,11 @@ CoreStats.prototype = {
         }
 
         this.level++;
-    },
-    getLevel: function() {
-        return this.level;
     }
-};
+});
 
 module.exports = CoreStats;
-},{}],13:[function(require,module,exports){
+},{"../Utility":9,"./Experience":16}],13:[function(require,module,exports){
 /* Generic creep class which provides a base from which to specialize. */
 var GameObject = require('./../GameObject');
 var Character = require('./Character');
@@ -1010,7 +1076,7 @@ function Creep(difficultyLevel, attackType, numActions, maxHealth, aggroRadiusSq
 	this.attackType = attackType; // Creep.ATTACK_TYPE_*
 	this.numActions = numActions;
 	this.maxHealth = maxHealth;
-	this.aggroRadiusSquared = aggroRadiusSquared;
+	this.radiusSquared = aggroRadiusSquared;
 	this.rgb = rgb;
 	this.stats = coreStats;
 	
@@ -1018,6 +1084,7 @@ function Creep(difficultyLevel, attackType, numActions, maxHealth, aggroRadiusSq
 	this.actionsPerformed = 0;
 	this.health = this.maxHealth;
 	this.location = null;
+    this.aggro = false;
 }
 
 // Class constants
@@ -1028,8 +1095,12 @@ Creep.prototype = new Character();
 
 util.extend(Creep, {
     getAttackMessage: function() { throw "Creep.attackMessage: abstract method called"; },
-    getAggroRange: function() { return this.aggroRadiusSquared; },
-    kill: function() {}
+    setAggro: function(aggro) {
+        this.aggro = aggro;
+    },
+    isAggroed: function() { return this.aggro; },
+    kill: function() {},
+    isHero: function() { return false; }
 });
 
 console.log(Creep);
@@ -1057,8 +1128,10 @@ util.extend(CreepController, {
     isAdjacentToHero: function() {
         var ourLoc = this.getCharacter().getLocation();
         var theirLoc = this.creepMap.getHero().getLocation();
-        var adj = ourLoc.isAdjacentTo(theirLoc);
-        return this.getCharacter().getLocation().isAdjacentTo(this.creepMap.getHero().getLocation());
+        if (!ourLoc || !theirLoc) {
+            console.warn("something wrong here!");
+        }
+        return ourLoc && theirLoc && ourLoc.isAdjacentTo(theirLoc);
     },
     /**
      * Attacks whatever is in the given direction
@@ -1071,9 +1144,11 @@ util.extend(CreepController, {
         }
         var target = this.getCreepMap().getCreepAtLoc(loc);
 
+        console.log("creep trying to hit");
         if(this.getCharacter().getStats().resolveHit(target.getStats())) {
+            console.log("creep hit");
             var dmg = this.getCharacter().getStats().resolveDamage(target.getStats());
-            target.applyDamage(dmg);
+            target.applyDamage(dmg, this.getCharacter().getRGB());
         }
 
     },
@@ -1085,18 +1160,88 @@ util.extend(CreepController, {
         this.attack(dirToHero);
     },
     aggroHero: function() {
-        var sees = this.getCharacter().getLocation().distanceSquaredTo(this.getCreepMap().getHero().getLocation()) <= this.getCharacter().getAggroRange();
+        var ourLoc = this.getCharacter().getLocation();
+        var theirLoc = this.creepMap.getHero().getLocation();
+        if (!ourLoc || !theirLoc) {
+            console.warn("something wrong here!");
+        }
+        var sees = ourLoc && theirLoc && ourLoc.distanceSquaredTo(theirLoc) <= this.getCharacter().getRadiusSquared();
         if (sees) {
             // once we see the hero, don't stop chasing till he's dead!
-            this.aggroed = true;
+            this.getCharacter().setAggro(true);
+            var neighbors = this.getCreepsInRadiusSquared();
+            for (var i = 0; i < neighbors.length; i++) {
+                neighbors[i].setAggro(true);
+            }
         }
-        return this.aggroed;
+        console.log(this.getCharacter().isAggroed());
+        return this.getCharacter().isAggroed();
     }
 });
 
 module.exports = CreepController;
 
 },{"./../Utility":9,"./Controller":11}],15:[function(require,module,exports){
+var Experience = require('./Experience');
+var Utility = require('./../Utility');
+
+function Crystal(rgb) {
+    this.experience = 0;
+    this.level = 1;
+    this.rgb = rgb;
+    this.unitRGB = rgb.getUnitVector();
+}
+
+Crystal.prototype = new Experience();
+
+Utility.extend(Crystal, {
+    levelUp: function() {
+        this.level++;
+        this.rgb.add(this.unitRGB);
+    },
+    getRGB: function() {
+        return this.rgb;
+    },
+    applyKillEffects: function(hero, victim) {
+        // TODO: possibly add RGB vs victim RGB in this calc?
+        var toAdd = victim.getMaxHealth() * (this.rgb.toDecimal() / 255);
+        hero.addHealth(toAdd);
+    },
+
+});
+
+module.exports = Crystal;
+
+},{"./../Utility":9,"./Experience":16}],16:[function(require,module,exports){
+function Experience() {
+    this.experience = 0;  // all of the xp a character has gotten
+}
+
+Experience.getExperience = function(myLevel, creepLevel) {
+    // you get 5 experience per kill of a creep
+    // +1 for every level they are above you (no max)
+    // -1 for every level they are below you (down to zero)
+    return Math.max(0, 5 - (myLevel - creepLevel));
+};
+
+Experience.prototype = {
+    gainXPForKill: function(target) {
+        var xpForNextLevel = this.getXPForNextLevel();
+        this.experience += Experience.getExperience(this.getLevel(), target.getLevel());
+        if (this.experience >= xpForNextLevel) {
+            this.levelUp()
+        }
+    },
+    getXPForNextLevel: function() {
+        // each level is 50 xp
+        return (this.getLevel() + 1) * 50;
+    },
+    levelUp: function() { throw "Experience.levelUp abstract called!"},
+    getLevel: function() { return this.level; }
+};
+
+module.exports = Experience;
+},{}],17:[function(require,module,exports){
 /* Gnome creep. Properties:
    * Difficulty Level: very easy  
    * Attack Range: melee
@@ -1117,12 +1262,13 @@ function Gnome() {
     this.difficultyLevel = 1;
     this.attackType = Creep.ATTACK_TYPE_MELEE;
     this.numActions = 1;
-    this.aggroRadiusSquared = 4;
-    this.rgb = new RGB(255, 255, 255);
+    this.radiusSquared = 4;
+    this.rgb = new RGB(125, 0, 0);
     this.stats = new CoreStats(1);
-    this.health = this.stats.getMaxHP();
+    this.health = this.stats.getMaxHealth();
     this.repr = 'g';
-    console.log("Making gnome with health", this.stats.getMaxHP())
+    this.location = null;
+    console.log("Making gnome with health", this.stats.getMaxHealth())
 }
 
 Gnome.prototype = new Creep();
@@ -1134,16 +1280,16 @@ util.extend(Gnome, {
 });
 
 module.exports = Gnome;
-},{"./../RGB":7,"./../Utility":9,"./CoreStats":12,"./Creep":13}],16:[function(require,module,exports){
+},{"./../RGB":7,"./../Utility":9,"./CoreStats":12,"./Creep":13}],18:[function(require,module,exports){
 /* Hero class. */
 var CoreStats = require('./CoreStats');
 var Character = require('./Character');
+var Crystal = require('./Crystal');
 var RGB = require('../RGB');
 var util = require('./../Utility');
 
 function Hero(deathCallback, chat) {
     this.name = "Aver";
-    this.health = 10;
     this.shield = 0;
     this.maxShield = 10;
     this.speedBoost = 0;
@@ -1152,10 +1298,13 @@ function Hero(deathCallback, chat) {
     this.location = null;
     this.numActions = 1;
     this.actionsPerformed = 0;
-    this.visionRadiusSquared = 10;
-	this.stats = new CoreStats(1, {str: 1.1, agi: 1.1, con: 1.1}, {str: 10, agi: 10, con:10});
+	this.stats = new CoreStats(1, CoreStats.HeroStatGain, CoreStats.HeoStatSeed);
+    this.health = this.stats.getMaxHealth();
+    console.log("made hero with hp:", this.health);
     this.rgb = new RGB(255, 255, 255);
     this.repr = '@';
+    this.crystals = [new Crystal(new RGB(125, 0, 0)), new Crystal(new RGB(0, 125, 0))];
+    this.crystal = this.crystals[0];
     //
     //    XXX
     //   XXXXX
@@ -1184,38 +1333,56 @@ util.extend(Hero, {
     setNumActions: function(number) {
         this.numActions = number;
     },
-	takeDamage: function(damage) {
+	applyDamage: function(damage, rgb) {
+        // calculate the amount of damage you can do
+        damage *= Math.min(2, rgb.mask(this.getRGB()).toDecimal() / this.getRGB().toDecimal());
+        console.log("Applying", damage, " damage to", this.getName());
         // first subtract from shield if there is one
         if (this.shield > 0) {
-            if (this.shield > dmg) {
-                this.shield -= dmg;
-                dmg = 0;
+            if (this.shield > damage) {
+                this.shield -= damage;
+                damage = 0;
             } else {
-                dmg -= this.shield;
+                damage -= this.shield;
                 this.shield = 0;
             }
-            this.chat.warn(creep.getName() + " weakens your shield");
         }
 
         // then subtract from health
-        if (dmg > 0) {
-            if (this.health <= dmg) {
+        if (damage > 0) {
+            if (this.health <= damage) {
                 this.kill();
             } else {
-                this.health -= dmg;
+                this.health -= damage;
             }
-            this.chat.crit(creep.attackMessage() + " YOU!")
         }
 	},
+    gainXPForKill: function(target) {
+        this.stats.gainXPForKill(target);
+        this.crystal.gainXPForKill(target);
+        this.crystal.applyKillEffects(this, target);
+    },
+    getVisionRadiusSquared: function() {
+        return this.stats.getLevel() + 10;
+    },
     kill: function() {
         this.chat.crit("You have died! Press Enter to restart");
         this.deathCallback();
+    },
+    getCrystal: function() {
+        return this.crystal;
+    },
+    isHero: function() {
+        return true;
+    },
+    switchCrystals: function(index) {
+        this.crystal = this.crystals[index];
     }
 });
 
 module.exports = Hero;
 
-},{"../RGB":7,"./../Utility":9,"./Character":10,"./CoreStats":12}],17:[function(require,module,exports){
+},{"../RGB":7,"./../Utility":9,"./Character":10,"./CoreStats":12,"./Crystal":15}],19:[function(require,module,exports){
 var util = require('./../Utility');
 var Controller = require('./Controller');
 
@@ -1239,13 +1406,14 @@ util.extend(HeroController, {
         }
         var target = this.getCreepMap().getCreepAtLoc(loc);
 
+        console.log("Trying to hit!");
         if(this.getCharacter().getStats().resolveHit(target.getStats())) {
             var dmg = this.getCharacter().getStats().resolveDamage(target.getStats());
-            target.applyDamage(dmg);
+            target.applyDamage(dmg, this.getCharacter().getCrystal().getRGB());
             console.log(target.name, target.getHealth());
             if (target.isDead()) {
                 console.log("We killed it!");
-                this.getCharacter().setHealth(this.getCharacter().getMaxHealth());
+                this.getCharacter().gainXPForKill(target);
                 this.getCreepMap().deleteCreepAtLoc(loc);
                 this.getCreepMap().moveHeroToLoc(loc);
             }
@@ -1253,7 +1421,6 @@ util.extend(HeroController, {
 
     },
     moveOrAttack: function(dir) {
-        this.getCharacter().actionsPerformed += 1;
         var toMove = this.getCharacter().location.add(dir);
         var creep = this.getCreepMap().getCreepAtLoc(toMove);
         if (!this.getTileMap().getTileAtLoc(toMove)) {
@@ -1268,7 +1435,7 @@ util.extend(HeroController, {
 });
 
 module.exports = HeroController;
-},{"./../Utility":9,"./Controller":11}],18:[function(require,module,exports){
+},{"./../Utility":9,"./Controller":11}],20:[function(require,module,exports){
 var Game = require('./Game');
 var Dijkstra = require('./map/Dijkstra');
 var Renderer = require('./Renderer');
@@ -1290,7 +1457,7 @@ $(document).keyup(function(event) {
         return;
     }
 
-    if ([37, 38, 39, 40].indexOf(event.keyCode) !== -1) {
+    if ([37, 38, 39, 40, 49, 50].indexOf(event.keyCode) !== -1) {
         turn(event.keyCode);
     }
 });
@@ -1302,6 +1469,7 @@ function turn(code) {
     game.takeHeroTurn(code);
 
     if (game.hero.actionsPerformed < game.hero.numActions) {
+        console.log("not done yet!");
         return;
     }
 
@@ -1320,7 +1488,7 @@ function turn(code) {
 
 
 function render() {
-    renderer.render(game.getTileMap(), game.getCreepMap(), game.getHero());
+    renderer.render(game.getTileMap(), game.getCreepMap(), game.getHero(), game.getHero().getCrystal().getRGB());
 
 }
 
@@ -1347,7 +1515,7 @@ $(function() {
     renderer = new Renderer(canvas);
     restart();
 });
-},{"./Chat":3,"./Game":4,"./Renderer":8,"./map/Dijkstra":26}],19:[function(require,module,exports){
+},{"./Chat":3,"./Game":4,"./Renderer":8,"./map/Dijkstra":28}],21:[function(require,module,exports){
 var Location = require('../map/Location');
 var Direction = require('../map/Direction');
 var Tile = require('../map/Tile');
@@ -1358,7 +1526,7 @@ var CUT_SIZE = 7;
 
 
 function buildNodeAroundLoc(tileMap, loc, rgb, radiusSquared) {
-    console.log("buildingNodeAroundLoc", loc.x, loc.y);
+    //console.log("buildingNodeAroundLoc", loc.x, loc.y);
     loc = tileMap.projectLocOnMap(loc);
     // random radius
     if (!radiusSquared) {
@@ -1490,11 +1658,11 @@ function buildCaveSystem(tileMap, rgb, includeLocs) {
 
     // randomly assign nodes
     var last = false;
-    console.log('coarseMap height/width:', coarseMap.height, coarseMap.width);
+    //console.log('coarseMap height/width:', coarseMap.height, coarseMap.width);
     for (x = 0; x < coarseMap.width; x++) {
         for (y = 0; y < coarseMap.height; y++) {
             if (Math.random() > .5 || !last) {
-                console.log('doing it at ', x, y);
+                //console.log('doing it at ', x, y);
                 last = true;
                 loc = new Location(x, y);
                 coarseMap.setValAtLoc(loc, true);
@@ -1521,7 +1689,7 @@ function buildCaveSystem(tileMap, rgb, includeLocs) {
 module.exports = {
     buildCaveSystem: buildCaveSystem
 };
-},{"../map/CoarserMap":24,"../map/Direction":27,"../map/Location":28,"../map/Tile":30}],20:[function(require,module,exports){
+},{"../map/CoarserMap":26,"../map/Direction":29,"../map/Location":30,"../map/Tile":32}],22:[function(require,module,exports){
 
 // all of the creeps one would find in a cave!
 var Gnome = require('../creeps/Gnome');
@@ -1564,7 +1732,7 @@ function spawnCreeps(tileMap, creepMap, poi, rgb, heroLevel) {
 module.exports = {
     spawnCreeps: spawnCreeps
 };
-},{"../creeps/Gnome":15,"../map/Direction":27,"../map/Location":28}],21:[function(require,module,exports){
+},{"../creeps/Gnome":17,"../map/Direction":29,"../map/Location":30}],23:[function(require,module,exports){
 var CreepMap = require('../map/CreepMap');
 var CreepController = require('../creeps/CreepController');
 
@@ -1608,7 +1776,7 @@ Level.prototype = {
 };
 
 module.exports = Level;
-},{"../creeps/CreepController":14,"../map/CreepMap":25}],22:[function(require,module,exports){
+},{"../creeps/CreepController":14,"../map/CreepMap":27}],24:[function(require,module,exports){
 var Level = require('./Level');
 var utils = require('./../Utility');
 
@@ -1624,7 +1792,7 @@ function TestLevel(tileMap, creepMap, creeps) {
 utils.inherit(TestLevel, Level);
 
 module.exports = TestLevel;
-},{"./../Utility":9,"./Level":21}],23:[function(require,module,exports){
+},{"./../Utility":9,"./Level":23}],25:[function(require,module,exports){
 var TileMap = require('../map/TileMap');
 var CreepMap = require('../map/CreepMap');
 var Tile = require('../map/Tile');
@@ -1692,7 +1860,7 @@ module.exports = {
     createTestCreepMap: createTestCreepMap,
     createLevel: createLevel
 };
-},{"../RGB":7,"../map/CreepMap":25,"../map/Location":28,"../map/Tile":30,"../map/TileMap":31,"./CaveBuilder":19,"./CaveSpawner":20,"./TestLevel":22}],24:[function(require,module,exports){
+},{"../RGB":7,"../map/CreepMap":27,"../map/Location":30,"../map/Tile":32,"../map/TileMap":33,"./CaveBuilder":21,"./CaveSpawner":22,"./TestLevel":24}],26:[function(require,module,exports){
 var Map = require('./Map');
 var Location = require('./Location');
 
@@ -1731,7 +1899,7 @@ CoarserMap.prototype = {
 
 
 module.exports = CoarserMap;
-},{"./Location":28,"./Map":29}],25:[function(require,module,exports){
+},{"./Location":30,"./Map":31}],27:[function(require,module,exports){
 var Location = require('./Location');
 var Map = require('./Map');
 
@@ -1808,7 +1976,7 @@ CreepMap.prototype = {
 };
 
 module.exports = CreepMap;
-},{"./Location":28,"./Map":29}],26:[function(require,module,exports){
+},{"./Location":30,"./Map":31}],28:[function(require,module,exports){
 var Location = require('./Location');
 
 /* Runs Dijkstra to compute moveMap. Each value in moveMap is one of the following offsets
@@ -1876,7 +2044,7 @@ Dijkstra.prototype = {
 };
 
 module.exports = Dijkstra;
-},{"./Location":28}],27:[function(require,module,exports){
+},{"./Location":30}],29:[function(require,module,exports){
 function Direction(x, y) {
     var result;
     if (Math.abs(x) + Math.abs(y) > 1) {
@@ -1977,7 +2145,7 @@ Direction.randomDir = function() {
 
 
 module.exports = Direction;
-},{}],28:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 var Direction = require('./Direction');
 
 function Location(x, y) {
@@ -1996,6 +2164,12 @@ Location.prototype = {
         var x = this.x + times * direction.x;
         var y = this.y + times * direction.y;
         return new Location(x, y);
+    },
+    addXY: function(x, y) {
+        return new Location(
+            this.x + x,
+            this.y + y
+        )
     },
     distanceSquaredTo: function(location) {
         return Math.pow(this.x - location.x, 2) + Math.pow(this.y - location.y, 2);
@@ -2018,7 +2192,7 @@ Location.prototype = {
 };
 
 module.exports = Location;
-},{"./Direction":27}],29:[function(require,module,exports){
+},{"./Direction":29}],31:[function(require,module,exports){
 var Location = require('./Location');
 
 var Map = {
@@ -2068,7 +2242,7 @@ var Map = {
 
 
 module.exports = Map;
-},{"./Location":28}],30:[function(require,module,exports){
+},{"./Location":30}],32:[function(require,module,exports){
 var GameObject = require('../GameObject');
 var RGB = require('../RGB');
 var util = require('./../Utility');
@@ -2090,7 +2264,7 @@ util.inherit(Tile, GameObject);
 
 module.exports = Tile;
 
-},{"../GameObject":5,"../RGB":7,"./../Utility":9}],31:[function(require,module,exports){
+},{"../GameObject":5,"../RGB":7,"./../Utility":9}],33:[function(require,module,exports){
 var Location = require('./Location');
 var Map = require('./Map');
 var Tile = require('./Tile');
@@ -2176,4 +2350,4 @@ TileMap.prototype = {
 };
 
 module.exports = TileMap;
-},{"./Location":28,"./Map":29,"./Tile":30}]},{},[18])
+},{"./Location":30,"./Map":31,"./Tile":32}]},{},[20])
