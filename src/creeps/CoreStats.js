@@ -18,12 +18,13 @@ function CoreStats(level, statGain, seed) {
 CoreStats.prototype = {
 	// Resolves whether this entity successfully hits target entity by comparing core stats
 	resolveHit: function(targetCoreStats) {
-		var chanceToHit = this.agi / targetCoreStats.agi;
-		if (Math.random() < chanceToHit) {
-			return true;
-		} else {
-			return false;
-		}
+		var chanceToHit = Math.atan(this.agi / targetCoreStats.agi) / (Math.PI/2);
+        // if agi are equal, 50%
+        // never gets to 100%
+        // never gets to 0%
+        // this.agi / target = .1 => 6% chance
+        // this.agi / target = 10 => 93% chance
+		return Math.random() < chanceToHit;
 	},
 	// Resolves how much damage this entity deals to target entity by comparing core stats
 	resolveDamage: function(targetCoreStats) {
