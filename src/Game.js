@@ -45,6 +45,27 @@ Game.prototype = {
                 var dir = creepController.getCharacter().getLocation().directionTo(next);
                 if (creepController.canMove(dir)) {
                     creepController.move(dir);
+                } else {
+                    // move to the closest square to the hero
+                    var loc = creepController.getCharacter().getLocation();
+                    var heroLoc = creepController.getCreepMap().getHero().getLocation();
+                    var left = 100000;
+                    var right = 100000;
+                    var canMove = false;
+                    if (creepController.canMove(dir.rotateLeft())) {
+                        canMove = true;
+                        left = loc.add(dir.rotateLeft()).distanceSquaredTo(heroLoc)
+                    } else if (creepController.canMove(dir.rotateRight())) {
+                        canMove = true;
+                        right = loc.add(dir.rotateRight()).distanceSquaredTo(heroLoc)
+                    }
+                    if (canMove) {
+                        if (left < right) {
+                            creepController.move(dir.rotateLeft());
+                        } else {
+                            creepController.move(dir.rotateRight());
+                        }
+                    }
                 }
             }
         }
