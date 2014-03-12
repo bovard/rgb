@@ -29,9 +29,7 @@ Game.prototype = {
     takeHeroTurn: function(code) {
 		// If there is an InputTrigger for this code, fire it
         if (this.input[code]) {
-            console.log("taking hero turn with code", code);
 			this.input[code].fire();
-            this.hero.actionsPerformed += 1;
 		}
     },
     takeCreepTurns: function(dijk) {
