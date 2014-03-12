@@ -47,8 +47,8 @@ module.exports = {
     crit: crit,
     warn: warn,
     log: log,
-    setOputFunction: setOutputFunction
-}
+    setOutputFunction: setOutputFunction
+};
 },{}],4:[function(require,module,exports){
 var Hero = require('./creeps/Hero');
 var TestLevel = require('./levels/TestLevel');
@@ -97,6 +97,28 @@ Game.prototype = {
                 var dir = creepController.getCharacter().getLocation().directionTo(next);
                 if (creepController.canMove(dir)) {
                     creepController.move(dir);
+                } else {
+                    // TODO: remove this once we have improved dikjstra's
+                    // move to the closest square to the hero
+                    var loc = creepController.getCharacter().getLocation();
+                    var heroLoc = creepController.getCreepMap().getHero().getLocation();
+                    var left = 100000;
+                    var right = 100000;
+                    var canMove = false;
+                    if (creepController.canMove(dir.rotateLeft())) {
+                        canMove = true;
+                        left = loc.add(dir.rotateLeft()).distanceSquaredTo(heroLoc)
+                    } else if (creepController.canMove(dir.rotateRight())) {
+                        canMove = true;
+                        right = loc.add(dir.rotateRight()).distanceSquaredTo(heroLoc)
+                    }
+                    if (canMove) {
+                        if (left < right) {
+                            creepController.move(dir.rotateLeft());
+                        } else {
+                            creepController.move(dir.rotateRight());
+                        }
+                    }
                 }
             }
         }
@@ -146,6 +168,9 @@ Game.prototype = {
         this.level.getCreepMap().addHeroToMapAtLoc(loc, this.hero);
         this.heroController.setCreepMap(this.level.getCreepMap());
         this.heroController.setTileMap(this.level.getTileMap());
+    },
+    getHero: function() {
+        return this.hero;
     }
 };
 
@@ -266,15 +291,53 @@ function drawSymbol(entity, loc, filter, isHero) {
 	this.context.fillStyle = isHero ? entity.getRGB().toString() :
 		entity.getRGB(filter).toString();
 	// Set font size
-	this.context.font = "12px Arial";
+	this.context.font = Renderer.FONT;
 	// Get loc in canvas space
 	canvasLoc = toCanvasSpace(loc, this.centerLoc);
 	var txt = entity.getRepr();
 	var txtWidth = this.context.measureText(txt).width;
-	var txtHeight = 6; // txtHeight ~ .5 * font size
+	var txtHeight = parseInt(Renderer.FONT) * .5; // approx height
 	this.context.fillText(txt,
 		canvasLoc.x - txtWidth/2, 
 		canvasLoc.y + txtHeight/2);
+}
+
+// Draws HUD for hero
+function drawHud(hero) {
+	this.context.font = Renderer.HUD_FONT;
+	/********************** Draw health *******************************/
+	this.context.fillStyle = Renderer.HUD_HEALTH_COLOR;
+	var txtWidth = this.context.measureText(Renderer.HUD_HEALTH_SYM).width;
+	var wholeHealthSymbols = parseInt(hero.health / Renderer.HUD_HEALTH_SYM_COUNT);
+	var percentage = 
+		(hero.health % Renderer.HUD_HEALTH_SYM_COUNT) / Renderer.HUD_HEALTH_SYM_COUNT;
+	
+	var loc = new Location(Renderer.HUD_OFFSET.x, Renderer.HUD_OFFSET.y);
+	for (var i = 0; i < wholeHealthSymbols; i++, loc.x += txtWidth ) {
+		drawHudSymbol.call(this, Renderer.HUD_HEALTH_SYM, loc, 1); 
+	}
+	
+	if (percentage > 0) {
+		drawHudSymbol.call(this, Renderer.HUD_HEALTH_SYM, loc, percentage);
+	}
+}
+
+/* Draws a HUD symbol or a left-to-right percentage of a HUD symbol. The percentage 
+   allows for the HUD to store more count information in a smaller space. */
+function drawHudSymbol(symbol, loc, percentage) {
+	var txtWidth = this.context.measureText(symbol).width;
+	var txtHeight = parseInt(Renderer.HUD_FONT) * .5; // approx height
+	this.context.save();
+	this.context.beginPath();
+	/* The height of the clipping rects here doesn't matter, just make sure they are
+	   tall enough to not clip horizontally. */
+	this.context.rect(loc.x - txtWidth/2, loc.y - 5 * txtHeight,
+		txtWidth * percentage, 5 * txtHeight);
+	this.context.clip();
+	this.context.fillText(symbol,
+		loc.x - txtWidth/2, 
+		loc.y + txtHeight/2);
+	this.context.restore();
 }
 
 function Renderer(canvas) {
@@ -282,7 +345,7 @@ function Renderer(canvas) {
 	this.context = canvas.getContext("2d");
 	// Determines the game location that the canvas should be centered on
 	this.centerLoc = null;
-	this.zoomFactor = 1; // 1.1 would be 10% magnification
+	this.zoomFactor = 2; // 1.1 would be 10% magnification
 }
 
 /* Scale factor going between game coordinates and canvas coordinates 
@@ -295,11 +358,17 @@ function Renderer(canvas) {
 */
 Renderer.GAME_TO_CANVAS = 18;
 Renderer.TILE_WIDTH = 15;
+Renderer.FONT = "12px Arial";
+Renderer.HUD_OFFSET = new Location(-100,-100);
+Renderer.HUD_FONT = "24px Arial";
+Renderer.HUD_HEALTH_SYM = "*";
+// Each HUD_HEALTH_SYM represents HUD_HEALTH_SYM_COUNT health
+Renderer.HUD_HEALTH_SYM_COUNT = 2;
+Renderer.HUD_HEALTH_COLOR = "#FF0000";
 
 Renderer.prototype = {
-    render: function(tileMap, creepMap, filter) {
+    render: function(tileMap, creepMap, hero, filter) {
 		this.context.save();
-        var hero = creepMap.hero;
 		this.centerLoc = hero.getLocation();
 		var canvasLoc;
 	
@@ -319,7 +388,7 @@ Renderer.prototype = {
                 var loc = new Location(x, y);
                 if (loc.distanceSquaredTo(hero.location) > hero.visionRadiusSquared) {
                     // COMMENT OUT THE continue TO SEE EVERYTHING
-                    //continue;
+                    continue;
                 }
 				// If there is a tile to draw in this location, draw it
 				if (tileMap.getTileAtLoc(loc)) {
@@ -335,6 +404,9 @@ Renderer.prototype = {
 				}
 			}
 		}
+		
+		// Draw HUD
+		drawHud.call(this, hero);
 		
 		this.context.restore();
     }
@@ -717,10 +789,10 @@ module.exports = Utility;
 var GameObject = require('../GameObject');
 var utils = require('../Utility');
 
-function Character(stats, location, maxHealth, numActions, radiusSquared, name) {
+function Character(stats, location, numActions, radiusSquared, name) {
     this.stats = stats;
     this.location = location;
-    this.health = maxHealth;
+    this.health = this.getMaxHealth();
     this.numActions = numActions;
     this.radiusSquared = radiusSquared;
     this.name = name;
@@ -731,6 +803,21 @@ Character.prototype = new GameObject();
 utils.extend(Character, {
     setHealth: function(health) { this.health = health; },
     getHealth: function() { return this.health; },
+    getMaxHealth: function() {
+        if (this.stats) {
+            return this.stats.getMaxHP();
+        } else {
+            return 10;
+        }
+    },
+    getLevel: function() {
+        if (this.stats) {
+            return this.stats.getLevel();
+        } else {
+            return 1;
+        }
+
+    },
     applyDamage: function(damage) {
         console.log("Applying damage to ", this.name);
         this.health -= damage;
@@ -764,7 +851,7 @@ Controller.prototype = {
      * @param dir direction to move
      * @returns {*}
      */
-    canMove: function(dir) {
+    canMoveUnsafe: function(dir) {
         return this.isEmpty(this.character.getLocation().add(dir));
     },
     /**
@@ -772,7 +859,7 @@ Controller.prototype = {
      * @param dir direction to move
      * @returns {boolean|*}
      */
-    canSafeMove: function(dir) {
+    canMove: function(dir) {
         var loc = this.character.getLocation().add(dir);
         return this.isViewableTile(loc)
             && this.isEmpty(loc)
@@ -840,29 +927,73 @@ module.exports = Controller;
 },{}],12:[function(require,module,exports){
 /* Core stats for game entities performing actions. */
 
-function CoreStats(str, agi) {
-	this.str = str;
-	this.agi = agi;
+function CoreStats(level, statGain, seed) {
+    this.str = 1 || seed.str;
+    this.agi = 1 || seed.str;
+    this.con = 1 || seed.str;
+    this.level = 0;
+    this.statGain = statGain || {
+        str: 1,
+        agi: 1,
+        con: 1
+    };
+    for (var i = 0; i < level; i++) {
+        this.levelUp();
+    }
 }
 
 CoreStats.prototype = {
 	// Resolves whether this entity successfully hits target entity by comparing core stats
 	resolveHit: function(targetCoreStats) {
-		var chanceToHit = this.agi / targetCoreStats.agi;
-		if (Math.random() < chanceToHit) {
-			return true;
-		} else {
-			return false;
-		}
+		var chanceToHit = Math.atan(this.agi / targetCoreStats.agi) / (Math.PI/2);
+        // if agi are equal, 50%
+        // never gets to 100%
+        // never gets to 0%
+        // this.agi / target = .1 => 6% chance
+        // this.agi / target = 10 => 93% chance
+		return Math.random() < chanceToHit;
 	},
 	// Resolves how much damage this entity deals to target entity by comparing core stats
 	resolveDamage: function(targetCoreStats) {
 		var dmg = this.str / 10;
         dmg += (this.str - targetCoreStats.str) / 10;
-        //TODO: add variance
+        // chance for crit!
+        for(var i = 0; i < this.agi / 10; i++) {
+            if (Math.random() > .99) {
+                dmg *= 2;
+                break;
+            }
+        }
         return Math.max(1, dmg);
 
-	}
+	},
+    getMaxHP: function() {
+        return Math.round(this.con);
+    },
+    levelUp: function() {
+        // increase str
+        this.str += this.statGain.str;
+        if (Math.random() > .95) {
+            this.str += this.statGain.str;
+        }
+
+        // increase agi
+        this.agi += this.statGain.agi;
+        if (Math.random() > .95) {
+            this.agi += this.statGain.agi;
+        }
+
+        // increase con
+        this.con += this.statGain.con;
+        if (Math.random() > .95) {
+            this.con += this.statGain.con;
+        }
+
+        this.level++;
+    },
+    getLevel: function() {
+        return this.level;
+    }
 };
 
 module.exports = CoreStats;
@@ -881,7 +1012,7 @@ function Creep(difficultyLevel, attackType, numActions, maxHealth, aggroRadiusSq
 	this.maxHealth = maxHealth;
 	this.aggroRadiusSquared = aggroRadiusSquared;
 	this.rgb = rgb;
-	this.coreStats = coreStats;
+	this.stats = coreStats;
 	
 	// Status
 	this.actionsPerformed = 0;
@@ -913,6 +1044,7 @@ function CreepController(tileMap, creepMap, creep) {
     this.tileMap = tileMap;
     this.creepMap = creepMap;
     this.character = creep;
+    this.aggroed = false;
 }
 
 CreepController.prototype = new Controller();
@@ -923,6 +1055,9 @@ util.extend(CreepController, {
      * @returns {*}
      */
     isAdjacentToHero: function() {
+        var ourLoc = this.getCharacter().getLocation();
+        var theirLoc = this.creepMap.getHero().getLocation();
+        var adj = ourLoc.isAdjacentTo(theirLoc);
         return this.getCharacter().getLocation().isAdjacentTo(this.creepMap.getHero().getLocation());
     },
     /**
@@ -950,8 +1085,12 @@ util.extend(CreepController, {
         this.attack(dirToHero);
     },
     aggroHero: function() {
-        return this.getCharacter().getLocation().distanceSquaredTo(this.getCreepMap().getHero().getLocation()) <= this.getCharacter().getAggroRange();
-
+        var sees = this.getCharacter().getLocation().distanceSquaredTo(this.getCreepMap().getHero().getLocation()) <= this.getCharacter().getAggroRange();
+        if (sees) {
+            // once we see the hero, don't stop chasing till he's dead!
+            this.aggroed = true;
+        }
+        return this.aggroed;
     }
 });
 
@@ -978,12 +1117,12 @@ function Gnome() {
     this.difficultyLevel = 1;
     this.attackType = Creep.ATTACK_TYPE_MELEE;
     this.numActions = 1;
-    this.health = 5;
-    this.maxHealth = 5;
     this.aggroRadiusSquared = 4;
     this.rgb = new RGB(255, 255, 255);
-    this.stats = new CoreStats(2, 1);
+    this.stats = new CoreStats(1);
+    this.health = this.stats.getMaxHP();
     this.repr = 'g';
+    console.log("Making gnome with health", this.stats.getMaxHP())
 }
 
 Gnome.prototype = new Creep();
@@ -991,13 +1130,6 @@ Gnome.prototype = new Creep();
 util.extend(Gnome, {
     getAttackMessage: function() {
 		return "The gnome swings its tiny pickaxe at you with unsettling determination."; 
-	},
-    tryToHit: function(hero) { 
-		return this.coreStats.resolveHit(hero.coreStats); 
-	},
-    doDamage: function(hero) { 
-		var damageDealt = this.coreStats.resolveDamage(hero.coreStats);
-		hero.takeDamage(damageDealt);
 	}
 });
 
@@ -1012,7 +1144,6 @@ var util = require('./../Utility');
 function Hero(deathCallback, chat) {
     this.name = "Aver";
     this.health = 10;
-    this.maxHealth = 10;
     this.shield = 0;
     this.maxShield = 10;
     this.speedBoost = 0;
@@ -1022,7 +1153,7 @@ function Hero(deathCallback, chat) {
     this.numActions = 1;
     this.actionsPerformed = 0;
     this.visionRadiusSquared = 10;
-	this.stats = new CoreStats(5, 5);
+	this.stats = new CoreStats(1, {str: 1.1, agi: 1.1, con: 1.1}, {str: 10, agi: 10, con:10});
     this.rgb = new RGB(255, 255, 255);
     this.repr = '@';
     //
@@ -1114,7 +1245,7 @@ util.extend(HeroController, {
             console.log(target.name, target.getHealth());
             if (target.isDead()) {
                 console.log("We killed it!");
-                this.getCharacter().setHealth(this.getCharacter().maxHealth);
+                this.getCharacter().setHealth(this.getCharacter().getMaxHealth());
                 this.getCreepMap().deleteCreepAtLoc(loc);
                 this.getCreepMap().moveHeroToLoc(loc);
             }
@@ -1126,6 +1257,7 @@ util.extend(HeroController, {
         var toMove = this.getCharacter().location.add(dir);
         var creep = this.getCreepMap().getCreepAtLoc(toMove);
         if (!this.getTileMap().getTileAtLoc(toMove)) {
+            this.getCreepMap().removeHero();
             this.getCharacter().kill();
         } else if (!creep) {
             this.getCreepMap().moveHeroToLoc(toMove);
@@ -1142,7 +1274,7 @@ var Dijkstra = require('./map/Dijkstra');
 var Renderer = require('./Renderer');
 var Chat = require('./Chat');
 
-Chat.setOputFunction(function(message, color) {
+Chat.setOutputFunction(function(message, color) {
     console.log(message, color);
 });
 
@@ -1177,16 +1309,18 @@ function turn(code) {
 
     render();
 
-    // do dikjstra's on the TileMap to hero location
-    var dikj = new Dijkstra(game.getTileMap(), game.hero.getLocation());
+    if (!needsRestart) {
+        // do dikjstra's on the TileMap to hero location
+        var dikj = new Dijkstra(game.getTileMap(), game.hero.getLocation());
 
-    game.takeCreepTurns(dikj);
-    render();
+        game.takeCreepTurns(dikj);
+        render();
+    }
 }
 
 
 function render() {
-    renderer.render(game.getTileMap(), game.getCreepMap());
+    renderer.render(game.getTileMap(), game.getCreepMap(), game.getHero());
 
 }
 
@@ -1200,6 +1334,7 @@ function restart() {
 
 
 function gameOver() {
+    render();
     needsRestart = true;
     // display game over
     // listen for keypress to restart
@@ -1751,12 +1886,14 @@ function Direction(x, y) {
              } else {
                  result = Direction.WEST;
              }
+             y = 0;
          } else {
              if (y * Direction.NORTH.y > 0) {
                  result = Direction.NORTH;
              } else {
                  result = Direction.SOUTH;
              }
+             x = 0;
          }
     }
     if (result) {
