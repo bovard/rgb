@@ -10,7 +10,7 @@ function Creep(difficultyLevel, attackType, numActions, maxHealth, aggroRadiusSq
 	this.attackType = attackType; // Creep.ATTACK_TYPE_*
 	this.numActions = numActions;
 	this.maxHealth = maxHealth;
-	this.aggroRadiusSquared = aggroRadiusSquared;
+	this.radiusSquared = aggroRadiusSquared;
 	this.rgb = rgb;
 	this.stats = coreStats;
 	
@@ -18,6 +18,7 @@ function Creep(difficultyLevel, attackType, numActions, maxHealth, aggroRadiusSq
 	this.actionsPerformed = 0;
 	this.health = this.maxHealth;
 	this.location = null;
+    this.aggro = false;
 }
 
 // Class constants
@@ -28,8 +29,12 @@ Creep.prototype = new Character();
 
 util.extend(Creep, {
     getAttackMessage: function() { throw "Creep.attackMessage: abstract method called"; },
-    getAggroRange: function() { return this.aggroRadiusSquared; },
-    kill: function() {}
+    setAggro: function(aggro) {
+        this.aggro = aggro;
+    },
+    isAggroed: function() { return this.aggro; },
+    kill: function() {},
+    isHero: function() { return false; }
 });
 
 console.log(Creep);

@@ -7,7 +7,6 @@ var util = require('./../Utility');
 
 function Hero(deathCallback, chat) {
     this.name = "Aver";
-    this.health = 10;
     this.shield = 0;
     this.maxShield = 10;
     this.speedBoost = 0;
@@ -16,7 +15,9 @@ function Hero(deathCallback, chat) {
     this.location = null;
     this.numActions = 1;
     this.actionsPerformed = 0;
-	this.stats = new CoreStats(1, CoreStats.HeroStatGain, CoreStats.HeroStatGain);
+	this.stats = new CoreStats(1, CoreStats.HeroStatGain, CoreStats.HeoStatSeed);
+    this.health = this.stats.getMaxHP();
+    console.log("made hero with hp:", this.health);
     this.rgb = new RGB(255, 255, 255);
     this.repr = '@';
     this.crystals = [new Crystal(new RGB(125, 0, 0)), new Crystal(new RGB(0, 255, 0))];
@@ -86,6 +87,9 @@ util.extend(Hero, {
     },
     getCrystal: function() {
         return this.crystal;
+    },
+    isHero: function() {
+        return true;
     }
 });
 

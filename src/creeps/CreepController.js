@@ -18,6 +18,9 @@ util.extend(CreepController, {
     isAdjacentToHero: function() {
         var ourLoc = this.getCharacter().getLocation();
         var theirLoc = this.creepMap.getHero().getLocation();
+        if (!ourLoc || !theirLoc) {
+            console.warn("something wrong here!");
+        }
         return ourLoc && theirLoc && ourLoc.isAdjacentTo(theirLoc);
     },
     /**
@@ -31,7 +34,9 @@ util.extend(CreepController, {
         }
         var target = this.getCreepMap().getCreepAtLoc(loc);
 
+        console.log("creep trying to hit");
         if(this.getCharacter().getStats().resolveHit(target.getStats())) {
+            console.log("creep hit");
             var dmg = this.getCharacter().getStats().resolveDamage(target.getStats());
             target.applyDamage(dmg, this.getCharacter().getRGB());
         }
@@ -45,12 +50,22 @@ util.extend(CreepController, {
         this.attack(dirToHero);
     },
     aggroHero: function() {
-        var sees = this.getCharacter().getLocation().distanceSquaredTo(this.getCreepMap().getHero().getLocation()) <= this.getCharacter().getAggroRange();
+        var ourLoc = this.getCharacter().getLocation();
+        var theirLoc = this.creepMap.getHero().getLocation();
+        if (!ourLoc || !theirLoc) {
+            console.warn("something wrong here!");
+        }
+        var sees = ourLoc && theirLoc && ourLoc.distanceSquaredTo(theirLoc) <= this.getCharacter().getRadiusSquared();
         if (sees) {
             // once we see the hero, don't stop chasing till he's dead!
-            this.aggroed = true;
+            this.getCharacter().setAggro(true);
+            var neighbors = this.getCreepsInRadiusSquared();
+            for (var i = 0; i < neighbors.length; i++) {
+                neighbors[i].setAggro(true);
+            }
         }
-        return this.aggroed;
+        console.log(this.getCharacter().isAggroed());
+        return this.getCharacter().isAggroed();
     }
 });
 

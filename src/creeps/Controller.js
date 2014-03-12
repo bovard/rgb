@@ -81,6 +81,25 @@ Controller.prototype = {
     setTileMap: function(tileMap) {
         this.tileMap = tileMap;
     },
+    getCreepsInRadiusSquared: function() {
+        var creeps = [];
+        var radiusSquared = this.getCharacter().getRadiusSquared();
+        var radius = Math.ceil(Math.sqrt(radiusSquared));
+        var loc = this.getCharacter().getLocation();
+        for (var x = -radius; x <= radius; x++) {
+            for (var y = -radius; y <= radius; y++) {
+                if (x === 0 && y === 0) {
+                    continue;
+                }
+                var newLoc = loc.addXY(x, y);
+                var creep = this.getCreepMap().getCreepAtLoc(newLoc);
+                if (creep && loc.distanceSquaredTo(newLoc) <= radiusSquared && !creep.isHero()) {
+                    creeps.push(creep);
+                }
+            }
+        }
+        return creeps;
+    }
 };
 
 module.exports = Controller;

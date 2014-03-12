@@ -17,6 +17,12 @@ Location.prototype = {
         var y = this.y + times * direction.y;
         return new Location(x, y);
     },
+    addXY: function(x, y) {
+        return new Location(
+            this.x + x,
+            this.y + y
+        )
+    },
     distanceSquaredTo: function(location) {
         return Math.pow(this.x - location.x, 2) + Math.pow(this.y - location.y, 2);
     },

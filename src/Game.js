@@ -32,7 +32,7 @@ Game.prototype = {
 			this.input[code].fire();
 		}
     },
-    takeCreepTurns: function(dijk, render) {
+    takeCreepTurns: function(dijk) {
         var creepControllers = this.level.getCreepControllers();
         var toRemove = [];
         for (var i = 0; i < creepControllers.length; i++) {
@@ -69,7 +69,6 @@ Game.prototype = {
                     }
                 }
             }
-            render();
         }
 
     },

@@ -42,7 +42,7 @@ function turn(code) {
         // do dikjstra's on the TileMap to hero location
         var dikj = new Dijkstra(game.getTileMap(), game.hero.getLocation());
 
-        game.takeCreepTurns(dikj, render);
+        game.takeCreepTurns(dikj);
         render();
     }
 }
