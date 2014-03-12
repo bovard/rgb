@@ -3,7 +3,7 @@ var Dijkstra = require('./map/Dijkstra');
 var Renderer = require('./Renderer');
 var Chat = require('./Chat');
 
-Chat.setOputFunction(function(message, color) {
+Chat.setOutputFunction(function(message, color) {
     console.log(message, color);
 });
 
@@ -38,16 +38,18 @@ function turn(code) {
 
     render();
 
-    // do dikjstra's on the TileMap to hero location
-    var dikj = new Dijkstra(game.getTileMap(), game.hero.getLocation());
+    if (!needsRestart) {
+        // do dikjstra's on the TileMap to hero location
+        var dikj = new Dijkstra(game.getTileMap(), game.hero.getLocation());
 
-    game.takeCreepTurns(dikj);
-    render();
+        game.takeCreepTurns(dikj);
+        render();
+    }
 }
 
 
 function render() {
-    renderer.render(game.getTileMap(), game.getCreepMap());
+    renderer.render(game.getTileMap(), game.getCreepMap(), game.getHero());
 
 }
 
@@ -61,6 +63,7 @@ function restart() {
 
 
 function gameOver() {
+    render();
     needsRestart = true;
     // display game over
     // listen for keypress to restart

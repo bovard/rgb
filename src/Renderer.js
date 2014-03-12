@@ -67,9 +67,8 @@ Renderer.GAME_TO_CANVAS = 18;
 Renderer.TILE_WIDTH = 15;
 
 Renderer.prototype = {
-    render: function(tileMap, creepMap, filter) {
+    render: function(tileMap, creepMap, hero, filter) {
 		this.context.save();
-        var hero = creepMap.hero;
 		this.centerLoc = hero.getLocation();
 		var canvasLoc;
 	

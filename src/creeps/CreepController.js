@@ -16,6 +16,9 @@ util.extend(CreepController, {
      * @returns {*}
      */
     isAdjacentToHero: function() {
+        var ourLoc = this.getCharacter().getLocation();
+        var theirLoc = this.creepMap.getHero().getLocation();
+        var adj = ourLoc.isAdjacentTo(theirLoc);
         return this.getCharacter().getLocation().isAdjacentTo(this.creepMap.getHero().getLocation());
     },
     /**

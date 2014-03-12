@@ -7,7 +7,6 @@ var util = require('./../Utility');
 function Hero(deathCallback, chat) {
     this.name = "Aver";
     this.health = 10;
-    this.maxHealth = 10;
     this.shield = 0;
     this.maxShield = 10;
     this.speedBoost = 0;
@@ -17,7 +16,7 @@ function Hero(deathCallback, chat) {
     this.numActions = 1;
     this.actionsPerformed = 0;
     this.visionRadiusSquared = 10;
-	this.stats = new CoreStats(5, 5);
+	this.stats = new CoreStats(1, {str: 1.1, agi: 1.1, con: 1.1}, {str: 10, agi: 10, con:10});
     this.rgb = new RGB(255, 255, 255);
     this.repr = '@';
     //

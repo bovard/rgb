@@ -46,6 +46,7 @@ Game.prototype = {
                 if (creepController.canMove(dir)) {
                     creepController.move(dir);
                 } else {
+                    // TODO: remove this once we have improved dikjstra's
                     // move to the closest square to the hero
                     var loc = creepController.getCharacter().getLocation();
                     var heroLoc = creepController.getCreepMap().getHero().getLocation();
@@ -115,6 +116,9 @@ Game.prototype = {
         this.level.getCreepMap().addHeroToMapAtLoc(loc, this.hero);
         this.heroController.setCreepMap(this.level.getCreepMap());
         this.heroController.setTileMap(this.level.getTileMap());
+    },
+    getHero: function() {
+        return this.hero;
     }
 };
 
