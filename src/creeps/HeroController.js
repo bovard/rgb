@@ -21,13 +21,14 @@ util.extend(HeroController, {
         }
         var target = this.getCreepMap().getCreepAtLoc(loc);
 
+        console.log("Trying to hit!");
         if(this.getCharacter().getStats().resolveHit(target.getStats())) {
             var dmg = this.getCharacter().getStats().resolveDamage(target.getStats());
-            target.applyDamage(dmg);
+            target.applyDamage(dmg, this.getCharacter().getCrystal().getRGB());
             console.log(target.name, target.getHealth());
             if (target.isDead()) {
                 console.log("We killed it!");
-                this.getCharacter().setHealth(this.getCharacter().getMaxHealth());
+                this.getCharacter().gainXPForKill(target);
                 this.getCreepMap().deleteCreepAtLoc(loc);
                 this.getCreepMap().moveHeroToLoc(loc);
             }
@@ -35,7 +36,6 @@ util.extend(HeroController, {
 
     },
     moveOrAttack: function(dir) {
-        this.getCharacter().actionsPerformed += 1;
         var toMove = this.getCharacter().location.add(dir);
         var creep = this.getCreepMap().getCreepAtLoc(toMove);
         if (!this.getTileMap().getTileAtLoc(toMove)) {

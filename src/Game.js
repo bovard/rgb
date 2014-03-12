@@ -83,6 +83,9 @@ Game.prototype = {
         }
 
     },
+    switchCrystals: function(num) {
+        this.hero.switchCrystals(num);
+    },
 	initInput: function() {
 		this.input[37] = new InputTrigger(function() {
 			this.moveOrAttackHero(Direction.WEST);
@@ -96,6 +99,12 @@ Game.prototype = {
 		this.input[40] = new InputTrigger(function() {
 			this.moveOrAttackHero(Direction.SOUTH);
 		}, this);
+        this.input[49] = new InputTrigger(function() {
+            this.switchCrystals(0);
+        }, this);
+        this.input[50] = new InputTrigger(function() {
+            this.switchCrystals(1);
+        }, this);
 	},
     generateNewLevel: function() {
         this.levels.push(TestLevelCreator.createLevel(50, 50));

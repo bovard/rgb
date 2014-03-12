@@ -37,7 +37,23 @@ RGB.prototype = {
             Math.max(this.green, rgb.green),
             Math.max(this.blue, rgb.blue)
         )
+    },
+    add: function(rgb) {
+        return new RGB(
+            Math.min(255, this.red + rgb.red),
+            Math.min(255, this.green + rgb.green),
+            Math.min(255, this.blue + rgb.blue)
+        );
+    },
+    getUnitVector: function() {
+        return new RGB(
+            Math.min(1, this.red),
+            Math.min(1, this.green),
+            Math.min(1, this.blue)
+        )
+
     }
+
 };
 
 module.exports = RGB;
