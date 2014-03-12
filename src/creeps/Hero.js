@@ -1,6 +1,7 @@
 /* Hero class. */
 var CoreStats = require('./CoreStats');
 var Character = require('./Character');
+var Crystal = require('./Crystal');
 var RGB = require('../RGB');
 var util = require('./../Utility');
 
@@ -15,10 +16,11 @@ function Hero(deathCallback, chat) {
     this.location = null;
     this.numActions = 1;
     this.actionsPerformed = 0;
-    this.visionRadiusSquared = 10;
-	this.stats = new CoreStats(1, {str: 1.1, agi: 1.1, con: 1.1}, {str: 10, agi: 10, con:10});
+	this.stats = new CoreStats(1, CoreStats.HeroStatGain, CoreStats.HeroStatGain);
     this.rgb = new RGB(255, 255, 255);
     this.repr = '@';
+    this.crystals = [new Crystal(new RGB(125, 0, 0)), new Crystal(new RGB(0, 255, 0))];
+    this.crystal = this.crystals[0];
     //
     //    XXX
     //   XXXXX
@@ -47,32 +49,43 @@ util.extend(Hero, {
     setNumActions: function(number) {
         this.numActions = number;
     },
-	takeDamage: function(damage) {
+	applyDamage: function(damage, rgb) {
+        // calculate the amount of damage you can do
+        damage *= Math.min(2, rgb.mask(this.getRGB()).toDecimal() / this.getRGB().toDecimal());
+        console.log("Applying", damage, " damage to", this.getName());
         // first subtract from shield if there is one
         if (this.shield > 0) {
-            if (this.shield > dmg) {
-                this.shield -= dmg;
-                dmg = 0;
+            if (this.shield > damage) {
+                this.shield -= damage;
+                damage = 0;
             } else {
-                dmg -= this.shield;
+                damage -= this.shield;
                 this.shield = 0;
             }
-            this.chat.warn(creep.getName() + " weakens your shield");
         }
 
         // then subtract from health
-        if (dmg > 0) {
-            if (this.health <= dmg) {
+        if (damage > 0) {
+            if (this.health <= damage) {
                 this.kill();
             } else {
-                this.health -= dmg;
+                this.health -= damage;
             }
-            this.chat.crit(creep.attackMessage() + " YOU!")
         }
 	},
+    gainXPForKill: function(target) {
+        this.stats.gainXPForKill(target);
+        this.crystal.gainXPForKill(target);
+    },
+    getVisionRadiusSquared: function() {
+        return this.stats.getLevel() + 10;
+    },
     kill: function() {
         this.chat.crit("You have died! Press Enter to restart");
         this.deathCallback();
+    },
+    getCrystal: function() {
+        return this.crystal;
     }
 });
 

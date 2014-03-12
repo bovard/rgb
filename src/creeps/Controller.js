@@ -7,6 +7,7 @@ function Controller(tileMap, creepMap, character) {
 Controller.prototype = {
     /**
      * Checks if the tile is empty before moving
+     * can fall off map if you do this. :)
      * @param dir direction to move
      * @returns {*}
      */

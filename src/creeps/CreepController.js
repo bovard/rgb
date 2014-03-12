@@ -34,7 +34,7 @@ util.extend(CreepController, {
 
         if(this.getCharacter().getStats().resolveHit(target.getStats())) {
             var dmg = this.getCharacter().getStats().resolveDamage(target.getStats());
-            target.applyDamage(dmg);
+            target.applyDamage(dmg, this.getCharacter().getRGB());
         }
 
     },
