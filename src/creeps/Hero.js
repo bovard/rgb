@@ -93,9 +93,7 @@ util.extend(Hero, {
         return true;
     },
     switchCrystals: function(index) {
-        console.log("Crystal color is ", this.crystal.getRGB().toString());
         this.crystal = this.crystals[index];
-        console.log("Crystal color is now ", this.crystal.getRGB().toString());
     }
 });
 
