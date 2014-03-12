@@ -8,7 +8,6 @@ function CreepMap(x, y) {
 	for (var i = 0; i < x; i++) {
 		this.creepsLoc[i] = new Array(y);
 	}
-    this.creeps = [];
     this.hero = null;
 }
 
@@ -25,26 +24,25 @@ CreepMap.prototype = {
     },
     addCreepToMapAtLoc: function(loc, creep) {
         this.moveCreepToLoc(loc, creep);
-        this.creeps.push(creep);
     },
     moveHeroToLoc: function(loc) {
         this.moveCreepToLoc(loc, this.hero);
     },
     moveCreepToLoc: function(loc, creep) {
         if (!creep) {
-            throw "Tried to move a creep but no creep specified!";
+            throw "Tried to move a character but no character specified!";
         }
 		if (loc.x < 0 || loc.y < 0) {
-			throw "Tried to move creep to a negative location (" + loc.x + ", " + loc.y + ")";
+			throw "Tried to move character to a negative location (" + loc.x + ", " + loc.y + ")";
 		}
 		if (loc.x >= this.width) {
-			throw "Tried to move creep to a location offmap! (" + loc.x + " >= " + this.width + ")";
+			throw "Tried to move character to a location offmap! (" + loc.x + " >= " + this.width + ")";
 		}
 		if (loc.y >= this.height) {
-			throw "Tried to move creep to a location offmap! (" + loc.y + " >= " + this.height + ")";
+			throw "Tried to move character to a location offmap! (" + loc.y + " >= " + this.height + ")";
 		}
 		if (this.creepsLoc[loc.x][loc.y]) {
-			throw "There is already a creep there: " + this.creepsLoc[loc.x][loc.y];
+			throw "There is already a character there: " + this.creepsLoc[loc.x][loc.y];
 		}
 		this.creepsLoc[loc.x][loc.y] = creep;
         if (creep.getLocation()) {
@@ -69,6 +67,9 @@ CreepMap.prototype = {
     },
     deleteCreepAtLoc: function(loc) {
         this.creepsLoc[loc.x][loc.y] = undefined;
+    },
+    getHero: function() {
+        return this.hero;
     }
 };
 

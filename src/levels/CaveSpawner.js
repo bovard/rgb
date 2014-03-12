@@ -6,7 +6,9 @@ var Location = require('../map/Location');
 
 
 
-function addGnonesNearPoi(tileMap, creepMap, poi) {
+function addGnonesNearPoi(tileMap, creepMap, poi, rgb) {
+    var gnome;
+    var gnomes = [];
     for (var i = 0; i < poi.length; i++) {
         var numGnomes = Math.ceil(Math.random() * 3);
         for (var j = 0; j < numGnomes; j++) {
@@ -14,20 +16,24 @@ function addGnonesNearPoi(tileMap, creepMap, poi) {
             start = start.add(Direction.randomDir());
             start = start.add(Direction.randomDir());
             index = 0;
-            while(!tileMap.getTileAtLoc(start) || creepMap.getCreepAtLoc(start)) {
+            while((!tileMap.getTileAtLoc(start) || creepMap.getCreepAtLoc(start)) && ++index < 10) {
                 start = start.add(Direction.randomDir());
-                if(index++ > 10) {
-                    continue;
+            }
+            if (index < 10) {
+                gnome = new Gnome();
+                gnomes.push(gnome);
+                if (!start.isEqualTo(tileMap.getDownStairsLoc()) && !start.isEqualTo(tileMap.getUpStairsLoc())) {
+                    creepMap.addCreepToMapAtLoc(start, gnome);
                 }
             }
-            creepMap.addCreepToMapAtLoc(start,  new Gnome());
         }
     }
+    return gnomes;
 }
 
 
-function spawnCreeps(tileMap, creepMap, poi, rgb) {
-    addGnonesNearPoi(tileMap, creepMap, poi);
+function spawnCreeps(tileMap, creepMap, poi, rgb, heroLevel) {
+    return addGnonesNearPoi(tileMap, creepMap, poi, rgb);
 }
 
 
