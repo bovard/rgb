@@ -1,9 +1,11 @@
+var Experience = require('./Experience');
+var Utility = require('../Utility');
 /* Core stats for game entities performing actions. */
 
 function CoreStats(level, statGain, seed) {
-    this.str = 1 || seed.str;
-    this.agi = 1 || seed.str;
-    this.con = 1 || seed.str;
+    this.str = (seed && seed.str) || 10;
+    this.agi = (seed && seed.agi) || 10;
+    this.con = (seed && seed.con) || 10;
     this.level = 0;
     this.statGain = statGain || {
         str: 1,
@@ -13,9 +15,24 @@ function CoreStats(level, statGain, seed) {
     for (var i = 0; i < level; i++) {
         this.levelUp();
     }
+    this.experience = 0;
 }
 
-CoreStats.prototype = {
+CoreStats.HeroStatGain = {
+    str: 1.1,
+    agi: 1.1,
+    con: 1.1
+};
+
+CoreStats.HeoStatSeed = {
+    str: 10,
+    agi: 10,
+    con: 10
+}
+
+CoreStats.prototype = new Experience();
+
+Utility.extend(CoreStats, {
 	// Resolves whether this entity successfully hits target entity by comparing core stats
 	resolveHit: function(targetCoreStats) {
 		var chanceToHit = Math.atan(this.agi / targetCoreStats.agi) / (Math.PI/2);
@@ -40,7 +57,7 @@ CoreStats.prototype = {
         return Math.max(1, dmg);
 
 	},
-    getMaxHP: function() {
+    getMaxHealth: function() {
         return Math.round(this.con);
     },
     levelUp: function() {
@@ -63,10 +80,7 @@ CoreStats.prototype = {
         }
 
         this.level++;
-    },
-    getLevel: function() {
-        return this.level;
     }
-};
+});
 
 module.exports = CoreStats;

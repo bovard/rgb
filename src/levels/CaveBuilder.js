@@ -8,7 +8,7 @@ var CUT_SIZE = 7;
 
 
 function buildNodeAroundLoc(tileMap, loc, rgb, radiusSquared) {
-    console.log("buildingNodeAroundLoc", loc.x, loc.y);
+    //console.log("buildingNodeAroundLoc", loc.x, loc.y);
     loc = tileMap.projectLocOnMap(loc);
     // random radius
     if (!radiusSquared) {
@@ -140,11 +140,11 @@ function buildCaveSystem(tileMap, rgb, includeLocs) {
 
     // randomly assign nodes
     var last = false;
-    console.log('coarseMap height/width:', coarseMap.height, coarseMap.width);
+    //console.log('coarseMap height/width:', coarseMap.height, coarseMap.width);
     for (x = 0; x < coarseMap.width; x++) {
         for (y = 0; y < coarseMap.height; y++) {
             if (Math.random() > .5 || !last) {
-                console.log('doing it at ', x, y);
+                //console.log('doing it at ', x, y);
                 last = true;
                 loc = new Location(x, y);
                 coarseMap.setValAtLoc(loc, true);

@@ -18,12 +18,13 @@ function Gnome() {
     this.difficultyLevel = 1;
     this.attackType = Creep.ATTACK_TYPE_MELEE;
     this.numActions = 1;
-    this.aggroRadiusSquared = 4;
-    this.rgb = new RGB(255, 255, 255);
+    this.radiusSquared = 4;
+    this.rgb = new RGB(125, 0, 0);
     this.stats = new CoreStats(1);
-    this.health = this.stats.getMaxHP();
+    this.health = this.stats.getMaxHealth();
     this.repr = 'g';
-    console.log("Making gnome with health", this.stats.getMaxHP())
+    this.location = null;
+    console.log("Making gnome with health", this.stats.getMaxHealth())
 }
 
 Gnome.prototype = new Creep();
