@@ -10,7 +10,7 @@ function addGnonesNearPoi(tileMap, creepMap, poi, rgb) {
     var gnome;
     var gnomes = [];
     for (var i = 0; i < poi.length; i++) {
-        var numGnomes = Math.ceil(Math.random() * 3);
+        var numGnomes = Math.ceil(Math.random() * 2);
         for (var j = 0; j < numGnomes; j++) {
             var start = poi[i];
             start = start.add(Direction.randomDir());
@@ -20,7 +20,7 @@ function addGnonesNearPoi(tileMap, creepMap, poi, rgb) {
                 start = start.add(Direction.randomDir());
             }
             if (index < 10) {
-                gnome = new Gnome();
+                gnome = new Gnome(rgb);
                 gnomes.push(gnome);
                 if (!start.isEqualTo(tileMap.getDownStairsLoc()) && !start.isEqualTo(tileMap.getUpStairsLoc())) {
                     creepMap.addCreepToMapAtLoc(start, gnome);
