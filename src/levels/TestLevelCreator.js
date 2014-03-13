@@ -7,8 +7,7 @@ var CaveSpawner = require('./CaveSpawner');
 var RGB = require('../RGB');
 var TestLevel = require('./TestLevel');
 
-function createTestTileMap(tileMap) {
-    // TODO: do we need to use hero level?
+function createTestTileMap(tileMap, rgb, addStairs) {
     var downStairs = new Location(2, 2);
     var upStairs = new Location(tileMap.width - 3, tileMap.height - 3);
     if (Math.random() < .25) {
@@ -16,11 +15,8 @@ function createTestTileMap(tileMap) {
     } else if (Math.random() < .25) {
         upStairs = new Location(2, tileMap.height - 3);
     }
-    var poi = CaveBuilder.buildCaveSystem(tileMap, new RGB(255, 0, 0), [downStairs, upStairs]);
-    if (Math.random() < .10) {
-        CaveBuilder.buildCaveSystem(tileMap, new RGB(0, 255, 0));
+    var poi = CaveBuilder.buildCaveSystem(tileMap, rgb, [downStairs, upStairs] ? addStairs: []);
 
-    }
     /*
     for (var x = 0; x < width; x++) {
         for (var y = 0; y < height; y++) {
@@ -34,14 +30,16 @@ function createTestTileMap(tileMap) {
         }
     }
     */
-    tileMap.addStairsDownAtLoc(downStairs);
-    tileMap.addStairsUp(upStairs);
+    if (addStairs) {
+        tileMap.addStairsDownAtLoc(downStairs);
+        tileMap.addStairsUp(upStairs);
+    }
 
     return poi;
 }
 
-function createTestCreepMap(tileMap, creepMap, poi, mapLevel, heroLevel) {
-    return CaveSpawner.spawnCreeps(tileMap, creepMap, poi, new RGB(130, 0, 0), heroLevel);
+function createTestCreepMap(tileMap, creepMap, poi, rgb) {
+    return CaveSpawner.spawnCreeps(tileMap, creepMap, poi, rgb);
 }
 
 
@@ -53,9 +51,21 @@ function createLevel(height, width, dungeonLevel, heroLevel) {
         width = 20;
     }
     var tileMap = new TileMap(height, width);
-    var poi = createTestTileMap(tileMap);
     var creepMap = new CreepMap(height, width);
-    var creeps = createTestCreepMap(tileMap, creepMap, poi);
+
+    var red = new RGB(100, 0, 0);
+    var green = new RGB(0, 100, 0);
+    var blue = new RGB(0, 0, 100);
+
+    var poi = createTestTileMap(tileMap, red, true);
+    var creeps = createTestCreepMap(tileMap, creepMap, poi, red);
+
+    poi = createTestTileMap(tileMap, green, false);
+    creeps = creeps.concat(createTestCreepMap(tileMap, creepMap, poi, green));
+
+    poi = createTestTileMap(tileMap, blue, false);
+    creeps = creeps.concat(createTestCreepMap(tileMap, creepMap, poi, blue));
+
     return new TestLevel(tileMap, creepMap, creeps);
 }
 
