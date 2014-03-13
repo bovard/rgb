@@ -88,8 +88,15 @@ Game.prototype = {
     takeCreepTurns: function(dijk) {
         var creepControllers = this.level.getCreepControllers();
         var toRemove = [];
+        var dimensionRGB = this.hero.getDimension().getRGB();
         for (var i = 0; i < creepControllers.length; i++) {
             var creepController = creepControllers[i];
+            // skip the creeps turn if not present in the current dimension
+            if (creepController.getCharacter().getRGB().mask(dimensionRGB).isBlack()) {
+                continue;
+            }
+
+            // attack logic if we are in this dimension
             if (creepController.isAdjacentToHero()) {
                 creepController.attackHero();
             } else if(creepController.aggroHero()) {
@@ -136,8 +143,8 @@ Game.prototype = {
         }
 
     },
-    switchCrystals: function(num) {
-        this.hero.switchCrystals(num);
+    switchDimensions: function(num) {
+        this.hero.switchDimensions(num);
     },
 	initInput: function() {
 		this.input[37] = new InputTrigger(function() {
@@ -153,10 +160,13 @@ Game.prototype = {
 			this.moveOrAttackHero(Direction.SOUTH);
 		}, this);
         this.input[49] = new InputTrigger(function() {
-            this.switchCrystals(0);
+            this.switchDimensions(0);
         }, this);
         this.input[50] = new InputTrigger(function() {
-            this.switchCrystals(1);
+            this.switchDimensions(1);
+        }, this);
+        this.input[51] = new InputTrigger(function() {
+            this.switchDimensions(2);
         }, this);
 	},
     generateNewLevel: function() {
@@ -1185,16 +1195,16 @@ module.exports = CreepController;
 var Experience = require('./Experience');
 var Utility = require('./../Utility');
 
-function Crystal(rgb) {
+function Dimension(rgb) {
     this.experience = 0;
     this.level = 1;
     this.rgb = rgb;
     this.unitRGB = rgb.getUnitVector();
 }
 
-Crystal.prototype = new Experience();
+Dimension.prototype = new Experience();
 
-Utility.extend(Crystal, {
+Utility.extend(Dimension, {
     levelUp: function() {
         this.level++;
         this.rgb.add(this.unitRGB);
@@ -1210,7 +1220,7 @@ Utility.extend(Crystal, {
 
 });
 
-module.exports = Crystal;
+module.exports = Dimension;
 
 },{"./../Utility":9,"./Experience":16}],16:[function(require,module,exports){
 function Experience() {
@@ -1257,13 +1267,13 @@ var util = require('./../Utility');
 var RGB = require('./../RGB');
 var CoreStats = require('./CoreStats');
 
-function Gnome() {
+function Gnome(rgb) {
     this.name = 'Gnome';
     this.difficultyLevel = 1;
     this.attackType = Creep.ATTACK_TYPE_MELEE;
     this.numActions = 1;
     this.radiusSquared = 4;
-    this.rgb = new RGB(125, 0, 0);
+    this.rgb = rgb;
     this.stats = new CoreStats(1);
     this.health = this.stats.getMaxHealth();
     this.repr = 'g';
@@ -1284,7 +1294,7 @@ module.exports = Gnome;
 /* Hero class. */
 var CoreStats = require('./CoreStats');
 var Character = require('./Character');
-var Crystal = require('./Crystal');
+var Dimension = require('./Dimension');
 var RGB = require('../RGB');
 var util = require('./../Utility');
 
@@ -1303,8 +1313,12 @@ function Hero(deathCallback, chat) {
     console.log("made hero with hp:", this.health);
     this.rgb = new RGB(255, 255, 255);
     this.repr = '@';
-    this.crystals = [new Crystal(new RGB(125, 0, 0)), new Crystal(new RGB(0, 125, 0))];
-    this.crystal = this.crystals[0];
+    this.dimensions = [
+        new Dimension(new RGB(125, 0, 0)),
+        new Dimension(new RGB(0, 125, 0)),
+        new Dimension(new RGB(0, 0, 125))
+    ];
+    this.dimension = this.dimensions[0];
     //
     //    XXX
     //   XXXXX
@@ -1359,8 +1373,8 @@ util.extend(Hero, {
 	},
     gainXPForKill: function(target) {
         this.stats.gainXPForKill(target);
-        this.crystal.gainXPForKill(target);
-        this.crystal.applyKillEffects(this, target);
+        this.dimension.gainXPForKill(target);
+        this.dimension.applyKillEffects(this, target);
     },
     getVisionRadiusSquared: function() {
         return this.stats.getLevel() + 10;
@@ -1369,20 +1383,20 @@ util.extend(Hero, {
         this.chat.crit("You have died! Press Enter to restart");
         this.deathCallback();
     },
-    getCrystal: function() {
-        return this.crystal;
+    getDimension: function() {
+        return this.dimension;
     },
     isHero: function() {
         return true;
     },
-    switchCrystals: function(index) {
-        this.crystal = this.crystals[index];
+    switchDimensions: function(index) {
+        this.dimension = this.dimensions[index];
     }
 });
 
 module.exports = Hero;
 
-},{"../RGB":7,"./../Utility":9,"./Character":10,"./CoreStats":12,"./Crystal":15}],19:[function(require,module,exports){
+},{"../RGB":7,"./../Utility":9,"./Character":10,"./CoreStats":12,"./Dimension":15}],19:[function(require,module,exports){
 var util = require('./../Utility');
 var Controller = require('./Controller');
 
@@ -1406,10 +1420,9 @@ util.extend(HeroController, {
         }
         var target = this.getCreepMap().getCreepAtLoc(loc);
 
-        console.log("Trying to hit!");
         if(this.getCharacter().getStats().resolveHit(target.getStats())) {
             var dmg = this.getCharacter().getStats().resolveDamage(target.getStats());
-            target.applyDamage(dmg, this.getCharacter().getCrystal().getRGB());
+            target.applyDamage(dmg, this.getCharacter().getDimension().getRGB());
             console.log(target.name, target.getHealth());
             if (target.isDead()) {
                 console.log("We killed it!");
@@ -1457,7 +1470,7 @@ $(document).keyup(function(event) {
         return;
     }
 
-    if ([37, 38, 39, 40, 49, 50].indexOf(event.keyCode) !== -1) {
+    if ([37, 38, 39, 40, 49, 50, 51].indexOf(event.keyCode) !== -1) {
         turn(event.keyCode);
     }
 });
@@ -1488,7 +1501,7 @@ function turn(code) {
 
 
 function render() {
-    renderer.render(game.getTileMap(), game.getCreepMap(), game.getHero(), game.getHero().getCrystal().getRGB());
+    renderer.render(game.getTileMap(), game.getCreepMap(), game.getHero(), game.getHero().getDimension().getRGB());
 
 }
 
@@ -1702,7 +1715,7 @@ function addGnonesNearPoi(tileMap, creepMap, poi, rgb) {
     var gnome;
     var gnomes = [];
     for (var i = 0; i < poi.length; i++) {
-        var numGnomes = Math.ceil(Math.random() * 3);
+        var numGnomes = Math.ceil(Math.random() * 2);
         for (var j = 0; j < numGnomes; j++) {
             var start = poi[i];
             start = start.add(Direction.randomDir());
@@ -1712,7 +1725,7 @@ function addGnonesNearPoi(tileMap, creepMap, poi, rgb) {
                 start = start.add(Direction.randomDir());
             }
             if (index < 10) {
-                gnome = new Gnome();
+                gnome = new Gnome(rgb);
                 gnomes.push(gnome);
                 if (!start.isEqualTo(tileMap.getDownStairsLoc()) && !start.isEqualTo(tileMap.getUpStairsLoc())) {
                     creepMap.addCreepToMapAtLoc(start, gnome);
@@ -1802,8 +1815,7 @@ var CaveSpawner = require('./CaveSpawner');
 var RGB = require('../RGB');
 var TestLevel = require('./TestLevel');
 
-function createTestTileMap(tileMap) {
-    // TODO: do we need to use hero level?
+function createTestTileMap(tileMap, rgb, addStairs) {
     var downStairs = new Location(2, 2);
     var upStairs = new Location(tileMap.width - 3, tileMap.height - 3);
     if (Math.random() < .25) {
@@ -1811,11 +1823,8 @@ function createTestTileMap(tileMap) {
     } else if (Math.random() < .25) {
         upStairs = new Location(2, tileMap.height - 3);
     }
-    var poi = CaveBuilder.buildCaveSystem(tileMap, new RGB(255, 0, 0), [downStairs, upStairs]);
-    if (Math.random() < .10) {
-        CaveBuilder.buildCaveSystem(tileMap, new RGB(0, 255, 0));
+    var poi = CaveBuilder.buildCaveSystem(tileMap, rgb, [downStairs, upStairs] ? addStairs: []);
 
-    }
     /*
     for (var x = 0; x < width; x++) {
         for (var y = 0; y < height; y++) {
@@ -1829,14 +1838,16 @@ function createTestTileMap(tileMap) {
         }
     }
     */
-    tileMap.addStairsDownAtLoc(downStairs);
-    tileMap.addStairsUp(upStairs);
+    if (addStairs) {
+        tileMap.addStairsDownAtLoc(downStairs);
+        tileMap.addStairsUp(upStairs);
+    }
 
     return poi;
 }
 
-function createTestCreepMap(tileMap, creepMap, poi, mapLevel, heroLevel) {
-    return CaveSpawner.spawnCreeps(tileMap, creepMap, poi, new RGB(130, 0, 0), heroLevel);
+function createTestCreepMap(tileMap, creepMap, poi, rgb) {
+    return CaveSpawner.spawnCreeps(tileMap, creepMap, poi, rgb);
 }
 
 
@@ -1848,9 +1859,21 @@ function createLevel(height, width, dungeonLevel, heroLevel) {
         width = 20;
     }
     var tileMap = new TileMap(height, width);
-    var poi = createTestTileMap(tileMap);
     var creepMap = new CreepMap(height, width);
-    var creeps = createTestCreepMap(tileMap, creepMap, poi);
+
+    var red = new RGB(100, 0, 0);
+    var green = new RGB(0, 100, 0);
+    var blue = new RGB(0, 0, 100);
+
+    var poi = createTestTileMap(tileMap, red, true);
+    var creeps = createTestCreepMap(tileMap, creepMap, poi, red);
+
+    poi = createTestTileMap(tileMap, green, false);
+    creeps = creeps.concat(createTestCreepMap(tileMap, creepMap, poi, green));
+
+    poi = createTestTileMap(tileMap, blue, false);
+    creeps = creeps.concat(createTestCreepMap(tileMap, creepMap, poi, blue));
+
     return new TestLevel(tileMap, creepMap, creeps);
 }
 
