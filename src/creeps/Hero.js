@@ -1,7 +1,7 @@
 /* Hero class. */
 var CoreStats = require('./CoreStats');
 var Character = require('./Character');
-var Crystal = require('./Crystal');
+var Dimension = require('./Dimension');
 var RGB = require('../RGB');
 var util = require('./../Utility');
 
@@ -20,8 +20,12 @@ function Hero(deathCallback, chat) {
     console.log("made hero with hp:", this.health);
     this.rgb = new RGB(255, 255, 255);
     this.repr = '@';
-    this.crystals = [new Crystal(new RGB(125, 0, 0)), new Crystal(new RGB(0, 125, 0))];
-    this.crystal = this.crystals[0];
+    this.dimensions = [
+        new Dimension(new RGB(125, 0, 0)),
+        new Dimension(new RGB(0, 125, 0)),
+        new Dimension(new RGB(0, 0, 125))
+    ];
+    this.dimension = this.dimensions[0];
     //
     //    XXX
     //   XXXXX
@@ -76,8 +80,8 @@ util.extend(Hero, {
 	},
     gainXPForKill: function(target) {
         this.stats.gainXPForKill(target);
-        this.crystal.gainXPForKill(target);
-        this.crystal.applyKillEffects(this, target);
+        this.dimension.gainXPForKill(target);
+        this.dimension.applyKillEffects(this, target);
     },
     getVisionRadiusSquared: function() {
         return this.stats.getLevel() + 10;
@@ -86,14 +90,14 @@ util.extend(Hero, {
         this.chat.crit("You have died! Press Enter to restart");
         this.deathCallback();
     },
-    getCrystal: function() {
-        return this.crystal;
+    getDimension: function() {
+        return this.dimension;
     },
     isHero: function() {
         return true;
     },
-    switchCrystals: function(index) {
-        this.crystal = this.crystals[index];
+    switchDimensions: function(index) {
+        this.dimension = this.dimensions[index];
     }
 });
 
