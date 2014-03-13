@@ -2,6 +2,7 @@
 
 A rogue-like game.
 Our entry to the 7DRL 2014
+Check out the latest version (here)[http://bovard.github.com/rgb]
 
 ### Development
 
