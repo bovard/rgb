@@ -36,8 +36,15 @@ Game.prototype = {
     takeCreepTurns: function(dijk) {
         var creepControllers = this.level.getCreepControllers();
         var toRemove = [];
+        var dimensionRGB = this.hero.getDimension().getRGB();
         for (var i = 0; i < creepControllers.length; i++) {
             var creepController = creepControllers[i];
+            // skip the creeps turn if not present in the current dimension
+            if (creepController.getCharacter().getRGB().mask(dimensionRGB).isBlack()) {
+                continue;
+            }
+
+            // attack logic if we are in this dimension
             if (creepController.isAdjacentToHero()) {
                 creepController.attackHero();
             } else if(creepController.aggroHero()) {
@@ -84,8 +91,8 @@ Game.prototype = {
         }
 
     },
-    switchCrystals: function(num) {
-        this.hero.switchCrystals(num);
+    switchDimensions: function(num) {
+        this.hero.switchDimensions(num);
     },
 	initInput: function() {
 		this.input[37] = new InputTrigger(function() {
@@ -101,10 +108,13 @@ Game.prototype = {
 			this.moveOrAttackHero(Direction.SOUTH);
 		}, this);
         this.input[49] = new InputTrigger(function() {
-            this.switchCrystals(0);
+            this.switchDimensions(0);
         }, this);
         this.input[50] = new InputTrigger(function() {
-            this.switchCrystals(1);
+            this.switchDimensions(1);
+        }, this);
+        this.input[51] = new InputTrigger(function() {
+            this.switchDimensions(2);
         }, this);
 	},
     generateNewLevel: function() {

@@ -16,11 +16,10 @@ function createTestTileMap(tileMap) {
     } else if (Math.random() < .25) {
         upStairs = new Location(2, tileMap.height - 3);
     }
-    var poi = CaveBuilder.buildCaveSystem(tileMap, new RGB(255, 0, 0), [downStairs, upStairs]);
-    if (Math.random() < .10) {
-        CaveBuilder.buildCaveSystem(tileMap, new RGB(0, 255, 0));
+    var redPoi = CaveBuilder.buildCaveSystem(tileMap, new RGB(255, 0, 0), [downStairs, upStairs]);
+    var greenPoi = CaveBuilder.buildCaveSystem(tileMap, new RGB(0, 255, 0));
+    var bluePoi = CaveBuilder.buildCaveSystem(tileMap, new RGB(0, 0, 255));
 
-    }
     /*
     for (var x = 0; x < width; x++) {
         for (var y = 0; y < height; y++) {
@@ -37,7 +36,7 @@ function createTestTileMap(tileMap) {
     tileMap.addStairsDownAtLoc(downStairs);
     tileMap.addStairsUp(upStairs);
 
-    return poi;
+    return redPoi;
 }
 
 function createTestCreepMap(tileMap, creepMap, poi, mapLevel, heroLevel) {

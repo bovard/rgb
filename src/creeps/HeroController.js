@@ -21,10 +21,9 @@ util.extend(HeroController, {
         }
         var target = this.getCreepMap().getCreepAtLoc(loc);
 
-        console.log("Trying to hit!");
         if(this.getCharacter().getStats().resolveHit(target.getStats())) {
             var dmg = this.getCharacter().getStats().resolveDamage(target.getStats());
-            target.applyDamage(dmg, this.getCharacter().getCrystal().getRGB());
+            target.applyDamage(dmg, this.getCharacter().getDimension().getRGB());
             console.log(target.name, target.getHealth());
             if (target.isDead()) {
                 console.log("We killed it!");
