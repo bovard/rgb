@@ -56,4 +56,6 @@ RGB.prototype = {
 
 };
 
+RGB.Gold = new RGB(255, 165, 0);
+
 module.exports = RGB;
