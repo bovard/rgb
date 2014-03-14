@@ -64,7 +64,9 @@ util.extend(CreepController, {
             this.getCharacter().setAggro(true);
             var neighbors = this.getCreepsInRadiusSquared();
             for (var i = 0; i < neighbors.length; i++) {
-                neighbors[i].setAggro(true);
+                if (!this.getCharacter().getRGB().mask(neighbors[i].getRGB()).isBlack()) {
+                    neighbors[i].setAggro(true);
+                }
             }
         }
         return this.getCharacter().isAggroed();

@@ -3,10 +3,10 @@ function Experience() {
 }
 
 Experience.getExperience = function(myLevel, creepLevel) {
-    // you get 5 experience per kill of a creep
+    // you get 10 experience per kill of a creep
     // +1 for every level they are above you (no max)
     // -1 for every level they are below you (down to zero)
-    return Math.max(0, 5 - (myLevel - creepLevel));
+    return Math.max(0, 10 - (myLevel - creepLevel));
 };
 
 Experience.prototype = {
