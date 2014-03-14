@@ -90,11 +90,11 @@ var creep4StatCanvasContext;
 // starts the game!
 $(function() {
     var canvas = $("#gameCanvas")[0];
-    heroStatCanvas = $("#heroCanvas");
-    creep1StatCanvasContext = $("#creep1Canvas")[0].getContext('2d');
-    creep2StatCanvasContext = $("#creep2Canvas")[0].getContext('2d');
-    creep3StatCanvasContext = $("#creep3Canvas")[0].getContext('2d');
-    creep4StatCanvasContext = $("#creep4Canvas")[0].getContext('2d');
+    heroStatCanvas = $("#heroCanvas")[0].getContext("2d");
+    creep1StatCanvasContext = $("#creep1Canvas")[0].getContext("2d");
+    creep2StatCanvasContext = $("#creep2Canvas")[0].getContext("2d");
+    creep3StatCanvasContext = $("#creep3Canvas")[0].getContext("2d");
+    creep4StatCanvasContext = $("#creep4Canvas")[0].getContext("2d");
     console.log('found canvas', canvas);
     renderer = new Renderer(canvas);
     restart();

@@ -1,6 +1,8 @@
 
 function _renderCreepToCanvas(ctx, creep) {
-
+    ctx.fillStyle = creep.getRGB().toString();
+    ctx.fillText(creep.getName(), 0, 30);
+    //TODO: this
 }
 
 
@@ -23,6 +25,8 @@ function renderHeroStatusToCanvas(ctx, hero) {
         console.warn("no ctx or creep!");
         return;
     }
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillText("HERO", 0, 30)
 
 }
 
