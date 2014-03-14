@@ -1030,7 +1030,9 @@ util.extend(CreepController, {
             this.getCharacter().setAggro(true);
             var neighbors = this.getCreepsInRadiusSquared();
             for (var i = 0; i < neighbors.length; i++) {
-                neighbors[i].setAggro(true);
+                if (!this.getCharacter().getRGB().mask(neighbors[i].getRGB()).isBlack()) {
+                    neighbors[i].setAggro(true);
+                }
             }
         }
         return this.getCharacter().isAggroed();
@@ -1076,10 +1078,10 @@ function Experience() {
 }
 
 Experience.getExperience = function(myLevel, creepLevel) {
-    // you get 5 experience per kill of a creep
+    // you get 10 experience per kill of a creep
     // +1 for every level they are above you (no max)
     // -1 for every level they are below you (down to zero)
-    return Math.max(0, 5 - (myLevel - creepLevel));
+    return Math.max(0, 10 - (myLevel - creepLevel));
 };
 
 Experience.prototype = {
