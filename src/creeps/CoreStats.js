@@ -15,7 +15,7 @@ function CoreStats(level, statGain, seed) {
     for (var i = 0; i < level; i++) {
         this.levelUp();
     }
-    this.experience = 0;
+    this.experience = this.getXPForLevel(level);
 }
 
 CoreStats.HeroStatGain = {

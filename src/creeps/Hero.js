@@ -82,6 +82,7 @@ util.extend(Hero, {
         Chat.log("You killed " + target.name + "!");
         if (this.stats.gainXPForKill(target)) {
             Chat.ding("You leveled up!");
+            this.health = this.getMaxHealth();
         }
         this.dimension.gainXPForKill(target);
         this.dimension.applyKillEffects(this, target);

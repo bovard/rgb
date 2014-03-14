@@ -1,4 +1,5 @@
 
+var RGB = require('./RGB');
 
 var outputFunctions = [];
 
@@ -29,10 +30,15 @@ function log(message) {
     _write(message, "FFFFFF");
 }
 
+function debug(message) {
+    _write(message, RGB.Grey.toString());
+}
+
 module.exports = {
     ding: ding,
     crit: crit,
     warn: warn,
     log: log,
+    debug: debug,
     setOutputFunction: setOutputFunction
 };
