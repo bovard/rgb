@@ -2472,7 +2472,7 @@ function _renderCreepToDiv(div, creep, rgb) {
         rgb = '#FFFFFF';
     }
     _addToDiv(div, creep.getRepr() + ": " + creep.getName() + " - lvl " + creep.getLevel(), "#FFFFFF");
-    _addToDiv(div, Math.round(creep.getHealth()) + " hp ", "#FFFFFF");
+    _addToDiv(div, Math.ceil(creep.getHealth()) + " hp ", "#FFFFFF");
 }
 
 function _getDifficulty(creepLevel, heroLevel) {
