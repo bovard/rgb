@@ -1,3 +1,4 @@
+var RGB = require('../RGB');
 
 function _clearDiv(div) {
     div.empty();
@@ -39,6 +40,7 @@ function renderHeroStatusToDiv(div, hero) {
     }
     _clearDiv(div);
     _renderCreepToDiv(div, hero);
+    _addToDiv(div, Math.round(100 * hero.getStats().getXP()/hero.getStats().getXPForNextLevel()) + "% to level " + hero.getLevel(), RGB.Gold.toString())
 
 }
 

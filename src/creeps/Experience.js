@@ -19,9 +19,15 @@ Experience.prototype = {
         }
         return false;
     },
+    getXPForLevel: function(level) {
+        return (level) * 50;
+    },
     getXPForNextLevel: function() {
         // each level is 50 xp
-        return (this.getLevel() + 1) * 50;
+        return this.getXPForLevel(this.getLevel() + 1);
+    },
+    getXP: function() {
+        return this.experience;
     },
     levelUp: function() { throw "Experience.levelUp abstract called!"},
     getLevel: function() { return this.level; }
