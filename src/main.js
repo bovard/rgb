@@ -52,15 +52,16 @@ function turn(code) {
 
 function render() {
     renderer.render(game.getTileMap(), game.getCreepMap(), game.getHero(), game.getHero().getDimension().getRGB());
-    StatusRenderer.renderHeroStatusToCanvas(heroStatCanvas, game.getHero())
-    StatusRenderer.renderCreepStatiToCanvi(
+    StatusRenderer.renderHeroStatusToDiv(heroStatDev, game.getHero());
+    StatusRenderer.renderCreepStatiToDivs(
         [
-            creep1StatCanvasContext,
-            creep2StatCanvasContext,
-            creep3StatCanvasContext,
-            creep4StatCanvasContext
+            creep1StatDiv,
+            creep2StatDiv,
+            creep3StatDiv,
+            creep4StatDiv
         ],
-        game.getHeroController().getCreepsInRadiusSquared(1)
+        game.getHeroController().getCreepsInRadiusSquared(1),
+        game.getHero()
     )
 
 }
@@ -81,20 +82,20 @@ function gameOver() {
     // listen for keypress to restart
 }
 
-var heroStatCanvas;
-var creep1StatCanvasContext;
-var creep2StatCanvasContext;
-var creep3StatCanvasContext;
-var creep4StatCanvasContext;
+var heroStatDev;
+var creep1StatDiv;
+var creep2StatDiv;
+var creep3StatDiv;
+var creep4StatDiv;
 
 // starts the game!
 $(function() {
     var canvas = $("#gameCanvas")[0];
-    heroStatCanvas = $("#heroCanvas")[0].getContext("2d");
-    creep1StatCanvasContext = $("#creep1Canvas")[0].getContext("2d");
-    creep2StatCanvasContext = $("#creep2Canvas")[0].getContext("2d");
-    creep3StatCanvasContext = $("#creep3Canvas")[0].getContext("2d");
-    creep4StatCanvasContext = $("#creep4Canvas")[0].getContext("2d");
+    heroStatDev = $("#heroDiv");
+    creep1StatDiv = $("#creep1Div");
+    creep2StatDiv = $("#creep2Div");
+    creep3StatDiv = $("#creep3Div");
+    creep4StatDiv = $("#creep4Div");
     console.log('found canvas', canvas);
     renderer = new Renderer(canvas);
     restart();
