@@ -14,8 +14,10 @@ Experience.prototype = {
         var xpForNextLevel = this.getXPForNextLevel();
         this.experience += Experience.getExperience(this.getLevel(), target.getLevel());
         if (this.experience >= xpForNextLevel) {
-            this.levelUp()
+            this.levelUp();
+            return true;
         }
+        return false;
     },
     getXPForNextLevel: function() {
         // each level is 50 xp

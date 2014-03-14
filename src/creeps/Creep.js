@@ -1,5 +1,4 @@
 /* Generic creep class which provides a base from which to specialize. */
-var GameObject = require('./../GameObject');
 var Character = require('./Character');
 var util = require('./../Utility');
 
@@ -28,6 +27,16 @@ Creep.ATTACK_TYPE_RANGED = 2;
 Creep.prototype = new Character();
 
 util.extend(Creep, {
+    applyDamage: function(damage, rgb) {
+        // calculate the amount of damage you can do
+        this.health -= damage;
+        if (this.health > 0) {
+            return false;
+        } else {
+            this.kill();
+            return true;
+        }
+    },
     getAttackMessage: function() { throw "Creep.attackMessage: abstract method called"; },
     setAggro: function(aggro) {
         this.aggro = aggro;

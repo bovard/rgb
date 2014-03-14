@@ -1,5 +1,6 @@
 var GameObject = require('../GameObject');
 var utils = require('../Utility');
+var Chat = require('../Chat');
 
 function Character(stats, numActions, radiusSquared, name) {
     this.stats = stats;
@@ -33,18 +34,7 @@ utils.extend(Character, {
         }
 
     },
-    applyDamage: function(damage, rgb) {
-        // calculate the amount of damage you can do
-        damage *= Math.min(2, rgb.mask(this.getRGB()).toDecimal() / this.getRGB().toDecimal());
-        console.log("Applying", damage, " damage to", this.getName());
-        this.health -= damage;
-        if (this.health > 0) {
-            return false;
-        } else {
-            this.kill();
-            return true;
-        }
-    },
+
     getLocation: function() { return this.location; },
     setLocation: function(loc) { this.location = loc },
     getStats: function() {return this.stats;},

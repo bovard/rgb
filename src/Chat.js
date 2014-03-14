@@ -14,20 +14,23 @@ function _write(message, color) {
 
 
 function crit(message) {
-    _write(message, "#FF0000")
+    _write(message, "#FF0000");
+}
 
+function ding(message) {
+    _write(message, "#FFD700");
 }
 
 function warn(message) {
-    _write(message, "FFA500")
-
+    _write(message, "FFA500");
 }
 
 function log(message) {
-    _write(message, "FFA500")
+    _write(message, "FFFFFF");
 }
 
 module.exports = {
+    ding: ding,
     crit: crit,
     warn: warn,
     log: log,

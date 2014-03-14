@@ -1,6 +1,6 @@
 /* Renders the game to the canvas. */
-var Location = require('./map/Location');
-var Tile = require('./map/Tile');
+var Location = require('./../map/Location');
+var Tile = require('./../map/Tile');
 
 // Transform location to be relative to center & scaled by Renderer.GAME_TO_CANVAS
 function toCanvasSpace(location, centerLoc) {
@@ -131,7 +131,7 @@ Renderer.prototype = {
 		for (var x = 0; x < tileMap.width; x++) {
 			for (var y = 0; y < tileMap.height; y++ ) {
                 var loc = new Location(x, y);
-                if (loc.distanceSquaredTo(hero.location) > hero.visionRadiusSquared) {
+                if (loc.distanceSquaredTo(hero.location) > hero.getVisionRadiusSquared()) {
                     // COMMENT OUT THE continue TO SEE EVERYTHING
                     continue;
                 }

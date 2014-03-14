@@ -6,9 +6,9 @@ var TestLevelCreator = require('./levels/TestLevelCreator');
 var HeroController = require('./creeps/HeroController');
 
 
-function Game(chat, deathCallback) {
+function Game(deathCallback) {
     // TODO: fix this a lot
-    this.hero = new Hero(deathCallback, chat);
+    this.hero = new Hero(deathCallback);
     this.heroController = new HeroController(null, null, this.hero);
     this.levels = [];
     this.generateNewLevel();
@@ -139,6 +139,9 @@ Game.prototype = {
     },
     getHero: function() {
         return this.hero;
+    },
+    getHeroController: function() {
+        return this.heroController;
     }
 };
 
