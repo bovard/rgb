@@ -1,4 +1,6 @@
-require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"TZeL/P":[function(require,module,exports){
+require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"jquery":[function(require,module,exports){
+module.exports=require('TZeL/P');
+},{}],"TZeL/P":[function(require,module,exports){
 (function (global){
 (function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
 /*! jQuery v1.11.0 | (c) 2005, 2014 jQuery Foundation, Inc. | jquery.org/license */
@@ -11,8 +13,6 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
 }).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],"jquery":[function(require,module,exports){
-module.exports=require('TZeL/P');
 },{}],3:[function(require,module,exports){
 
 
@@ -292,6 +292,8 @@ RGB.prototype = {
     }
 
 };
+
+RGB.Gold = new RGB(255, 165, 0);
 
 module.exports = RGB;
 },{}],8:[function(require,module,exports){
@@ -1090,9 +1092,15 @@ Experience.prototype = {
         }
         return false;
     },
+    getXPForLevel: function(level) {
+        return (level) * 50;
+    },
     getXPForNextLevel: function() {
         // each level is 50 xp
-        return (this.getLevel() + 1) * 50;
+        return this.getXPForLevel(this.getLevel() + 1);
+    },
+    getXP: function() {
+        return this.experience;
     },
     levelUp: function() { throw "Experience.levelUp abstract called!"},
     getLevel: function() { return this.level; }
@@ -2427,6 +2435,7 @@ Renderer.prototype = {
 
 module.exports = Renderer;
 },{"./../map/Location":29,"./../map/Tile":31}],34:[function(require,module,exports){
+var RGB = require('../RGB');
 
 function _clearDiv(div) {
     div.empty();
@@ -2468,6 +2477,7 @@ function renderHeroStatusToDiv(div, hero) {
     }
     _clearDiv(div);
     _renderCreepToDiv(div, hero);
+    _addToDiv(div, Math.round(100 * hero.getStats().getXP()/hero.getStats().getXPForNextLevel()) + "% to level " + hero.getLevel(), RGB.Gold.toString())
 
 }
 
@@ -2477,4 +2487,4 @@ module.exports = {
     renderCreepStatiToDivs: renderCreepStatiToDivs,
     renderHeroStatusToDiv: renderHeroStatusToDiv
 };
-},{}]},{},[19])
+},{"../RGB":7}]},{},[19])
