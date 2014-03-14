@@ -1,6 +1,4 @@
-require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"jquery":[function(require,module,exports){
-module.exports=require('TZeL/P');
-},{}],"TZeL/P":[function(require,module,exports){
+require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"TZeL/P":[function(require,module,exports){
 (function (global){
 (function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
 /*! jQuery v1.11.0 | (c) 2005, 2014 jQuery Foundation, Inc. | jquery.org/license */
@@ -13,6 +11,8 @@ module.exports=require('TZeL/P');
 }).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],"jquery":[function(require,module,exports){
+module.exports=require('TZeL/P');
 },{}],3:[function(require,module,exports){
 
 
@@ -30,20 +30,23 @@ function _write(message, color) {
 
 
 function crit(message) {
-    _write(message, "#FF0000")
+    _write(message, "#FF0000");
+}
 
+function ding(message) {
+    _write(message, "#FFD700");
 }
 
 function warn(message) {
-    _write(message, "FFA500")
-
+    _write(message, "FFA500");
 }
 
 function log(message) {
-    _write(message, "FFA500")
+    _write(message, "FFFFFF");
 }
 
 module.exports = {
+    ding: ding,
     crit: crit,
     warn: warn,
     log: log,
@@ -58,9 +61,9 @@ var TestLevelCreator = require('./levels/TestLevelCreator');
 var HeroController = require('./creeps/HeroController');
 
 
-function Game(chat, deathCallback) {
+function Game(deathCallback) {
     // TODO: fix this a lot
-    this.hero = new Hero(deathCallback, chat);
+    this.hero = new Hero(deathCallback);
     this.heroController = new HeroController(null, null, this.hero);
     this.levels = [];
     this.generateNewLevel();
@@ -191,11 +194,14 @@ Game.prototype = {
     },
     getHero: function() {
         return this.hero;
+    },
+    getHeroController: function() {
+        return this.heroController;
     }
 };
 
 module.exports = Game;
-},{"./InputTrigger":6,"./creeps/Hero":18,"./creeps/HeroController":19,"./levels/TestLevel":24,"./levels/TestLevelCreator":25,"./map/Direction":29}],5:[function(require,module,exports){
+},{"./InputTrigger":6,"./creeps/Hero":17,"./creeps/HeroController":18,"./levels/TestLevel":23,"./levels/TestLevelCreator":24,"./map/Direction":28}],5:[function(require,module,exports){
 function GameObject() {
 }
 
@@ -289,167 +295,6 @@ RGB.prototype = {
 
 module.exports = RGB;
 },{}],8:[function(require,module,exports){
-/* Renders the game to the canvas. */
-var Location = require('./map/Location');
-var Tile = require('./map/Tile');
-
-// Transform location to be relative to center & scaled by Renderer.GAME_TO_CANVAS
-function toCanvasSpace(location, centerLoc) {
-	var relativeLoc = new Location(location.x + -centerLoc.x, location.y + -centerLoc.y); 
-	return new Location(relativeLoc.x * Renderer.GAME_TO_CANVAS,
-		relativeLoc.y * Renderer.GAME_TO_CANVAS);
-}
-
-// Draws a tile 
-function drawTile(tile, loc, filter) {
-	this.context.strokeStyle = tile.getRGB(filter).toString();
-	this.context.lineWidth = 2;
-	// Get loc in canvas space
-	canvasLoc = toCanvasSpace(loc, this.centerLoc);
-	this.context.strokeRect(canvasLoc.x - Renderer.TILE_WIDTH/2, 
-		canvasLoc.y - Renderer.TILE_WIDTH/2,
-		Renderer.TILE_WIDTH, 
-		Renderer.TILE_WIDTH);
-	// If this is upstairs or downstairs, draw the symbol as well
-	if (tile.getRepr() !== Tile.FLOOR_TILE) {
-		drawSymbol.call(this, tile, loc, filter, false);
-	}
-} 
-
-/* Draws the appropriate symbol for a:
-	- creep
-	- hero
-	- downstairs tile
-	- upstairs tile
-*/
-function drawSymbol(entity, loc, filter, isHero) {
-	// If hero, draw without filter
-	this.context.fillStyle = isHero ? entity.getRGB().toString() :
-		entity.getRGB(filter).toString();
-	// Set font size
-	this.context.font = Renderer.FONT;
-	// Get loc in canvas space
-	canvasLoc = toCanvasSpace(loc, this.centerLoc);
-	var txt = entity.getRepr();
-	var txtWidth = this.context.measureText(txt).width;
-	var txtHeight = parseInt(Renderer.FONT) * .5; // approx height
-	this.context.fillText(txt,
-		canvasLoc.x - txtWidth/2, 
-		canvasLoc.y + txtHeight/2);
-}
-
-// Draws HUD for hero
-function drawHud(hero) {
-	this.context.font = Renderer.HUD_FONT;
-	/********************** Draw health *******************************/
-	this.context.fillStyle = Renderer.HUD_HEALTH_COLOR;
-	var txtWidth = this.context.measureText(Renderer.HUD_HEALTH_SYM).width;
-	var wholeHealthSymbols = parseInt(hero.health / Renderer.HUD_HEALTH_SYM_COUNT);
-	var percentage = 
-		(hero.health % Renderer.HUD_HEALTH_SYM_COUNT) / Renderer.HUD_HEALTH_SYM_COUNT;
-	
-	var loc = new Location(Renderer.HUD_OFFSET.x, Renderer.HUD_OFFSET.y);
-	for (var i = 0; i < wholeHealthSymbols; i++, loc.x += txtWidth ) {
-		drawHudSymbol.call(this, Renderer.HUD_HEALTH_SYM, loc, 1); 
-	}
-	
-	if (percentage > 0) {
-		drawHudSymbol.call(this, Renderer.HUD_HEALTH_SYM, loc, percentage);
-	}
-}
-
-/* Draws a HUD symbol or a left-to-right percentage of a HUD symbol. The percentage 
-   allows for the HUD to store more count information in a smaller space. */
-function drawHudSymbol(symbol, loc, percentage) {
-	var txtWidth = this.context.measureText(symbol).width;
-	var txtHeight = parseInt(Renderer.HUD_FONT) * .5; // approx height
-	this.context.save();
-	this.context.beginPath();
-	/* The height of the clipping rects here doesn't matter, just make sure they are
-	   tall enough to not clip horizontally. */
-	this.context.rect(loc.x - txtWidth/2, loc.y - 5 * txtHeight,
-		txtWidth * percentage, 5 * txtHeight);
-	this.context.clip();
-	this.context.fillText(symbol,
-		loc.x - txtWidth/2, 
-		loc.y + txtHeight/2);
-	this.context.restore();
-}
-
-function Renderer(canvas) {
-	this.canvas = canvas;
-	this.context = canvas.getContext("2d");
-	// Determines the game location that the canvas should be centered on
-	this.centerLoc = null;
-	this.zoomFactor = 2; // 1.1 would be 10% magnification
-}
-
-/* Scale factor going between game coordinates and canvas coordinates 
-   i.e. game<x * GAME_TO_CANVAS,y * GAME_TO_CANVAS> = canvas<x,y> 
-	
-   Basically, this changes how far apart the objects are rendered. We'll want to
-   keep this at a number that jives with the object asset size (read: font size).
-   !!!IMPORTANT NOTE!!!: Don't use this for zoom! Zoom is accomplished by scaling 
-   the canvas context.
-*/
-Renderer.GAME_TO_CANVAS = 18;
-Renderer.TILE_WIDTH = 15;
-Renderer.FONT = "12px Arial";
-Renderer.HUD_OFFSET = new Location(-100,-100);
-Renderer.HUD_FONT = "24px Arial";
-Renderer.HUD_HEALTH_SYM = "*";
-// Each HUD_HEALTH_SYM represents HUD_HEALTH_SYM_COUNT health
-Renderer.HUD_HEALTH_SYM_COUNT = 2;
-Renderer.HUD_HEALTH_COLOR = "#FF0000";
-
-Renderer.prototype = {
-    render: function(tileMap, creepMap, hero, filter) {
-		this.context.save();
-		this.centerLoc = hero.getLocation();
-		var canvasLoc;
-	
-		// Fill canvas with black background
-		this.context.fillStyle = "#000000";
-        this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
-		
-		// Center grid at canvas center
-		this.context.translate(this.canvas.width/2, this.canvas.height/2);
-		
-		// Scale by zoom factor
-		this.context.scale(this.zoomFactor,this.zoomFactor);
-	
-		// Iterate through tileMap & creepMap and draw tiles & creeps & player.
-		for (var x = 0; x < tileMap.width; x++) {
-			for (var y = 0; y < tileMap.height; y++ ) {
-                var loc = new Location(x, y);
-                if (loc.distanceSquaredTo(hero.location) > hero.visionRadiusSquared) {
-                    // COMMENT OUT THE continue TO SEE EVERYTHING
-                    continue;
-                }
-				// If there is a tile to draw in this location, draw it
-				if (tileMap.getTileAtLoc(loc)) {
-					drawTile.call(this, tileMap.getTileAtLoc(loc), loc, filter);
-				}
-				// If a character or the hero resides in this location, draw it
-				if (creepMap.getCreepAtLoc(loc)) {
-					if (creepMap.heroAtLoc(loc)) {
-						drawSymbol.call(this, creepMap.getCreepAtLoc(loc), loc, filter, true);
-					} else {
-						drawSymbol.call(this, creepMap.getCreepAtLoc(loc), loc, filter, false);
-					}
-				}
-			}
-		}
-		
-		// Draw HUD
-		drawHud.call(this, hero);
-		
-		this.context.restore();
-    }
-};
-
-module.exports = Renderer;
-},{"./map/Location":30,"./map/Tile":32}],9:[function(require,module,exports){
 
 var Utility = {
 	/* Bound value */
@@ -821,9 +666,10 @@ var Utility = {
 
 // Export as singleton
 module.exports = Utility;
-},{}],10:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 var GameObject = require('../GameObject');
 var utils = require('../Utility');
+var Chat = require('../Chat');
 
 function Character(stats, numActions, radiusSquared, name) {
     this.stats = stats;
@@ -857,18 +703,7 @@ utils.extend(Character, {
         }
 
     },
-    applyDamage: function(damage, rgb) {
-        // calculate the amount of damage you can do
-        damage *= Math.min(2, rgb.mask(this.getRGB()).toDecimal() / this.getRGB().toDecimal());
-        console.log("Applying", damage, " damage to", this.getName());
-        this.health -= damage;
-        if (this.health > 0) {
-            return false;
-        } else {
-            this.kill();
-            return true;
-        }
-    },
+
     getLocation: function() { return this.location; },
     setLocation: function(loc) { this.location = loc },
     getStats: function() {return this.stats;},
@@ -880,7 +715,7 @@ utils.extend(Character, {
 });
 
 module.exports = Character;
-},{"../GameObject":5,"../Utility":9}],11:[function(require,module,exports){
+},{"../Chat":3,"../GameObject":5,"../Utility":8}],10:[function(require,module,exports){
 function Controller(tileMap, creepMap, character) {
     this.tileMap = tileMap;
     this.creepMap = creepMap;
@@ -964,9 +799,9 @@ Controller.prototype = {
     setTileMap: function(tileMap) {
         this.tileMap = tileMap;
     },
-    getCreepsInRadiusSquared: function() {
+    getCreepsInRadiusSquared: function(radiusSquared) {
         var creeps = [];
-        var radiusSquared = this.getCharacter().getRadiusSquared();
+        radiusSquared = radiusSquared || this.getCharacter().getRadiusSquared();
         var radius = Math.ceil(Math.sqrt(radiusSquared));
         var loc = this.getCharacter().getLocation();
         for (var x = -radius; x <= radius; x++) {
@@ -982,11 +817,11 @@ Controller.prototype = {
             }
         }
         return creeps;
-    }
+    },
 };
 
 module.exports = Controller;
-},{}],12:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 var Experience = require('./Experience');
 var Utility = require('../Utility');
 /* Core stats for game entities performing actions. */
@@ -1073,9 +908,8 @@ Utility.extend(CoreStats, {
 });
 
 module.exports = CoreStats;
-},{"../Utility":9,"./Experience":16}],13:[function(require,module,exports){
+},{"../Utility":8,"./Experience":15}],12:[function(require,module,exports){
 /* Generic creep class which provides a base from which to specialize. */
-var GameObject = require('./../GameObject');
 var Character = require('./Character');
 var util = require('./../Utility');
 
@@ -1104,6 +938,16 @@ Creep.ATTACK_TYPE_RANGED = 2;
 Creep.prototype = new Character();
 
 util.extend(Creep, {
+    applyDamage: function(damage, rgb) {
+        // calculate the amount of damage you can do
+        this.health -= damage;
+        if (this.health > 0) {
+            return false;
+        } else {
+            this.kill();
+            return true;
+        }
+    },
     getAttackMessage: function() { throw "Creep.attackMessage: abstract method called"; },
     setAggro: function(aggro) {
         this.aggro = aggro;
@@ -1117,9 +961,10 @@ console.log(Creep);
 console.log(Creep.prototype);
 
 module.exports = Creep;
-},{"./../GameObject":5,"./../Utility":9,"./Character":10}],14:[function(require,module,exports){
+},{"./../Utility":8,"./Character":9}],13:[function(require,module,exports){
 var util = require('./../Utility');
 var Controller = require('./Controller');
+var Chat = require('./../Chat');
 
 function CreepController(tileMap, creepMap, creep) {
     this.tileMap = tileMap;
@@ -1156,9 +1001,10 @@ util.extend(CreepController, {
 
         console.log("creep trying to hit");
         if(this.getCharacter().getStats().resolveHit(target.getStats())) {
-            console.log("creep hit");
             var dmg = this.getCharacter().getStats().resolveDamage(target.getStats());
             target.applyDamage(dmg, this.getCharacter().getRGB());
+        } else {
+            Chat.log(this.getCharacter().getName() + " misses you");
         }
 
     },
@@ -1176,22 +1022,22 @@ util.extend(CreepController, {
             console.warn("something wrong here!");
         }
         var sees = ourLoc && theirLoc && ourLoc.distanceSquaredTo(theirLoc) <= this.getCharacter().getRadiusSquared();
-        if (sees) {
+        if (sees && !this.getCharacter().isAggroed()) {
             // once we see the hero, don't stop chasing till he's dead!
+            Chat.warn(this.getCharacter().getName() + " sees you!");
             this.getCharacter().setAggro(true);
             var neighbors = this.getCreepsInRadiusSquared();
             for (var i = 0; i < neighbors.length; i++) {
                 neighbors[i].setAggro(true);
             }
         }
-        console.log(this.getCharacter().isAggroed());
         return this.getCharacter().isAggroed();
     }
 });
 
 module.exports = CreepController;
 
-},{"./../Utility":9,"./Controller":11}],15:[function(require,module,exports){
+},{"./../Chat":3,"./../Utility":8,"./Controller":10}],14:[function(require,module,exports){
 var Experience = require('./Experience');
 var Utility = require('./../Utility');
 
@@ -1222,7 +1068,7 @@ Utility.extend(Dimension, {
 
 module.exports = Dimension;
 
-},{"./../Utility":9,"./Experience":16}],16:[function(require,module,exports){
+},{"./../Utility":8,"./Experience":15}],15:[function(require,module,exports){
 function Experience() {
     this.experience = 0;  // all of the xp a character has gotten
 }
@@ -1239,8 +1085,10 @@ Experience.prototype = {
         var xpForNextLevel = this.getXPForNextLevel();
         this.experience += Experience.getExperience(this.getLevel(), target.getLevel());
         if (this.experience >= xpForNextLevel) {
-            this.levelUp()
+            this.levelUp();
+            return true;
         }
+        return false;
     },
     getXPForNextLevel: function() {
         // each level is 50 xp
@@ -1251,7 +1099,7 @@ Experience.prototype = {
 };
 
 module.exports = Experience;
-},{}],17:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 /* Gnome creep. Properties:
    * Difficulty Level: very easy  
    * Attack Range: melee
@@ -1290,21 +1138,21 @@ util.extend(Gnome, {
 });
 
 module.exports = Gnome;
-},{"./../RGB":7,"./../Utility":9,"./CoreStats":12,"./Creep":13}],18:[function(require,module,exports){
+},{"./../RGB":7,"./../Utility":8,"./CoreStats":11,"./Creep":12}],17:[function(require,module,exports){
 /* Hero class. */
 var CoreStats = require('./CoreStats');
 var Character = require('./Character');
 var Dimension = require('./Dimension');
 var RGB = require('../RGB');
 var util = require('./../Utility');
+var Chat = require('./../Chat');
 
-function Hero(deathCallback, chat) {
+function Hero(deathCallback) {
     this.name = "Aver";
     this.shield = 0;
     this.maxShield = 10;
     this.speedBoost = 0;
     this.deathCallback = deathCallback;
-    this.chat = chat;
     this.location = null;
     this.numActions = 1;
     this.actionsPerformed = 0;
@@ -1349,7 +1197,7 @@ util.extend(Hero, {
     },
 	applyDamage: function(damage, rgb) {
         // calculate the amount of damage you can do
-        damage *= Math.min(2, rgb.mask(this.getRGB()).toDecimal() / this.getRGB().toDecimal());
+        Chat.warn("You are hit for " + Math.round(damage*10)/10 + " damage!");
         console.log("Applying", damage, " damage to", this.getName());
         // first subtract from shield if there is one
         if (this.shield > 0) {
@@ -1372,7 +1220,10 @@ util.extend(Hero, {
         }
 	},
     gainXPForKill: function(target) {
-        this.stats.gainXPForKill(target);
+        Chat.log("You killed " + target.name + "!");
+        if (this.stats.gainXPForKill(target)) {
+            Chat.ding("You leveled up!");
+        }
         this.dimension.gainXPForKill(target);
         this.dimension.applyKillEffects(this, target);
     },
@@ -1380,7 +1231,7 @@ util.extend(Hero, {
         return this.stats.getLevel() + 10;
     },
     kill: function() {
-        this.chat.crit("You have died! Press Enter to restart");
+        Chat.crit("You have died! Press any key to restart");
         this.deathCallback();
     },
     getDimension: function() {
@@ -1396,9 +1247,10 @@ util.extend(Hero, {
 
 module.exports = Hero;
 
-},{"../RGB":7,"./../Utility":9,"./Character":10,"./CoreStats":12,"./Dimension":15}],19:[function(require,module,exports){
+},{"../RGB":7,"./../Chat":3,"./../Utility":8,"./Character":9,"./CoreStats":11,"./Dimension":14}],18:[function(require,module,exports){
 var util = require('./../Utility');
 var Controller = require('./Controller');
+var Chat = require('../Chat');
 
 function HeroController(tileMap, creepMap, hero) {
     this.tileMap = tileMap;
@@ -1420,8 +1272,12 @@ util.extend(HeroController, {
         }
         var target = this.getCreepMap().getCreepAtLoc(loc);
 
-        if(this.getCharacter().getStats().resolveHit(target.getStats())) {
+        if(this.getCharacter().getDimension().getRGB().mask(target.getRGB()).isBlack()) {
+            Chat.log("You bump against an entity in another dimension");
+        } else if(this.getCharacter().getStats().resolveHit(target.getStats())) {
             var dmg = this.getCharacter().getStats().resolveDamage(target.getStats());
+            dmg *= 2;
+            Chat.log("You hit " + target.name + " for " + Math.round(dmg) + " damage!");
             target.applyDamage(dmg, this.getCharacter().getDimension().getRGB());
             console.log(target.name, target.getHealth());
             if (target.isDead()) {
@@ -1430,6 +1286,8 @@ util.extend(HeroController, {
                 this.getCreepMap().deleteCreepAtLoc(loc);
                 this.getCreepMap().moveHeroToLoc(loc);
             }
+        } else {
+            Chat.log("You miss " + target.name);
         }
 
     },
@@ -1437,6 +1295,7 @@ util.extend(HeroController, {
         var toMove = this.getCharacter().location.add(dir);
         var creep = this.getCreepMap().getCreepAtLoc(toMove);
         if (!this.getTileMap().getTileAtLoc(toMove)) {
+            Chat.warn("You step out into nothingness and feel yourself start to fall");
             this.getCreepMap().removeHero();
             this.getCharacter().kill();
         } else if (!creep) {
@@ -1448,11 +1307,12 @@ util.extend(HeroController, {
 });
 
 module.exports = HeroController;
-},{"./../Utility":9,"./Controller":11}],20:[function(require,module,exports){
+},{"../Chat":3,"./../Utility":8,"./Controller":10}],19:[function(require,module,exports){
 var Game = require('./Game');
 var Dijkstra = require('./map/Dijkstra');
-var Renderer = require('./Renderer');
+var Renderer = require('./render/Renderer');
 var Chat = require('./Chat');
+var StatusRenderer = require('./render/StatusRenderer');
 
 Chat.setOutputFunction(function(message, color) {
     console.log(message, color);
@@ -1502,13 +1362,23 @@ function turn(code) {
 
 function render() {
     renderer.render(game.getTileMap(), game.getCreepMap(), game.getHero(), game.getHero().getDimension().getRGB());
+    StatusRenderer.renderHeroStatusToCanvas(heroStatCanvas, game.getHero())
+    StatusRenderer.renderCreepStatiToCanvi(
+        [
+            creep1StatCanvasContext,
+            creep2StatCanvasContext,
+            creep3StatCanvasContext,
+            creep4StatCanvasContext
+        ],
+        game.getHeroController().getCreepsInRadiusSquared(1)
+    )
 
 }
 
 
 function restart() {
     needsRestart = false;
-    game = new Game(Chat, gameOver);
+    game = new Game(gameOver);
     render();
 }
 
@@ -1521,14 +1391,33 @@ function gameOver() {
     // listen for keypress to restart
 }
 
+var heroStatCanvas;
+var creep1StatCanvasContext;
+var creep2StatCanvasContext;
+var creep3StatCanvasContext;
+var creep4StatCanvasContext;
+
 // starts the game!
 $(function() {
-    var canvas = $("#myCanvas")[0];
+    var canvas = $("#gameCanvas")[0];
+    heroStatCanvas = $("#heroCanvas")[0].getContext("2d");
+    creep1StatCanvasContext = $("#creep1Canvas")[0].getContext("2d");
+    creep2StatCanvasContext = $("#creep2Canvas")[0].getContext("2d");
+    creep3StatCanvasContext = $("#creep3Canvas")[0].getContext("2d");
+    creep4StatCanvasContext = $("#creep4Canvas")[0].getContext("2d");
     console.log('found canvas', canvas);
     renderer = new Renderer(canvas);
     restart();
+
+    // hook up the chat!
+    Chat.setOutputFunction(function(text, color) {
+        $('<div style="color:' + color + '">' + text + '</>').appendTo('#chat');
+        var objDiv = document.getElementById("chat");
+        objDiv.scrollTop = objDiv.scrollHeight;
+
+    });
 });
-},{"./Chat":3,"./Game":4,"./Renderer":8,"./map/Dijkstra":28}],21:[function(require,module,exports){
+},{"./Chat":3,"./Game":4,"./map/Dijkstra":27,"./render/Renderer":33,"./render/StatusRenderer":34}],20:[function(require,module,exports){
 var Location = require('../map/Location');
 var Direction = require('../map/Direction');
 var Tile = require('../map/Tile');
@@ -1702,7 +1591,7 @@ function buildCaveSystem(tileMap, rgb, includeLocs) {
 module.exports = {
     buildCaveSystem: buildCaveSystem
 };
-},{"../map/CoarserMap":26,"../map/Direction":29,"../map/Location":30,"../map/Tile":32}],22:[function(require,module,exports){
+},{"../map/CoarserMap":25,"../map/Direction":28,"../map/Location":29,"../map/Tile":31}],21:[function(require,module,exports){
 
 // all of the creeps one would find in a cave!
 var Gnome = require('../creeps/Gnome');
@@ -1745,7 +1634,7 @@ function spawnCreeps(tileMap, creepMap, poi, rgb, heroLevel) {
 module.exports = {
     spawnCreeps: spawnCreeps
 };
-},{"../creeps/Gnome":17,"../map/Direction":29,"../map/Location":30}],23:[function(require,module,exports){
+},{"../creeps/Gnome":16,"../map/Direction":28,"../map/Location":29}],22:[function(require,module,exports){
 var CreepMap = require('../map/CreepMap');
 var CreepController = require('../creeps/CreepController');
 
@@ -1789,7 +1678,7 @@ Level.prototype = {
 };
 
 module.exports = Level;
-},{"../creeps/CreepController":14,"../map/CreepMap":27}],24:[function(require,module,exports){
+},{"../creeps/CreepController":13,"../map/CreepMap":26}],23:[function(require,module,exports){
 var Level = require('./Level');
 var utils = require('./../Utility');
 
@@ -1805,7 +1694,7 @@ function TestLevel(tileMap, creepMap, creeps) {
 utils.inherit(TestLevel, Level);
 
 module.exports = TestLevel;
-},{"./../Utility":9,"./Level":23}],25:[function(require,module,exports){
+},{"./../Utility":8,"./Level":22}],24:[function(require,module,exports){
 var TileMap = require('../map/TileMap');
 var CreepMap = require('../map/CreepMap');
 var Tile = require('../map/Tile');
@@ -1883,7 +1772,7 @@ module.exports = {
     createTestCreepMap: createTestCreepMap,
     createLevel: createLevel
 };
-},{"../RGB":7,"../map/CreepMap":27,"../map/Location":30,"../map/Tile":32,"../map/TileMap":33,"./CaveBuilder":21,"./CaveSpawner":22,"./TestLevel":24}],26:[function(require,module,exports){
+},{"../RGB":7,"../map/CreepMap":26,"../map/Location":29,"../map/Tile":31,"../map/TileMap":32,"./CaveBuilder":20,"./CaveSpawner":21,"./TestLevel":23}],25:[function(require,module,exports){
 var Map = require('./Map');
 var Location = require('./Location');
 
@@ -1922,7 +1811,7 @@ CoarserMap.prototype = {
 
 
 module.exports = CoarserMap;
-},{"./Location":30,"./Map":31}],27:[function(require,module,exports){
+},{"./Location":29,"./Map":30}],26:[function(require,module,exports){
 var Location = require('./Location');
 var Map = require('./Map');
 
@@ -1999,7 +1888,7 @@ CreepMap.prototype = {
 };
 
 module.exports = CreepMap;
-},{"./Location":30,"./Map":31}],28:[function(require,module,exports){
+},{"./Location":29,"./Map":30}],27:[function(require,module,exports){
 var Location = require('./Location');
 
 /* Runs Dijkstra to compute moveMap. Each value in moveMap is one of the following offsets
@@ -2067,7 +1956,7 @@ Dijkstra.prototype = {
 };
 
 module.exports = Dijkstra;
-},{"./Location":30}],29:[function(require,module,exports){
+},{"./Location":29}],28:[function(require,module,exports){
 function Direction(x, y) {
     var result;
     if (Math.abs(x) + Math.abs(y) > 1) {
@@ -2168,7 +2057,7 @@ Direction.randomDir = function() {
 
 
 module.exports = Direction;
-},{}],30:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 var Direction = require('./Direction');
 
 function Location(x, y) {
@@ -2215,7 +2104,7 @@ Location.prototype = {
 };
 
 module.exports = Location;
-},{"./Direction":29}],31:[function(require,module,exports){
+},{"./Direction":28}],30:[function(require,module,exports){
 var Location = require('./Location');
 
 var Map = {
@@ -2265,7 +2154,7 @@ var Map = {
 
 
 module.exports = Map;
-},{"./Location":30}],32:[function(require,module,exports){
+},{"./Location":29}],31:[function(require,module,exports){
 var GameObject = require('../GameObject');
 var RGB = require('../RGB');
 var util = require('./../Utility');
@@ -2287,7 +2176,7 @@ util.inherit(Tile, GameObject);
 
 module.exports = Tile;
 
-},{"../GameObject":5,"../RGB":7,"./../Utility":9}],33:[function(require,module,exports){
+},{"../GameObject":5,"../RGB":7,"./../Utility":8}],32:[function(require,module,exports){
 var Location = require('./Location');
 var Map = require('./Map');
 var Tile = require('./Tile');
@@ -2373,4 +2262,215 @@ TileMap.prototype = {
 };
 
 module.exports = TileMap;
-},{"./Location":30,"./Map":31,"./Tile":32}]},{},[20])
+},{"./Location":29,"./Map":30,"./Tile":31}],33:[function(require,module,exports){
+/* Renders the game to the canvas. */
+var Location = require('./../map/Location');
+var Tile = require('./../map/Tile');
+
+// Transform location to be relative to center & scaled by Renderer.GAME_TO_CANVAS
+function toCanvasSpace(location, centerLoc) {
+	var relativeLoc = new Location(location.x + -centerLoc.x, location.y + -centerLoc.y); 
+	return new Location(relativeLoc.x * Renderer.GAME_TO_CANVAS,
+		relativeLoc.y * Renderer.GAME_TO_CANVAS);
+}
+
+// Draws a tile 
+function drawTile(tile, loc, filter) {
+	this.context.strokeStyle = tile.getRGB(filter).toString();
+	this.context.lineWidth = 2;
+	// Get loc in canvas space
+	canvasLoc = toCanvasSpace(loc, this.centerLoc);
+	this.context.strokeRect(canvasLoc.x - Renderer.TILE_WIDTH/2, 
+		canvasLoc.y - Renderer.TILE_WIDTH/2,
+		Renderer.TILE_WIDTH, 
+		Renderer.TILE_WIDTH);
+	// If this is upstairs or downstairs, draw the symbol as well
+	if (tile.getRepr() !== Tile.FLOOR_TILE) {
+		drawSymbol.call(this, tile, loc, filter, false);
+	}
+} 
+
+/* Draws the appropriate symbol for a:
+	- creep
+	- hero
+	- downstairs tile
+	- upstairs tile
+*/
+function drawSymbol(entity, loc, filter, isHero) {
+	// If hero, draw without filter
+	this.context.fillStyle = isHero ? entity.getRGB().toString() :
+		entity.getRGB(filter).toString();
+	// Set font size
+	this.context.font = Renderer.FONT;
+	// Get loc in canvas space
+	canvasLoc = toCanvasSpace(loc, this.centerLoc);
+	var txt = entity.getRepr();
+	var txtWidth = this.context.measureText(txt).width;
+	var txtHeight = parseInt(Renderer.FONT) * .5; // approx height
+	this.context.fillText(txt,
+		canvasLoc.x - txtWidth/2, 
+		canvasLoc.y + txtHeight/2);
+}
+
+// Draws HUD for hero
+function drawHud(hero) {
+	this.context.font = Renderer.HUD_FONT;
+	/********************** Draw health *******************************/
+	this.context.fillStyle = Renderer.HUD_HEALTH_COLOR;
+	var txtWidth = this.context.measureText(Renderer.HUD_HEALTH_SYM).width;
+	var wholeHealthSymbols = parseInt(hero.health / Renderer.HUD_HEALTH_SYM_COUNT);
+	var percentage = 
+		(hero.health % Renderer.HUD_HEALTH_SYM_COUNT) / Renderer.HUD_HEALTH_SYM_COUNT;
+	
+	var loc = new Location(Renderer.HUD_OFFSET.x, Renderer.HUD_OFFSET.y);
+	for (var i = 0; i < wholeHealthSymbols; i++, loc.x += txtWidth ) {
+		drawHudSymbol.call(this, Renderer.HUD_HEALTH_SYM, loc, 1); 
+	}
+	
+	if (percentage > 0) {
+		drawHudSymbol.call(this, Renderer.HUD_HEALTH_SYM, loc, percentage);
+	}
+}
+
+/* Draws a HUD symbol or a left-to-right percentage of a HUD symbol. The percentage 
+   allows for the HUD to store more count information in a smaller space. */
+function drawHudSymbol(symbol, loc, percentage) {
+	var txtWidth = this.context.measureText(symbol).width;
+	var txtHeight = parseInt(Renderer.HUD_FONT) * .5; // approx height
+	this.context.save();
+	this.context.beginPath();
+	/* The height of the clipping rects here doesn't matter, just make sure they are
+	   tall enough to not clip horizontally. */
+	this.context.rect(loc.x - txtWidth/2, loc.y - 5 * txtHeight,
+		txtWidth * percentage, 5 * txtHeight);
+	this.context.clip();
+	this.context.fillText(symbol,
+		loc.x - txtWidth/2, 
+		loc.y + txtHeight/2);
+	this.context.restore();
+}
+
+function Renderer(canvas) {
+	this.canvas = canvas;
+	this.context = canvas.getContext("2d");
+	// Determines the game location that the canvas should be centered on
+	this.centerLoc = null;
+	this.zoomFactor = 2; // 1.1 would be 10% magnification
+}
+
+/* Scale factor going between game coordinates and canvas coordinates 
+   i.e. game<x * GAME_TO_CANVAS,y * GAME_TO_CANVAS> = canvas<x,y> 
+	
+   Basically, this changes how far apart the objects are rendered. We'll want to
+   keep this at a number that jives with the object asset size (read: font size).
+   !!!IMPORTANT NOTE!!!: Don't use this for zoom! Zoom is accomplished by scaling 
+   the canvas context.
+*/
+Renderer.GAME_TO_CANVAS = 18;
+Renderer.TILE_WIDTH = 15;
+Renderer.FONT = "12px Arial";
+Renderer.HUD_OFFSET = new Location(-100,-100);
+Renderer.HUD_FONT = "24px Arial";
+Renderer.HUD_HEALTH_SYM = "*";
+// Each HUD_HEALTH_SYM represents HUD_HEALTH_SYM_COUNT health
+Renderer.HUD_HEALTH_SYM_COUNT = 2;
+Renderer.HUD_HEALTH_COLOR = "#FF0000";
+
+Renderer.prototype = {
+    render: function(tileMap, creepMap, hero, filter) {
+		this.context.save();
+		this.centerLoc = hero.getLocation();
+		var canvasLoc;
+	
+		// Fill canvas with black background
+		this.context.fillStyle = "#000000";
+        this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+		
+		// Center grid at canvas center
+		this.context.translate(this.canvas.width/2, this.canvas.height/2);
+		
+		// Scale by zoom factor
+		this.context.scale(this.zoomFactor,this.zoomFactor);
+	
+		// Iterate through tileMap & creepMap and draw tiles & creeps & player.
+		for (var x = 0; x < tileMap.width; x++) {
+			for (var y = 0; y < tileMap.height; y++ ) {
+                var loc = new Location(x, y);
+                if (loc.distanceSquaredTo(hero.location) > hero.getVisionRadiusSquared()) {
+                    // COMMENT OUT THE continue TO SEE EVERYTHING
+                    continue;
+                }
+				// If there is a tile to draw in this location, draw it
+				if (tileMap.getTileAtLoc(loc)) {
+					drawTile.call(this, tileMap.getTileAtLoc(loc), loc, filter);
+				}
+				// If a character or the hero resides in this location, draw it
+				if (creepMap.getCreepAtLoc(loc)) {
+					if (creepMap.heroAtLoc(loc)) {
+						drawSymbol.call(this, creepMap.getCreepAtLoc(loc), loc, filter, true);
+					} else {
+						drawSymbol.call(this, creepMap.getCreepAtLoc(loc), loc, filter, false);
+					}
+				}
+			}
+		}
+		
+		// Draw HUD
+		drawHud.call(this, hero);
+		
+		this.context.restore();
+    }
+};
+
+module.exports = Renderer;
+},{"./../map/Location":29,"./../map/Tile":31}],34:[function(require,module,exports){
+
+function _clearCanvas(ctx) {
+    ctx.fillStyle = "#000000";
+    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+}
+
+
+function _renderCreepToCanvas(ctx, creep) {
+    _clearCanvas(ctx);
+    ctx.fillStyle = creep.getRGB().toString();
+    ctx.fillText(creep.getName() + " " + Math.round(creep.getHealth()) + "HP", 0, 30);
+    //TODO: this
+    // name, health
+}
+
+
+function renderCreepStatiToCanvi(ctxList, creepList) {
+    if (!ctxList || !creepList) {
+        console.warn("no ctx or creep!");
+        return;
+    }
+    for (var i = 0; i < creepList.length; i++) {
+        _renderCreepToCanvas(ctxList[i], creepList[i]);
+    }
+
+}
+
+
+
+
+function renderHeroStatusToCanvas(ctx, hero) {
+    if (!ctx || !hero) {
+        console.warn("no ctx or creep!");
+        return;
+    }
+    _clearCanvas(ctx);
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillText("HERO", 0, 30);
+    // TODO: this
+    // character, health, shield, xp
+
+}
+
+
+
+module.exports = {
+    renderCreepStatiToCanvi: renderCreepStatiToCanvi,
+    renderHeroStatusToCanvas: renderHeroStatusToCanvas
+};
+},{}]},{},[19])
