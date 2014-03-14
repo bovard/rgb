@@ -1444,6 +1444,9 @@ $(function() {
         objDiv.scrollTop = objDiv.scrollHeight;
 
     });
+
+    Chat.log("Arrows to move/attack");
+    Chat.log("1,2,3 to switch dimensions");
 });
 },{"./Chat":3,"./Game":4,"./map/Dijkstra":27,"./render/Renderer":33,"./render/StatusRenderer":34}],20:[function(require,module,exports){
 var Location = require('../map/Location');
