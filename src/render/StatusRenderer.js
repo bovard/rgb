@@ -1,7 +1,7 @@
 
 function _renderCreepToCanvas(ctx, creep) {
     ctx.fillStyle = creep.getRGB().toString();
-    ctx.fillText(creep.getName(), 0, 30);
+    ctx.fillText(creep.getName() + " " + creep.getHealth() + "HP", 0, 30);
     //TODO: this
     // name, health
 }
