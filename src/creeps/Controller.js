@@ -81,9 +81,9 @@ Controller.prototype = {
     setTileMap: function(tileMap) {
         this.tileMap = tileMap;
     },
-    getCreepsInRadiusSquared: function() {
+    getCreepsInRadiusSquared: function(radiusSquared) {
         var creeps = [];
-        var radiusSquared = this.getCharacter().getRadiusSquared();
+        radiusSquared = radiusSquared || this.getCharacter().getRadiusSquared();
         var radius = Math.ceil(Math.sqrt(radiusSquared));
         var loc = this.getCharacter().getLocation();
         for (var x = -radius; x <= radius; x++) {
@@ -99,7 +99,7 @@ Controller.prototype = {
             }
         }
         return creeps;
-    }
+    },
 };
 
 module.exports = Controller;

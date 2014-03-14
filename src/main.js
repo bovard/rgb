@@ -1,7 +1,8 @@
 var Game = require('./Game');
 var Dijkstra = require('./map/Dijkstra');
-var Renderer = require('./Renderer');
+var Renderer = require('./render/Renderer');
 var Chat = require('./Chat');
+var StatusRenderer = require('./render/StatusRenderer');
 
 Chat.setOutputFunction(function(message, color) {
     console.log(message, color);
@@ -51,6 +52,16 @@ function turn(code) {
 
 function render() {
     renderer.render(game.getTileMap(), game.getCreepMap(), game.getHero(), game.getHero().getDimension().getRGB());
+    StatusRenderer.renderHeroStatusToCanvas(heroStatCanvas, game.getHero())
+    StatusRenderer.renderCreepStatiToCanvi(
+        [
+            creep1StatCanvasContext,
+            creep2StatCanvasContext,
+            creep3StatCanvasContext,
+            creep4StatCanvasContext
+        ],
+        game.getHero().getCreepsInRadiusSquared(1)
+    )
 
 }
 
@@ -70,9 +81,20 @@ function gameOver() {
     // listen for keypress to restart
 }
 
+var heroStatCanvas;
+var creep1StatCanvasContext;
+var creep2StatCanvasContext;
+var creep3StatCanvasContext;
+var creep4StatCanvasContext;
+
 // starts the game!
 $(function() {
-    var canvas = $("#myCanvas")[0];
+    var canvas = $("#gameCanvas")[0];
+    heroStatCanvas = $("#heroCanvas");
+    creep1StatCanvasContext = $("#creep1Canvas")[0].getContext('2d');
+    creep2StatCanvasContext = $("#creep2Canvas")[0].getContext('2d');
+    creep3StatCanvasContext = $("#creep3Canvas")[0].getContext('2d');
+    creep4StatCanvasContext = $("#creep4Canvas")[0].getContext('2d');
     console.log('found canvas', canvas);
     renderer = new Renderer(canvas);
     restart();

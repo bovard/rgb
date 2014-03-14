@@ -1,6 +1,6 @@
 /* Renders the game to the canvas. */
-var Location = require('./map/Location');
-var Tile = require('./map/Tile');
+var Location = require('./../map/Location');
+var Tile = require('./../map/Tile');
 
 // Transform location to be relative to center & scaled by Renderer.GAME_TO_CANVAS
 function toCanvasSpace(location, centerLoc) {
