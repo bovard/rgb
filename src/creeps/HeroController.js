@@ -22,8 +22,9 @@ util.extend(HeroController, {
         }
         var target = this.getCreepMap().getCreepAtLoc(loc);
 
-        if(!this.getCharacter().getDimension().getRGB().mask(target.getRGB()).isBlack()
-                && this.getCharacter().getStats().resolveHit(target.getStats())) {
+        if(this.getCharacter().getDimension().getRGB().mask(target.getRGB()).isBlack()) {
+            Chat.log("You bump against an entity in another dimension");
+        } else if(this.getCharacter().getStats().resolveHit(target.getStats())) {
             var dmg = this.getCharacter().getStats().resolveDamage(target.getStats());
             dmg *= 2;
             Chat.log("You hit " + target.name + " for " + Math.round(dmg) + " damage!");
@@ -44,6 +45,7 @@ util.extend(HeroController, {
         var toMove = this.getCharacter().location.add(dir);
         var creep = this.getCreepMap().getCreepAtLoc(toMove);
         if (!this.getTileMap().getTileAtLoc(toMove)) {
+            Chat.warn("You step out into nothingness and feel yourself start to fall");
             this.getCreepMap().removeHero();
             this.getCharacter().kill();
         } else if (!creep) {

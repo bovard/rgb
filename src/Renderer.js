@@ -131,7 +131,7 @@ Renderer.prototype = {
 		for (var x = 0; x < tileMap.width; x++) {
 			for (var y = 0; y < tileMap.height; y++ ) {
                 var loc = new Location(x, y);
-                if (loc.distanceSquaredTo(hero.location) > hero.visionRadiusSquared) {
+                if (loc.distanceSquaredTo(hero.location) > hero.getVisionRadiusSquared()) {
                     // COMMENT OUT THE continue TO SEE EVERYTHING
                     continue;
                 }

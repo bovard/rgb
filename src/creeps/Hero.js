@@ -90,7 +90,7 @@ util.extend(Hero, {
         return this.stats.getLevel() + 10;
     },
     kill: function() {
-        Chat.crit("You have died! Press Enter to restart");
+        Chat.crit("You have died! Press any key to restart");
         this.deathCallback();
     },
     getDimension: function() {
