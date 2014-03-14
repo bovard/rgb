@@ -107,4 +107,7 @@ $(function() {
         objDiv.scrollTop = objDiv.scrollHeight;
 
     });
+
+    Chat.log("Arrows to move/attack");
+    Chat.log("1,2,3 to switch dimensions");
 });
