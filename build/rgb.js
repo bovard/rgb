@@ -1,6 +1,4 @@
-require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"jquery":[function(require,module,exports){
-module.exports=require('TZeL/P');
-},{}],"TZeL/P":[function(require,module,exports){
+require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"TZeL/P":[function(require,module,exports){
 (function (global){
 (function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
 /*! jQuery v1.11.0 | (c) 2005, 2014 jQuery Foundation, Inc. | jquery.org/license */
@@ -13,8 +11,11 @@ module.exports=require('TZeL/P');
 }).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],"jquery":[function(require,module,exports){
+module.exports=require('TZeL/P');
 },{}],3:[function(require,module,exports){
 
+var RGB = require('./RGB');
 
 var outputFunctions = [];
 
@@ -45,14 +46,19 @@ function log(message) {
     _write(message, "FFFFFF");
 }
 
+function debug(message) {
+    _write(message, RGB.Grey.toString());
+}
+
 module.exports = {
     ding: ding,
     crit: crit,
     warn: warn,
     log: log,
+    debug: debug,
     setOutputFunction: setOutputFunction
 };
-},{}],4:[function(require,module,exports){
+},{"./RGB":7}],4:[function(require,module,exports){
 var Hero = require('./creeps/Hero');
 var TestLevel = require('./levels/TestLevel');
 var Direction = require('./map/Direction');
@@ -294,6 +300,11 @@ RGB.prototype = {
 };
 
 RGB.Gold = new RGB(255, 165, 0);
+RGB.Grey = new RGB(192, 192, 192);
+RGB.Green = new RGB(0, 128, 0);
+RGB.Red = new RGB(255, 0, 0);
+RGB.White = new RGB(255, 255, 255);
+RGB.Orange = new RGB(255, 165, 0);
 
 module.exports = RGB;
 },{}],8:[function(require,module,exports){
@@ -841,7 +852,7 @@ function CoreStats(level, statGain, seed) {
     for (var i = 0; i < level; i++) {
         this.levelUp();
     }
-    this.experience = 0;
+    this.experience = this.getXPForLevel(level);
 }
 
 CoreStats.HeroStatGain = {
@@ -1006,7 +1017,7 @@ util.extend(CreepController, {
             var dmg = this.getCharacter().getStats().resolveDamage(target.getStats());
             target.applyDamage(dmg, this.getCharacter().getRGB());
         } else {
-            Chat.log(this.getCharacter().getName() + " misses you");
+            Chat.debug(this.getCharacter().getName() + " misses you");
         }
 
     },
@@ -1095,14 +1106,19 @@ Experience.prototype = {
         return false;
     },
     getXPForLevel: function(level) {
-        return (level) * 50;
+        return (level) * 100;
     },
     getXPForNextLevel: function() {
-        // each level is 50 xp
+        // each level is 100 xp
         return this.getXPForLevel(this.getLevel() + 1);
     },
     getXP: function() {
         return this.experience;
+    },
+    getPercentageProgressToNextLevel: function() {
+        return Math.round(100 *((this.getXP() - this.getXPForLevel(this.level))
+            / (this.getXPForNextLevel() - this.getXPForLevel(this.level))));
+
     },
     levelUp: function() { throw "Experience.levelUp abstract called!"},
     getLevel: function() { return this.level; }
@@ -1233,6 +1249,7 @@ util.extend(Hero, {
         Chat.log("You killed " + target.name + "!");
         if (this.stats.gainXPForKill(target)) {
             Chat.ding("You leveled up!");
+            this.health = this.getMaxHealth();
         }
         this.dimension.gainXPForKill(target);
         this.dimension.applyKillEffects(this, target);
@@ -1297,7 +1314,7 @@ util.extend(HeroController, {
                 this.getCreepMap().moveHeroToLoc(loc);
             }
         } else {
-            Chat.log("You miss " + target.name);
+            Chat.debug("You miss " + target.name);
         }
 
     },
@@ -2447,12 +2464,30 @@ function _addToDiv(div, text, color) {
     $('<div style="color:' + color + '">' + text + '</>').appendTo(div);
 }
 
-
-function _renderCreepToDiv(div, creep) {
-    _addToDiv(div, creep.getRepr() + ": " + creep.getName(), "#FFFFFF");
+function _renderCreepToDiv(div, creep, rgb) {
+    if (!rgb) {
+        rgb = '#FFFFFF';
+    }
+    _addToDiv(div, creep.getRepr() + ": " + creep.getName() + " - lvl " + creep.getLevel(), "#FFFFFF");
     _addToDiv(div, Math.round(creep.getHealth()) + " hp ", "#FFFFFF");
 }
 
+function _getDifficulty(creepLevel, heroLevel) {
+    var difference = heroLevel - creepLevel;
+    var rgb;
+    if (difference <= -10) {
+        rgb = RGB.Grey.toString();
+    } else if (difference <= -3) {
+        rgb = RGB.Green.toString();
+    } else if (difference <= 0) {
+        rgb = RGB.White.toString();
+    } else if (difference <= 3) {
+        rgb = RGB.Orange.toString();
+    } else {
+        rgb = RGB.Red.toString();
+    }
+
+}
 
 function renderCreepStatiToDivs(divList, creepList, hero) {
     // clear canvas
@@ -2462,15 +2497,12 @@ function renderCreepStatiToDivs(divList, creepList, hero) {
     // render to canvas
     for (i = 0; i < creepList.length; i++) {
         if (!hero.getDimension().getRGB().mask(creepList[i].getRGB()).isBlack()) {
-            _renderCreepToDiv(divList[i], creepList[i]);
+            var rgb = _getDifficulty(creepList[i].getLevel(), hero.getLevel());
+            _renderCreepToDiv(divList[i], creepList[i], rgb);
         }
     }
 
 }
-
-
-
-
 
 function renderHeroStatusToDiv(div, hero) {
     if (!div || !hero) {
@@ -2479,11 +2511,9 @@ function renderHeroStatusToDiv(div, hero) {
     }
     _clearDiv(div);
     _renderCreepToDiv(div, hero);
-    _addToDiv(div, Math.round(100 * hero.getStats().getXP()/hero.getStats().getXPForNextLevel()) + "% to level " + hero.getLevel(), RGB.Gold.toString())
+    _addToDiv(div,  hero.getStats().getPercentageProgressToNextLevel() + "% to level " + (hero.getLevel() + 1), RGB.Gold.toString())
 
 }
-
-
 
 module.exports = {
     renderCreepStatiToDivs: renderCreepStatiToDivs,
