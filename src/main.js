@@ -19,7 +19,7 @@ $(document).keyup(function(event) {
         return;
     }
 
-    if ([37, 38, 39, 40, 49, 50].indexOf(event.keyCode) !== -1) {
+    if ([37, 38, 39, 40, 49, 50, 51].indexOf(event.keyCode) !== -1) {
         turn(event.keyCode);
     }
 });
@@ -60,7 +60,7 @@ function turn(code) {
 
 
 function render() {
-    renderer.render(game.getTileMap(), game.getCreepMap(), game.getHero(), game.getHero().getCrystal().getRGB());
+    renderer.render(game.getTileMap(), game.getCreepMap(), game.getHero(), game.getHero().getDimension().getRGB());
 
 }
 
