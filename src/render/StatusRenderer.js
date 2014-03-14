@@ -1,26 +1,29 @@
 
-function _clearCanvas(ctx) {
-    ctx.fillStyle = "#000000";
-    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+function _clearDiv(div) {
+    div.empty();
+}
+
+function _addToDiv(div, text, color) {
+    $('<div style="color:' + color + '">' + text + '</>').appendTo(div);
 }
 
 
-function _renderCreepToCanvas(ctx, creep) {
-    ctx.fillStyle = creep.getRGB().toString();
-    ctx.fillText(creep.getName() + " " + Math.round(creep.getHealth()) + "HP", 0, 30);
-    //TODO: this
-    // name, health
+function _renderCreepToDiv(div, creep) {
+    _addToDiv(div, creep.getRepr() + ": " + creep.getName(), "#FFFFFF");
+    _addToDiv(div, Math.round(creep.getHealth()) + " hp ", "#FFFFFF");
 }
 
 
-function renderCreepStatiToCanvi(ctxList, creepList) {
+function renderCreepStatiToDivs(divList, creepList, hero) {
     // clear canvas
-    for (var i = 0; i < ctxList.length; i++) {
-        _clearCanvas(ctxList[i]);
+    for (var i = 0; i < divList.length; i++) {
+        _clearDiv(divList[i]);
     }
     // render to canvas
     for (i = 0; i < creepList.length; i++) {
-        _renderCreepToCanvas(ctxList[i], creepList[i]);
+        if (!hero.getDimension().getRGB().mask(creepList[i].getRGB()).isBlack()) {
+            _renderCreepToDiv(divList[i], creepList[i]);
+        }
     }
 
 }
@@ -28,22 +31,20 @@ function renderCreepStatiToCanvi(ctxList, creepList) {
 
 
 
-function renderHeroStatusToCanvas(ctx, hero) {
-    if (!ctx || !hero) {
-        console.warn("no ctx or creep!");
+
+function renderHeroStatusToDiv(div, hero) {
+    if (!div || !hero) {
+        console.warn("no div or creep!");
         return;
     }
-    _clearCanvas(ctx);
-    ctx.fillStyle = "#FFFFFF";
-    ctx.fillText("HERO", 0, 30);
-    // TODO: this
-    // character, health, shield, xp
+    _clearDiv(div);
+    _renderCreepToDiv(div, hero);
 
 }
 
 
 
 module.exports = {
-    renderCreepStatiToCanvi: renderCreepStatiToCanvi,
-    renderHeroStatusToCanvas: renderHeroStatusToCanvas
+    renderCreepStatiToDivs: renderCreepStatiToDivs,
+    renderHeroStatusToDiv: renderHeroStatusToDiv
 };

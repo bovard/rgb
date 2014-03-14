@@ -7,7 +7,7 @@ var util = require('./../Utility');
 var Chat = require('./../Chat');
 
 function Hero(deathCallback) {
-    this.name = "Aver";
+    this.name = "You";
     this.shield = 0;
     this.maxShield = 10;
     this.speedBoost = 0;
