@@ -60,7 +60,7 @@ function render() {
             creep3StatCanvasContext,
             creep4StatCanvasContext
         ],
-        game.getHero().getCreepsInRadiusSquared(1)
+        game.getHeroController().getCreepsInRadiusSquared(1)
     )
 
 }

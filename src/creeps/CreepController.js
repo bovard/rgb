@@ -67,7 +67,6 @@ util.extend(CreepController, {
                 neighbors[i].setAggro(true);
             }
         }
-        console.log(this.getCharacter().isAggroed());
         return this.getCharacter().isAggroed();
     }
 });

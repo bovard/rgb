@@ -139,6 +139,9 @@ Game.prototype = {
     },
     getHero: function() {
         return this.hero;
+    },
+    getHeroController: function() {
+        return this.heroController;
     }
 };
 
