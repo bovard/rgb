@@ -1,5 +1,6 @@
 var util = require('./../Utility');
 var Controller = require('./Controller');
+var Chat = require('../Chat');
 
 function HeroController(tileMap, creepMap, hero) {
     this.tileMap = tileMap;
@@ -21,8 +22,11 @@ util.extend(HeroController, {
         }
         var target = this.getCreepMap().getCreepAtLoc(loc);
 
-        if(this.getCharacter().getStats().resolveHit(target.getStats())) {
+        if(!this.getCharacter().getDimension().getRGB().mask(target.getRGB()).isBlack()
+                && this.getCharacter().getStats().resolveHit(target.getStats())) {
             var dmg = this.getCharacter().getStats().resolveDamage(target.getStats());
+            dmg *= 2;
+            Chat.log("You hit " + target.name + " for " + Math.round(dmg) + " damage!");
             target.applyDamage(dmg, this.getCharacter().getDimension().getRGB());
             console.log(target.name, target.getHealth());
             if (target.isDead()) {
@@ -31,6 +35,8 @@ util.extend(HeroController, {
                 this.getCreepMap().deleteCreepAtLoc(loc);
                 this.getCreepMap().moveHeroToLoc(loc);
             }
+        } else {
+            Chat.log("You miss " + target.name);
         }
 
     },

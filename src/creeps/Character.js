@@ -34,18 +34,7 @@ utils.extend(Character, {
         }
 
     },
-    applyDamage: function(damage, rgb) {
-        // calculate the amount of damage you can do
-        Chat.log("You hit " + this.name + " for " + Math.round(damage*10)/10 + " damage!");
-        console.log("Applying", damage, " damage to", this.getName());
-        this.health -= damage;
-        if (this.health > 0) {
-            return false;
-        } else {
-            this.kill();
-            return true;
-        }
-    },
+
     getLocation: function() { return this.location; },
     setLocation: function(loc) { this.location = loc },
     getStats: function() {return this.stats;},

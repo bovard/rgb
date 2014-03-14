@@ -1,5 +1,6 @@
 var util = require('./../Utility');
 var Controller = require('./Controller');
+var Chat = require('./../Chat');
 
 function CreepController(tileMap, creepMap, creep) {
     this.tileMap = tileMap;
@@ -36,9 +37,10 @@ util.extend(CreepController, {
 
         console.log("creep trying to hit");
         if(this.getCharacter().getStats().resolveHit(target.getStats())) {
-            console.log("creep hit");
             var dmg = this.getCharacter().getStats().resolveDamage(target.getStats());
             target.applyDamage(dmg, this.getCharacter().getRGB());
+        } else {
+            Chat.log(this.getCharacter().getName() + " misses you");
         }
 
     },
