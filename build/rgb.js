@@ -1148,7 +1148,7 @@ var util = require('./../Utility');
 var Chat = require('./../Chat');
 
 function Hero(deathCallback) {
-    this.name = "Aver";
+    this.name = "You";
     this.shield = 0;
     this.maxShield = 10;
     this.speedBoost = 0;
@@ -1228,7 +1228,7 @@ util.extend(Hero, {
         this.dimension.applyKillEffects(this, target);
     },
     getVisionRadiusSquared: function() {
-        return this.stats.getLevel() + 10;
+        return this.stats.getLevel() + 20;
     },
     kill: function() {
         Chat.crit("You have died! Press any key to restart");
@@ -1362,15 +1362,16 @@ function turn(code) {
 
 function render() {
     renderer.render(game.getTileMap(), game.getCreepMap(), game.getHero(), game.getHero().getDimension().getRGB());
-    StatusRenderer.renderHeroStatusToCanvas(heroStatCanvas, game.getHero())
-    StatusRenderer.renderCreepStatiToCanvi(
+    StatusRenderer.renderHeroStatusToDiv(heroStatDev, game.getHero());
+    StatusRenderer.renderCreepStatiToDivs(
         [
-            creep1StatCanvasContext,
-            creep2StatCanvasContext,
-            creep3StatCanvasContext,
-            creep4StatCanvasContext
+            creep1StatDiv,
+            creep2StatDiv,
+            creep3StatDiv,
+            creep4StatDiv
         ],
-        game.getHeroController().getCreepsInRadiusSquared(1)
+        game.getHeroController().getCreepsInRadiusSquared(1),
+        game.getHero()
     )
 
 }
@@ -1391,20 +1392,20 @@ function gameOver() {
     // listen for keypress to restart
 }
 
-var heroStatCanvas;
-var creep1StatCanvasContext;
-var creep2StatCanvasContext;
-var creep3StatCanvasContext;
-var creep4StatCanvasContext;
+var heroStatDev;
+var creep1StatDiv;
+var creep2StatDiv;
+var creep3StatDiv;
+var creep4StatDiv;
 
 // starts the game!
 $(function() {
     var canvas = $("#gameCanvas")[0];
-    heroStatCanvas = $("#heroCanvas")[0].getContext("2d");
-    creep1StatCanvasContext = $("#creep1Canvas")[0].getContext("2d");
-    creep2StatCanvasContext = $("#creep2Canvas")[0].getContext("2d");
-    creep3StatCanvasContext = $("#creep3Canvas")[0].getContext("2d");
-    creep4StatCanvasContext = $("#creep4Canvas")[0].getContext("2d");
+    heroStatDev = $("#heroDiv");
+    creep1StatDiv = $("#creep1Div");
+    creep2StatDiv = $("#creep2Div");
+    creep3StatDiv = $("#creep3Div");
+    creep4StatDiv = $("#creep4Div");
     console.log('found canvas', canvas);
     renderer = new Renderer(canvas);
     restart();
@@ -1546,11 +1547,13 @@ function buildCaveSystem(tileMap, rgb, includeLocs) {
 
 
     // assign teh includedLocs and build path to center of coarse tile
-    if (includeLocs) {
+    if (includeLocs.length > 0) {
         for (var i = 0; i < includeLocs.length; i++) {
+            console.log("here");
             loc = includeLocs[i];
             var coarseLoc = coarseMap.getCoarseTileLocForMapLoc(loc);
             coarseMap.setValAtLoc(coarseLoc, true);
+            console.log(loc, coarseMap.getMapLocCenterFromCoarseMapLoc(coarseLoc));
             connectLocs(tileMap, loc, coarseMap.getMapLocCenterFromCoarseMapLoc(coarseLoc), rgb);
             if (Math.random() > .5) {
                 buildNodeAroundLoc(tileMap, loc, rgb, 5)
@@ -1712,7 +1715,7 @@ function createTestTileMap(tileMap, rgb, addStairs) {
     } else if (Math.random() < .25) {
         upStairs = new Location(2, tileMap.height - 3);
     }
-    var poi = CaveBuilder.buildCaveSystem(tileMap, rgb, [downStairs, upStairs] ? addStairs: []);
+    var poi = CaveBuilder.buildCaveSystem(tileMap, rgb, addStairs ? [upStairs, downStairs]: []);
 
     /*
     for (var x = 0; x < width; x++) {
@@ -2425,52 +2428,53 @@ Renderer.prototype = {
 module.exports = Renderer;
 },{"./../map/Location":29,"./../map/Tile":31}],34:[function(require,module,exports){
 
-function _clearCanvas(ctx) {
-    ctx.fillStyle = "#000000";
-    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+function _clearDiv(div) {
+    div.empty();
+}
+
+function _addToDiv(div, text, color) {
+    $('<div style="color:' + color + '">' + text + '</>').appendTo(div);
 }
 
 
-function _renderCreepToCanvas(ctx, creep) {
-    _clearCanvas(ctx);
-    ctx.fillStyle = creep.getRGB().toString();
-    ctx.fillText(creep.getName() + " " + Math.round(creep.getHealth()) + "HP", 0, 30);
-    //TODO: this
-    // name, health
+function _renderCreepToDiv(div, creep) {
+    _addToDiv(div, creep.getRepr() + ": " + creep.getName(), "#FFFFFF");
+    _addToDiv(div, Math.round(creep.getHealth()) + " hp ", "#FFFFFF");
 }
 
 
-function renderCreepStatiToCanvi(ctxList, creepList) {
-    if (!ctxList || !creepList) {
-        console.warn("no ctx or creep!");
+function renderCreepStatiToDivs(divList, creepList, hero) {
+    // clear canvas
+    for (var i = 0; i < divList.length; i++) {
+        _clearDiv(divList[i]);
+    }
+    // render to canvas
+    for (i = 0; i < creepList.length; i++) {
+        if (!hero.getDimension().getRGB().mask(creepList[i].getRGB()).isBlack()) {
+            _renderCreepToDiv(divList[i], creepList[i]);
+        }
+    }
+
+}
+
+
+
+
+
+function renderHeroStatusToDiv(div, hero) {
+    if (!div || !hero) {
+        console.warn("no div or creep!");
         return;
     }
-    for (var i = 0; i < creepList.length; i++) {
-        _renderCreepToCanvas(ctxList[i], creepList[i]);
-    }
-
-}
-
-
-
-
-function renderHeroStatusToCanvas(ctx, hero) {
-    if (!ctx || !hero) {
-        console.warn("no ctx or creep!");
-        return;
-    }
-    _clearCanvas(ctx);
-    ctx.fillStyle = "#FFFFFF";
-    ctx.fillText("HERO", 0, 30);
-    // TODO: this
-    // character, health, shield, xp
+    _clearDiv(div);
+    _renderCreepToDiv(div, hero);
 
 }
 
 
 
 module.exports = {
-    renderCreepStatiToCanvi: renderCreepStatiToCanvi,
-    renderHeroStatusToCanvas: renderHeroStatusToCanvas
+    renderCreepStatiToDivs: renderCreepStatiToDivs,
+    renderHeroStatusToDiv: renderHeroStatusToDiv
 };
 },{}]},{},[19])
