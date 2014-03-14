@@ -3,6 +3,7 @@ function _renderCreepToCanvas(ctx, creep) {
     ctx.fillStyle = creep.getRGB().toString();
     ctx.fillText(creep.getName(), 0, 30);
     //TODO: this
+    // name, health
 }
 
 
@@ -26,7 +27,9 @@ function renderHeroStatusToCanvas(ctx, hero) {
         return;
     }
     ctx.fillStyle = "#FFFFFF";
-    ctx.fillText("HERO", 0, 30)
+    ctx.fillText("HERO", 0, 30);
+    // TODO: this
+    // character, health, shield, xp
 
 }
 
