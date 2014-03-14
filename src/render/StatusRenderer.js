@@ -8,12 +8,10 @@ function _addToDiv(div, text, color) {
     $('<div style="color:' + color + '">' + text + '</>').appendTo(div);
 }
 
-
 function _renderCreepToDiv(div, creep) {
-    _addToDiv(div, creep.getRepr() + ": " + creep.getName(), "#FFFFFF");
+    _addToDiv(div, creep.getRepr() + ": " + creep.getName() + " - lvl " + creep.getLevel(), "#FFFFFF");
     _addToDiv(div, Math.round(creep.getHealth()) + " hp ", "#FFFFFF");
 }
-
 
 function renderCreepStatiToDivs(divList, creepList, hero) {
     // clear canvas
@@ -29,10 +27,6 @@ function renderCreepStatiToDivs(divList, creepList, hero) {
 
 }
 
-
-
-
-
 function renderHeroStatusToDiv(div, hero) {
     if (!div || !hero) {
         console.warn("no div or creep!");
@@ -43,8 +37,6 @@ function renderHeroStatusToDiv(div, hero) {
     _addToDiv(div,  hero.getStats().getPercentageProgressToNextLevel() + "% to level " + (hero.getLevel() + 1), RGB.Gold.toString())
 
 }
-
-
 
 module.exports = {
     renderCreepStatiToDivs: renderCreepStatiToDivs,

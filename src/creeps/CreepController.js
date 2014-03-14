@@ -40,7 +40,7 @@ util.extend(CreepController, {
             var dmg = this.getCharacter().getStats().resolveDamage(target.getStats());
             target.applyDamage(dmg, this.getCharacter().getRGB());
         } else {
-            Chat.log(this.getCharacter().getName() + " misses you");
+            Chat.debug(this.getCharacter().getName() + " misses you");
         }
 
     },

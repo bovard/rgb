@@ -37,7 +37,7 @@ util.extend(HeroController, {
                 this.getCreepMap().moveHeroToLoc(loc);
             }
         } else {
-            Chat.log("You miss " + target.name);
+            Chat.debug("You miss " + target.name);
         }
 
     },
