@@ -6,7 +6,6 @@ function _clearCanvas(ctx) {
 
 
 function _renderCreepToCanvas(ctx, creep) {
-    _clearCanvas(ctx);
     ctx.fillStyle = creep.getRGB().toString();
     ctx.fillText(creep.getName() + " " + Math.round(creep.getHealth()) + "HP", 0, 30);
     //TODO: this
@@ -15,11 +14,12 @@ function _renderCreepToCanvas(ctx, creep) {
 
 
 function renderCreepStatiToCanvi(ctxList, creepList) {
-    if (!ctxList || !creepList) {
-        console.warn("no ctx or creep!");
-        return;
+    // clear canvas
+    for (var i = 0; i < ctxList.length; i++) {
+        _clearCanvas(ctxList[i]);
     }
-    for (var i = 0; i < creepList.length; i++) {
+    // render to canvas
+    for (i = 0; i < creepList.length; i++) {
         _renderCreepToCanvas(ctxList[i], creepList[i]);
     }
 
