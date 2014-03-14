@@ -40,7 +40,7 @@ function renderHeroStatusToDiv(div, hero) {
     }
     _clearDiv(div);
     _renderCreepToDiv(div, hero);
-    _addToDiv(div, Math.round(100 * hero.getStats().getXP()/hero.getStats().getXPForNextLevel()) + "% to level " + hero.getLevel(), RGB.Gold.toString())
+    _addToDiv(div,  hero.getStats().getPercentageProgressToNextLevel() + "% to level " + (hero.getLevel() + 1), RGB.Gold.toString())
 
 }
 
