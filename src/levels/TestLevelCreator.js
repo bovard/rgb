@@ -15,7 +15,7 @@ function createTestTileMap(tileMap, rgb, addStairs) {
     } else if (Math.random() < .25) {
         upStairs = new Location(2, tileMap.height - 3);
     }
-    var poi = CaveBuilder.buildCaveSystem(tileMap, rgb, [downStairs, upStairs] ? addStairs: []);
+    var poi = CaveBuilder.buildCaveSystem(tileMap, rgb, addStairs ? [upStairs, downStairs]: []);
 
     /*
     for (var x = 0; x < width; x++) {

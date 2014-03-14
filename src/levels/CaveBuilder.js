@@ -126,11 +126,13 @@ function buildCaveSystem(tileMap, rgb, includeLocs) {
 
 
     // assign teh includedLocs and build path to center of coarse tile
-    if (includeLocs) {
+    if (includeLocs.length > 0) {
         for (var i = 0; i < includeLocs.length; i++) {
+            console.log("here");
             loc = includeLocs[i];
             var coarseLoc = coarseMap.getCoarseTileLocForMapLoc(loc);
             coarseMap.setValAtLoc(coarseLoc, true);
+            console.log(loc, coarseMap.getMapLocCenterFromCoarseMapLoc(coarseLoc));
             connectLocs(tileMap, loc, coarseMap.getMapLocCenterFromCoarseMapLoc(coarseLoc), rgb);
             if (Math.random() > .5) {
                 buildNodeAroundLoc(tileMap, loc, rgb, 5)
