@@ -57,7 +57,7 @@ function render() {
 
 function restart() {
     needsRestart = false;
-    game = new Game(Chat, gameOver);
+    game = new Game(gameOver);
     render();
 }
 
@@ -76,4 +76,12 @@ $(function() {
     console.log('found canvas', canvas);
     renderer = new Renderer(canvas);
     restart();
+
+    // hook up the chat!
+    Chat.setOutputFunction(function(text, color) {
+        $('<div style="color:' + color + '">' + text + '</>').appendTo('#chat');
+        var objDiv = document.getElementById("chat");
+        objDiv.scrollTop = objDiv.scrollHeight;
+
+    });
 });

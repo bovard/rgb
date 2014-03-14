@@ -4,14 +4,14 @@ var Character = require('./Character');
 var Dimension = require('./Dimension');
 var RGB = require('../RGB');
 var util = require('./../Utility');
+var Chat = require('./../Chat');
 
-function Hero(deathCallback, chat) {
+function Hero(deathCallback) {
     this.name = "Aver";
     this.shield = 0;
     this.maxShield = 10;
     this.speedBoost = 0;
     this.deathCallback = deathCallback;
-    this.chat = chat;
     this.location = null;
     this.numActions = 1;
     this.actionsPerformed = 0;
@@ -56,7 +56,8 @@ util.extend(Hero, {
     },
 	applyDamage: function(damage, rgb) {
         // calculate the amount of damage you can do
-        damage *= Math.min(2, rgb.mask(this.getRGB()).toDecimal() / this.getRGB().toDecimal());
+        damage *= .5;
+        Chat.warn("You are hit for " + Math.round(damage*10)/10 + " damage!");
         console.log("Applying", damage, " damage to", this.getName());
         // first subtract from shield if there is one
         if (this.shield > 0) {
@@ -79,7 +80,10 @@ util.extend(Hero, {
         }
 	},
     gainXPForKill: function(target) {
-        this.stats.gainXPForKill(target);
+        Chat.log("You killed " + target.name + "!");
+        if (this.stats.gainXPForKill(target)) {
+            Chat.ding("You leveled up!");
+        }
         this.dimension.gainXPForKill(target);
         this.dimension.applyKillEffects(this, target);
     },
@@ -87,7 +91,7 @@ util.extend(Hero, {
         return this.stats.getLevel() + 10;
     },
     kill: function() {
-        this.chat.crit("You have died! Press Enter to restart");
+        Chat.crit("You have died! Press Enter to restart");
         this.deathCallback();
     },
     getDimension: function() {
