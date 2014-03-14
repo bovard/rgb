@@ -87,7 +87,7 @@ util.extend(Hero, {
         this.dimension.applyKillEffects(this, target);
     },
     getVisionRadiusSquared: function() {
-        return this.stats.getLevel() + 10;
+        return this.stats.getLevel() + 20;
     },
     kill: function() {
         Chat.crit("You have died! Press any key to restart");
