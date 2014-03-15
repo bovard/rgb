@@ -1,8 +1,9 @@
 var Game = require('./Game');
 var Dijkstra = require('./map/Dijkstra');
-var Renderer = require('./render/Renderer');
+var RenderCompositor = require('./render/RenderCompositor');
 var Chat = require('./Chat');
-var StatusRenderer = require('./render/StatusRenderer');
+var util = require('./Utility');
+//var StatusRenderer = require('./render/StatusRenderer');
 
 Chat.setOutputFunction(function(message, color) {
     console.log(message, color);
@@ -10,7 +11,7 @@ Chat.setOutputFunction(function(message, color) {
 
 var gameOverState = false;
 var needsRestart = true;
-var renderer = null;
+var rendererCompositor = null;
 
 var game;
 
@@ -51,9 +52,10 @@ function turn(code) {
 
 
 function render() {
-    renderer.render(game.getTileMap(), game.getCreepMap(), game.getHero(), game.getHero().getDimension().getRGB());
-    StatusRenderer.renderHeroStatusToDiv(heroStatDev, game.getHero());
-    StatusRenderer.renderCreepStatiToDivs(
+    //renderer.render(game.getTileMap(), game.getCreepMap(), game.getHero(), game.getHero().getDimension().getRGB());
+	rendererCompositor.compose();
+    //StatusRenderer.renderHeroStatusToDiv(heroStatDev, game.getHero());
+    /*StatusRenderer.renderCreepStatiToDivs(
         [
             creep1StatDiv,
             creep2StatDiv,
@@ -62,18 +64,44 @@ function render() {
         ],
         game.getHeroController().getCreepsInRadiusSquared(1),
         game.getHero()
-    )
-
+    )*/
 }
 
 
 function restart() {
     needsRestart = false;
     game = new Game(gameOver);
+	setupRenderCompositor();
     render();
 }
 
-
+function setupRenderCompositor() {
+	var canvas = $("#gameCanvas")[0];
+	console.log('found canvas', canvas);
+	
+	// Only need to setup compositor once
+	if (!rendererCompositor) {
+		var renderData = {
+			game: {
+				canvas: util.dom("canvas", {width: "480", height: "600"}),
+				data: function() {
+					return [game.getTileMap(), 
+					        game.getCreepMap(), 
+							game.getHero(), 
+							game.getHero().getDimension().getRGB()];
+				}
+			},
+			hud: {
+				canvas: util.dom("canvas", {width: "120", height: "600"}),
+				data: function() {
+					return [game.getHero(), 
+					        game.getHeroController().getCreepsInRadiusSquared(1)];
+				}
+			}
+		};
+		rendererCompositor = new RenderCompositor(canvas, renderData);
+	}
+}
 
 function gameOver() {
     render();
@@ -89,16 +117,14 @@ var creep3StatDiv;
 var creep4StatDiv;
 
 // starts the game!
-$(function() {
-    var canvas = $("#gameCanvas")[0];
+$(function() { 
     heroStatDev = $("#heroDiv");
     creep1StatDiv = $("#creep1Div");
     creep2StatDiv = $("#creep2Div");
     creep3StatDiv = $("#creep3Div");
     creep4StatDiv = $("#creep4Div");
-    console.log('found canvas', canvas);
-    renderer = new Renderer(canvas);
-    restart();
+    
+	restart();
 
     // hook up the chat!
     Chat.setOutputFunction(function(text, color) {
