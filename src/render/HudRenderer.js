@@ -122,6 +122,11 @@ HudRenderer.prototype = {
 		this.context.fillStyle = HudRenderer.HUD_COLOR;
         this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
 		
+		// Draw HUD Outline
+		this.context.strokeStyle = HudRenderer.HUD_OUTLINE_COLOR;
+		this.context.lineWidth = HudRenderer.HUD_OUTLINE_WIDTH;
+		this.context.strokeRect(0, 0, this.canvas.width, this.canvas.height);
+		
 		// Center grid at <canvas.width/2, 0>
 		this.context.translate(this.canvas.width/2, 0);
 		
@@ -139,12 +144,14 @@ HudRenderer.prototype = {
 	}
 }
 
-HudRenderer.HUD_FONT = "12px Arial";
+HudRenderer.HUD_OUTLINE_COLOR = RGB.White.toString();
+HudRenderer.HUD_OUTLINE_WIDTH = 5;
+HudRenderer.HUD_FONT = "12px Comic Sans MS";
 HudRenderer.HUD_FONT_HEIGHT = parseInt(HudRenderer.HUD_FONT) * 1.5; // approx height
 HudRenderer.HUD_SYM_BAR_FONT = "24px Arial";
 HudRenderer.HUD_SYM_BAR_FONT_HEIGHT = parseInt(HudRenderer.HUD_SYM_BAR_FONT) * 1.0; // approx height
-HudRenderer.HUD_COLOR = RGB.Black;
-HudRenderer.FONT_COLOR_HERO_STAT = RGB.Green.toString();
+HudRenderer.HUD_COLOR = RGB.DarkGrey.toString();
+HudRenderer.FONT_COLOR_HERO_STAT = RGB.LightGreen.toString();
 HudRenderer.FONT_COLOR_HERO_PERCENT_TO_LVL = RGB.Gold.toString();
 // Vertical space between hero/creep statuses
 HudRenderer.STAT_BUFFER_HEIGHT = 10;

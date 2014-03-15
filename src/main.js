@@ -43,9 +43,19 @@ function turn(code) {
 
     if (!needsRestart) {
         // do dikjstra's on the TileMap to hero location
-        var dikj = new Dijkstra(game.getTileMap(), game.hero.getLocation());
+        var dikj = new Dijkstra(game.getTileMap(), game.hero.getLocation(), 
+			function(map, loc, startLoc) {
+				return !!map.getTileAtXY(loc.x, loc.y);
+			});
+		
+		// do dikjstra's on the CreepMap to hero location within radius squared r^2
+		var closeQuartersDijk = new Dijkstra(game.getCreepMap(), game.hero.getLocation(), 
+			function(map, loc, startLoc) {
+				return !map.getCreepAtLoc(loc) && !!game.getTileMap().getTileAtXY(loc.x, loc.y) && 
+					loc.distanceSquaredTo(startLoc) < Game.CREEP_AVOID_CREEP_RAD_SQR;
+			});
 
-        game.takeCreepTurns(dikj);
+        game.takeCreepTurns(dikj, closeQuartersDijk);
         render();
     }
 }
@@ -72,7 +82,7 @@ function setupRenderCompositor() {
 	if (!rendererCompositor) {
 		var renderData = {
 			game: {
-				canvas: util.dom("canvas", {width: "480", height: "600"}),
+				canvas: util.dom("canvas", {width: "450", height: "600"}),
 				data: function() {
 					return [game.getTileMap(), 
 					        game.getCreepMap(), 
@@ -81,7 +91,7 @@ function setupRenderCompositor() {
 				}
 			},
 			hud: {
-				canvas: util.dom("canvas", {width: "120", height: "600"}),
+				canvas: util.dom("canvas", {width: "150", height: "600"}),
 				data: function() {
 					return [game.getHero(), 
 					        game.getHeroController().getCreepsInRadiusSquared(1)];

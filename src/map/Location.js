@@ -21,8 +21,14 @@ Location.prototype = {
         return new Location(
             this.x + x,
             this.y + y
-        )
+        );
     },
+	addLoc: function(loc) {
+		return new Location(
+			this.x + loc.x,
+			this.y + loc.y
+		);
+	},
     distanceSquaredTo: function(location) {
         return Math.pow(this.x - location.x, 2) + Math.pow(this.y - location.y, 2);
     },
