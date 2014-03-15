@@ -31,6 +31,9 @@ RGB.prototype = {
 	isBlack: function() {
 		return this.red === 0 && this.green === 0 && this.blue === 0;
 	},
+    isNotBlack: function() {
+        return !this.isBlack();
+    },
     merge: function(rgb) {
         return new RGB(
             Math.max(this.red, rgb.red),
@@ -63,5 +66,6 @@ RGB.Green = new RGB(0, 128, 0);
 RGB.Red = new RGB(255, 0, 0);
 RGB.White = new RGB(255, 255, 255);
 RGB.Orange = new RGB(255, 165, 0);
+RGB.DarkGrey = new RGB(84, 84, 84);
 
 module.exports = RGB;

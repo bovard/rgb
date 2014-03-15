@@ -24,13 +24,13 @@ function renderCreep(creep, color, isHero) {
 			creep.getStats().getPercentageProgressToNextLevel() + 
 			"% to level " + (creep.getLevel() + 1);
 		renderHudText.call(this, percentToLvlStr, 
-			HudRenderer.FONT_COLOR_PERCENT_TO_LVL);
+			HudRenderer.FONT_COLOR_HERO_PERCENT_TO_LVL);
 	}
 	this.currDrawLoc.y += HudRenderer.STAT_BUFFER_HEIGHT;
 }
 
 function getDifficulty(creepLevel, heroLevel) {
-    var difference = heroLevel - creepLevel;
+    var difference = creepLevel - heroLevel;
     var rgb;
     if (difference <= -10) {
         rgb = RGB.Grey.toString();

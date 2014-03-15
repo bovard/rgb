@@ -1,21 +1,25 @@
 /* Generic creep class which provides a base from which to specialize. */
 var Character = require('./Character');
 var util = require('./../Utility');
+var Messages = require('./Messages');
+var CoreStats = require('./CoreStats');
 
-function Creep(difficultyLevel, attackType, numActions, maxHealth, aggroRadiusSquared, 
-	rgb, coreStats) {
+function Creep(options) {
 	// Attributes
-	this.difficultyLevel = difficultyLevel; // 1-?, used by map generation alg
-	this.attackType = attackType; // Creep.ATTACK_TYPE_*
-	this.numActions = numActions;
-	this.maxHealth = maxHealth;
-	this.radiusSquared = aggroRadiusSquared;
-	this.rgb = rgb;
-	this.stats = coreStats;
+    // required attributes
+    this.validateOptions(options); // makes sure there 4 are here
+    this.repr = options.repr;
+    this.name = options.name;
+	this.radiusSquared = options.radiusSquared;
+	this.rgb = options.rgb;
+
+    // optional attributes
+    this.numActions = options.numActions || 1;
+	this.stats = options.stats || new CoreStats(1);
+    this.messages = options.messages || new Messages(this.name);
 	
 	// Status
-	this.actionsPerformed = 0;
-	this.health = this.maxHealth;
+	this.health = this.stats.getMaxHealth();
 	this.location = null;
     this.aggro = false;
 }
@@ -27,6 +31,13 @@ Creep.ATTACK_TYPE_RANGED = 2;
 Creep.prototype = new Character();
 
 util.extend(Creep, {
+    validateOptions: function(options) {
+        util.forEachIn(['repr', 'name', 'radiusSquared', 'rgb'], function(key, value) {
+            if (!options[value]) {
+                throw "options." + value + " not found";
+            }
+        });
+    },
     applyDamage: function(damage, rgb) {
         // calculate the amount of damage you can do
         this.health -= damage;
@@ -37,7 +48,9 @@ util.extend(Creep, {
             return true;
         }
     },
-    getAttackMessage: function() { throw "Creep.attackMessage: abstract method called"; },
+    getAttackHitMessage: function() {
+        return this.messages.getHitMessage()
+    },
     setAggro: function(aggro) {
         this.aggro = aggro;
     },

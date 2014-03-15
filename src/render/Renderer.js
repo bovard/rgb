@@ -1,6 +1,7 @@
 /* Renders the game to the canvas. */
 var Location = require('./../map/Location');
 var Tile = require('./../map/Tile');
+var RGB = require('../RGB');
 
 // Transform location to be relative to center & scaled by Renderer.GAME_TO_CANVAS
 function toCanvasSpace(location, centerLoc) {
@@ -33,8 +34,12 @@ function drawTile(tile, loc, filter) {
 */
 function drawSymbol(entity, loc, filter, isHero) {
 	// If hero, draw without filter
-	this.context.fillStyle = isHero ? entity.getRGB().toString() :
-		entity.getRGB(filter).toString();
+	 var rgb = isHero ? entity.getRGB() : entity.getRGB(filter);
+    if (rgb.isBlack()) {
+        rgb = RGB.DarkGrey
+    }
+
+    this.context.fillStyle = rgb.toString();
 	// Set font size
 	this.context.font = Renderer.FONT;
 	// Get loc in canvas space
