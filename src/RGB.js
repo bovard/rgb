@@ -61,10 +61,12 @@ RGB.prototype = {
 
 RGB.Black = new RGB(0, 0, 0);
 RGB.Gold = new RGB(255, 165, 0);
+RGB.DarkGold = new RGB(127, 82, 0);
 RGB.Grey = new RGB(192, 192, 192);
 RGB.Green = new RGB(0, 128, 0);
 RGB.LightGreen = new RGB(0, 240, 0);
 RGB.Red = new RGB(255, 0, 0);
+RGB.DarkRed = new RGB(100, 0, 0);
 RGB.White = new RGB(255, 255, 255);
 RGB.Orange = new RGB(255, 165, 0);
 RGB.DarkGrey = new RGB(84, 84, 84);

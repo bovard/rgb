@@ -3,6 +3,8 @@ var RGB = require('./../RGB');
 var Location = require('./../map/Location');
 
 function renderHudText(txt, color) {
+	// Set font
+	this.context.font = HudRenderer.HUD_FONT;
 	this.context.fillStyle = color;
 	var txtWidth = this.context.measureText(txt).width;
 	var txtHeight = HudRenderer.HUD_FONT_HEIGHT;
@@ -15,16 +17,19 @@ function renderHudText(txt, color) {
 function renderCreep(creep, color, isHero) {
     var creepHeader = creep.getRepr() + ": " + creep.getName() + " - lvl " + creep.getLevel();
 	renderHudText.call(this, creepHeader, color);
-    var creepHp = Math.ceil(creep.getHealth()) + " hp ";
-	renderHudText.call(this, creepHp, color);
-	drawStatSymbolBar.call(this, creep.health, HudRenderer.HUD_HEALTH_SYM,
-			HudRenderer.HUD_HEALTH_SYM_COUNT, color);
+    //var creepHp = Math.ceil(creep.getHealth()) + " hp ";
+	//renderHudText.call(this, creepHp, color);
+	//drawStatSymbolBar.call(this, creep.health, HudRenderer.HUD_HEALTH_SYM,
+	//		HudRenderer.HUD_HEALTH_SYM_COUNT, color);
+	drawHudBar.call(this, creep.getHealth(), creep.getMaxHealth(), 
+		HudRenderer.HUD_HP_BAR_COLOR, HudRenderer.HUD_HP_BAR_COLOR_BKG);
 	if (isHero) {
-		var percentToLvlStr = 
-			creep.getStats().getPercentageProgressToNextLevel() + 
-			"% to level " + (creep.getLevel() + 1);
-		renderHudText.call(this, percentToLvlStr, 
-			HudRenderer.FONT_COLOR_HERO_PERCENT_TO_LVL);
+		drawHudBar.call(this, 
+			creep.getStats().getXP() - creep.getStats().getXPForLevel(creep.getStats().level), 
+			creep.getStats().getXPForNextLevel() - creep.getStats().getXPForLevel(creep.getStats().level), 
+			HudRenderer.HUD_XP_BAR_COLOR, HudRenderer.HUD_XP_BAR_COLOR_BKG);
+			
+		// TODO: draw powerup bar when hooks are in place
 	}
 	this.currDrawLoc.y += HudRenderer.STAT_BUFFER_HEIGHT;
 }
@@ -103,6 +108,29 @@ function drawHudSymbolBar(symbol, loc, percentage) {
 	this.context.restore();
 }
 
+/* Draws a HUD bar for a given dynamic property. */
+function drawHudBar(curr, max, color, bkgColor) {
+	var percentage = curr/max;
+	// Draw bar background (indicative of capacity)
+	this.context.fillStyle = bkgColor;
+	this.context.fillRect(this.currDrawLoc.x - HudRenderer.HUD_BAR_LENGTH/2, this.currDrawLoc.y - HudRenderer.HUD_BAR_HEIGHT/2, 
+		HudRenderer.HUD_BAR_LENGTH, HudRenderer.HUD_BAR_HEIGHT);
+	// Draw bar (indicative of current quantity)
+	this.context.fillStyle = color;
+	this.context.fillRect(this.currDrawLoc.x - HudRenderer.HUD_BAR_LENGTH/2, this.currDrawLoc.y - HudRenderer.HUD_BAR_HEIGHT/2, 
+		HudRenderer.HUD_BAR_LENGTH * percentage, HudRenderer.HUD_BAR_HEIGHT);
+	// Draw bar number
+	this.context.fillStyle = HudRenderer.HUD_BAR_FONT_COLOR;
+	this.context.font = HudRenderer.HUD_BAR_FONT;
+	var txt = Math.ceil(curr).toString() + "/" + Math.ceil(max).toString();
+	var txtWidth = this.context.measureText(txt).width;
+	var txtHeight = HudRenderer.HUD_BAR_FONT_HEIGHT;
+	this.context.fillText(txt,
+		this.currDrawLoc.x - txtWidth/2, 
+		this.currDrawLoc.y + txtHeight/2);
+	this.currDrawLoc.y += HudRenderer.HUD_BAR_HEIGHT;
+}
+
 function HudRenderer(canvas) {
 	this.canvas = canvas;
 	this.context = canvas.getContext("2d");
@@ -133,9 +161,6 @@ HudRenderer.prototype = {
 		// Scale by zoom factor
 		this.context.scale(this.zoomFactor,this.zoomFactor);
 		
-		// Set font
-		this.context.font = HudRenderer.HUD_FONT;
-		
 		// Draw HUD elements
 		renderHeroStatus.call(this, hero);
 		renderCreepStats.call(this, creepList, hero);
@@ -148,8 +173,26 @@ HudRenderer.HUD_OUTLINE_COLOR = RGB.White.toString();
 HudRenderer.HUD_OUTLINE_WIDTH = 5;
 HudRenderer.HUD_FONT = "12px Comic Sans MS";
 HudRenderer.HUD_FONT_HEIGHT = parseInt(HudRenderer.HUD_FONT) * 1.5; // approx height
+HudRenderer.HUD_BAR_FONT_COLOR = RGB.White.toString();
 HudRenderer.HUD_SYM_BAR_FONT = "24px Arial";
 HudRenderer.HUD_SYM_BAR_FONT_HEIGHT = parseInt(HudRenderer.HUD_SYM_BAR_FONT) * 1.0; // approx height
+
+/**** HUD bar stuff ****/
+// Font
+HudRenderer.HUD_BAR_FONT = "8px Comic Sans MS";
+HudRenderer.HUD_BAR_FONT_HEIGHT = parseInt(HudRenderer.HUD_BAR_FONT) * 0.80; // approx height
+
+// Dimensions
+HudRenderer.HUD_BAR_HEIGHT = 10;
+HudRenderer.HUD_BAR_LENGTH = 100;
+
+// Colors
+HudRenderer.HUD_HP_BAR_COLOR = RGB.Red.toString();
+HudRenderer.HUD_HP_BAR_COLOR_BKG = RGB.DarkRed.toString();
+HudRenderer.HUD_XP_BAR_COLOR = RGB.Gold.toString();
+HudRenderer.HUD_XP_BAR_COLOR_BKG = RGB.DarkGold.toString();
+/**** End HUD bar stuff ****/
+
 HudRenderer.HUD_COLOR = RGB.DarkGrey.toString();
 HudRenderer.FONT_COLOR_HERO_STAT = RGB.LightGreen.toString();
 HudRenderer.FONT_COLOR_HERO_PERCENT_TO_LVL = RGB.Gold.toString();
