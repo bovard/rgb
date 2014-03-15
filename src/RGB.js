@@ -28,6 +28,15 @@ RGB.prototype = {
 	toDecimal: function() {
 		return this.red + this.green + this.blue;
 	},
+    hasBlue: function() {
+        return this.blue > 0;
+    },
+    hasRed: function() {
+        return this.red > 0;
+    },
+    hasGreen: function() {
+        return this.green > 0;
+    },
 	isBlack: function() {
 		return this.red === 0 && this.green === 0 && this.blue === 0;
 	},
