@@ -157,7 +157,15 @@ Game.prototype = {
     },
     getHeroController: function() {
         return this.heroController;
-    }
+    },
+	// Debug, get dijkstra objects
+	getCloseQtrDijkstra: function() {
+		return this.closeQuartersDijk;
+	},
+	getDijkstra: function() {
+		return this.dikj;
+	}
+	// End Debug, get dijkstra objects
 };
 
 module.exports = Game;

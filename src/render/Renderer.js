@@ -38,18 +38,12 @@ function drawSymbol(entity, loc, filter, isHero) {
     if (rgb.isBlack()) {
         rgb = RGB.DarkGrey
     }
-
-    this.context.fillStyle = rgb.toString();
-	// Set font size
-	this.context.font = Renderer.FONT;
+    var color = rgb.toString();
+	
 	// Get loc in canvas space
 	canvasLoc = toCanvasSpace(loc, this.centerLoc);
 	var txt = entity.getRepr();
-	var txtWidth = this.context.measureText(txt).width;
-	var txtHeight = parseInt(Renderer.FONT) * .5; // approx height
-	this.context.fillText(txt,
-		canvasLoc.x - txtWidth/2, 
-		canvasLoc.y + txtHeight/2);
+	drawText.call(this, txt, canvasLoc, color);
 	// Stroke white outline for visibility on creeps
 	// This doesnt look that good, but might bring it back later
 	/*if (!isHero) {
@@ -63,6 +57,18 @@ function drawSymbol(entity, loc, filter, isHero) {
 	}*/
 }
 
+function drawText(txt, loc, color, font) {
+	// Set font size
+	this.context.font = font ? font : Renderer.FONT;
+	this.context.fillStyle = color;
+	var txt = txt;
+	var txtWidth = this.context.measureText(txt).width;
+	var txtHeight = parseInt(Renderer.FONT) * .5; // approx height
+	this.context.fillText(txt,
+		loc.x - txtWidth/2, 
+		loc.y + txtHeight/2);
+}
+
 function Renderer(canvas) {
 	this.canvas = canvas;
 	this.context = canvas.getContext("2d");
@@ -72,7 +78,7 @@ function Renderer(canvas) {
 }
 
 Renderer.prototype = {
-    render: function(tileMap, creepMap, hero, filter) {
+    render: function(tileMap, creepMap, hero, filter, closeQtrDijkstra, dijkstra) {
 		this.context.save();
 		this.centerLoc = hero.getLocation();
 		var canvasLoc;
@@ -119,6 +125,17 @@ Renderer.prototype = {
                         }
 					}
 				}
+				
+				/* Debug: draw dijkstra move map data. Move symbol = N,S,E,W,
+				   U for undefined, and B for BAD if unknown offset. closeQtrDijkstra/dijkstra will
+				   be null on first couple renders. */
+				/*if (closeQtrDijkstra) {
+					var moveSymbol = closeQtrDijkstra.getDijkstraSymbol(loc);
+					this.context.save();
+					drawText.call(this, moveSymbol, toCanvasSpace(loc, this.centerLoc), "#00FF00", "4px Arial");
+					this.context.restore();
+				}*/
+				// Debug: end draw dijkstra move map data
 			}
 		}
 		
