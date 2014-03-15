@@ -1,26 +1,15 @@
-<html>
+<html style="height: 100%;">
 <head>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
     <script src="build/rgb.js"></script>
 </head>
-<body bgcolor="black">
-<table>
-    <tr>
-        <td>
-            <canvas id="gameCanvas" width="600" height="600"></canvas>
-        </td>
-    </tr>
-    <tr>
-        <td>
-            <div id="chat"  style="height:100px;width:200px;overflow:auto;margin:0">
-            </div>	
-        </td>
-    </tr>
-
-</table>
+<body style="height= 100%;margin:0;padding:0;background-color:black;">
+	<div style="width:600;height= 100%;margin:auto;">
+		<div style="position:absolute;width:600px;height:600px;top:50%;margin-top:-300;">
+			<canvas id="gameCanvas" width="600" height="600"></canvas>
+			<div id="chat"  style="background-color:black;border-style:solid;border-color:white;border-width:2px;position:absolute;top:500;height:90px;width:586px;overflow:auto;margin:0;padding:5;">
+		</div> 
+	</div>
 </body>
 
 </html>
-
-
-

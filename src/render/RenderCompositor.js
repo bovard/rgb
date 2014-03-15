@@ -33,16 +33,16 @@ RenderCompositor.prototype = {
 		render.call(this);
 		
 		/* Compose!
-		   Right 80% of master canvas = game 
-		   Left 20% of master canvas = hud */
+		   Right 100% - RenderCompositor.HUD_PERCENT of master canvas = game 
+		   Left RenderCompositor.HUD_PERCENT of master canvas = hud */
 		this.context.drawImage(this.renderData['game'].canvas, 
 		    0, 
 			0,
 			this.renderData['game'].canvas.width,
 			this.renderData['game'].canvas.height,
-			this.canvas.width * .20, 
+			this.canvas.width * RenderCompositor.HUD_PERCENT, 
 			0, 
-			this.canvas.width * .80, 
+			this.canvas.width * (1 - RenderCompositor.HUD_PERCENT), 
 			this.canvas.height
 			);
 		this.context.drawImage(this.renderData['hud'].canvas, 
@@ -52,10 +52,12 @@ RenderCompositor.prototype = {
 			this.renderData['hud'].canvas.height,
 			0, 
 			0, 
-			this.canvas.width * .20, 
+			this.canvas.width * RenderCompositor.HUD_PERCENT, 
 			this.canvas.height
 			);
 	}
 }
+
+RenderCompositor.HUD_PERCENT = .25;
 
 module.exports = RenderCompositor;

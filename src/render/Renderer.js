@@ -50,6 +50,17 @@ function drawSymbol(entity, loc, filter, isHero) {
 	this.context.fillText(txt,
 		canvasLoc.x - txtWidth/2, 
 		canvasLoc.y + txtHeight/2);
+	// Stroke white outline for visibility on creeps
+	// This doesnt look that good, but might bring it back later
+	/*if (!isHero) {
+		this.context.save();
+		this.context.strokeStyle = RGB.White.toString();
+		this.context.lineWidth = .5;
+		this.context.strokeText(txt,
+			canvasLoc.x - txtWidth/2, 
+			canvasLoc.y + txtHeight/2);
+		this.context.restore();
+	}*/
 }
 
 function Renderer(canvas) {
@@ -67,8 +78,13 @@ Renderer.prototype = {
 		var canvasLoc;
 	
 		// Fill canvas with black background
-		this.context.fillStyle = "#000000";
+		this.context.fillStyle = Renderer.BACKGROUND_COLOR;
         this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+		
+		// Draw Game Outline
+		this.context.strokeStyle = Renderer.OUTLINE_COLOR;
+		this.context.lineWidth = Renderer.OUTLINE_WIDTH;
+		this.context.strokeRect(0, 0, this.canvas.width, this.canvas.height);
 		
 		// Center grid at canvas center
 		this.context.translate(this.canvas.width/2, this.canvas.height/2);
@@ -111,6 +127,9 @@ Renderer.prototype = {
    !!!IMPORTANT NOTE!!!: Don't use this for zoom! Zoom is accomplished by scaling 
    the canvas context.
 */
+Renderer.OUTLINE_COLOR = RGB.White.toString();
+Renderer.OUTLINE_WIDTH = 5;
+Renderer.BACKGROUND_COLOR = RGB.Black.toString();
 Renderer.GAME_TO_CANVAS = 18;
 Renderer.TILE_WIDTH = 15;
 Renderer.FONT = "12px Arial";
