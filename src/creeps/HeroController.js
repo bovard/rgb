@@ -28,6 +28,7 @@ util.extend(HeroController, {
             var dmg = this.getCharacter().getStats().resolveDamage(target.getStats());
             Chat.log("You hit " + target.name + " for " + Math.round(dmg) + " damage!");
             target.applyDamage(dmg, this.getCharacter().getDimension().getRGB());
+            this.character.addPowerUpCount();
             console.log(target.name, target.getHealth());
             if (target.isDead()) {
                 console.log("We killed it!");
@@ -48,6 +49,7 @@ util.extend(HeroController, {
             this.getCreepMap().removeHero();
             this.getCharacter().kill();
         } else if (!creep) {
+            this.character.removePowerUpCount();
             this.getCreepMap().moveHeroToLoc(toMove);
         } else if (creep) {
             this.attack(dir);

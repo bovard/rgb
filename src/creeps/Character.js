@@ -24,6 +24,9 @@ utils.extend(Character, {
     takeAction: function() {
         this.actionDelay += 1 / this.numActions;
     },
+    addToActionDelay: function(amount) {
+        this.actionDelay += amount;
+    },
     setHealth: function(health) { this.health = health; },
     addHealth: function(toAdd) {
         this.health += toAdd;

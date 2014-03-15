@@ -20,8 +20,9 @@ $(document).keyup(function(event) {
         restart();
         return;
     }
+    console.log("KeyCode", event.keyCode);
 
-    if ([37, 38, 39, 40, 49, 50, 51].indexOf(event.keyCode) !== -1) {
+    if (game && game.input[event.keyCode]) {
         turn(event.keyCode);
     }
 });

@@ -4,6 +4,7 @@ var Direction = require('./map/Direction');
 var InputTrigger = require('./InputTrigger');
 var TestLevelCreator = require('./levels/TestLevelCreator');
 var HeroController = require('./creeps/HeroController');
+var Chat = require('./Chat');
 
 
 function Game(deathCallback) {
@@ -32,7 +33,6 @@ Game.prototype = {
     takeHeroTurn: function(code) {
 		// If there is an InputTrigger for this code, fire it
         if (this.input[code]) {
-            this.hero.takeAction();
 			this.input[code].fire();
 		}
     },
@@ -91,19 +91,63 @@ Game.prototype = {
 
     },
     switchDimensions: function(num) {
-        this.hero.switchDimensions(num);
+        if (this.hero.canSwitchDimensions()) {
+            this.hero.takeAction();
+            this.hero.resetPowerUpCount();
+            this.hero.switchDimensions(num);
+        } else {
+            Chat.warn("You can't do that yet!");
+        }
+    },
+    activatePowerUp: function() {
+        console.log("activating power up");
+        if (!this.hero.canPowerUp()) {
+            console.log("can't activate yet!");
+            Chat.log("Not ready yet!");
+            return;
+        }
+        var times = 5 + Math.ceil(this.hero.getDimension().getLevel() / 5);
+
+        if (this.hero.getDimension().getRGB().hasRed()) {
+            console.log("Activating blue power up");
+            this.hero.powerUp();
+            this.hero.poweredUp = false;
+            var neighbors = this.heroController.getCreepsInRadiusSquared(1);
+            Chat.log("You release a pulse of energy");
+            for (var i = 0; i < neighbors.length; i++) {
+                var creep = neighbors[i];
+                if (creep.getRGB().hasRed()) {
+                    creep.addToActionDelay(times);
+                    Chat.log(creep.getName() + " is stunned!")
+
+                }
+            }
+        } else if (this.hero.getDimension().getRGB().hasGreen()) {
+            console.log("Activating green power up");
+            Chat.log("You feel faster!");
+            this.hero.powerUp();
+            this.hero.addToSpeedBoost(times);
+        } else if (this.hero.getDimension().getRGB().hasBlue()) {
+            console.log("Activating green power up");
+
+            this.hero.powerUp();
+        }
     },
 	initInput: function() {
 		this.input[37] = new InputTrigger(function() {
+            this.hero.takeAction();
 			this.moveOrAttackHero(Direction.WEST);
 		}, this);
 		this.input[38] = new InputTrigger(function() {
+            this.hero.takeAction();
 			this.moveOrAttackHero(Direction.NORTH);
 		}, this);
 		this.input[39] = new InputTrigger(function() {
+            this.hero.takeAction();
 			this.moveOrAttackHero(Direction.EAST);
 		}, this);
 		this.input[40] = new InputTrigger(function() {
+            this.hero.takeAction();
 			this.moveOrAttackHero(Direction.SOUTH);
 		}, this);
         this.input[49] = new InputTrigger(function() {
@@ -114,6 +158,9 @@ Game.prototype = {
         }, this);
         this.input[51] = new InputTrigger(function() {
             this.switchDimensions(2);
+        }, this);
+        this.input[32] = new InputTrigger(function() {
+            this.activatePowerUp();
         }, this);
 	},
     generateNewLevel: function() {
