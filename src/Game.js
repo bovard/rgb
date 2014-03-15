@@ -7,7 +7,6 @@ var HeroController = require('./creeps/HeroController');
 
 
 function Game(deathCallback) {
-    // TODO: fix this a lot
     this.hero = new Hero(deathCallback);
     this.heroController = new HeroController(null, null, this.hero);
     this.levels = [];
@@ -29,9 +28,44 @@ Game.prototype = {
     takeHeroTurn: function(code) {
 		// If there is an InputTrigger for this code, fire it
         if (this.input[code]) {
+            this.hero.takeAction();
 			this.input[code].fire();
-            this.hero.actionsPerformed++;
 		}
+    },
+    takeCreepTurn: function(creepController, dijk) {
+        // attack logic if we are in this dimension
+        if (creepController.isAdjacentToHero()) {
+            creepController.attackHero();
+        } else if(creepController.aggroHero()) {
+            var next = dijk.getNextTile(creepController.getCharacter().getLocation());
+            console.log("Dikj is telling me to go to", next.toString(), 'from', creepController.getCharacter().getLocation().toString());
+            var dir = creepController.getCharacter().getLocation().directionTo(next);
+            if (creepController.canMove(dir)) {
+                creepController.move(dir);
+            } else {
+                // TODO: remove this once we have improved dikjstra's
+                // move to the closest square to the hero
+                var loc = creepController.getCharacter().getLocation();
+                var heroLoc = creepController.getCreepMap().getHero().getLocation();
+                var left = 100000;
+                var right = 100000;
+                var canMove = false;
+                if (creepController.canMove(dir.rotateLeft())) {
+                    canMove = true;
+                    left = loc.add(dir.rotateLeft()).distanceSquaredTo(heroLoc)
+                } else if (creepController.canMove(dir.rotateRight())) {
+                    canMove = true;
+                    right = loc.add(dir.rotateRight()).distanceSquaredTo(heroLoc)
+                }
+                if (canMove) {
+                    if (left < right) {
+                        creepController.move(dir.rotateLeft());
+                    } else {
+                        creepController.move(dir.rotateRight());
+                    }
+                }
+            }
+        }
     },
     takeCreepTurns: function(dijk) {
         var creepControllers = this.level.getCreepControllers();
@@ -39,43 +73,14 @@ Game.prototype = {
         var dimensionRGB = this.hero.getDimension().getRGB();
         for (var i = 0; i < creepControllers.length; i++) {
             var creepController = creepControllers[i];
+            creepController.getCharacter().tick();
             // skip the creeps turn if not present in the current dimension
             if (creepController.getCharacter().getRGB().mask(dimensionRGB).isBlack()) {
                 continue;
             }
-
-            // attack logic if we are in this dimension
-            if (creepController.isAdjacentToHero()) {
-                creepController.attackHero();
-            } else if(creepController.aggroHero()) {
-                var next = dijk.getNextTile(creepController.getCharacter().getLocation());
-                console.log("Dikj is telling me to go to", next.toString(), 'from', creepController.getCharacter().getLocation().toString());
-                var dir = creepController.getCharacter().getLocation().directionTo(next);
-                if (creepController.canMove(dir)) {
-                    creepController.move(dir);
-                } else {
-                    // TODO: remove this once we have improved dikjstra's
-                    // move to the closest square to the hero
-                    var loc = creepController.getCharacter().getLocation();
-                    var heroLoc = creepController.getCreepMap().getHero().getLocation();
-                    var left = 100000;
-                    var right = 100000;
-                    var canMove = false;
-                    if (creepController.canMove(dir.rotateLeft())) {
-                        canMove = true;
-                        left = loc.add(dir.rotateLeft()).distanceSquaredTo(heroLoc)
-                    } else if (creepController.canMove(dir.rotateRight())) {
-                        canMove = true;
-                        right = loc.add(dir.rotateRight()).distanceSquaredTo(heroLoc)
-                    }
-                    if (canMove) {
-                        if (left < right) {
-                            creepController.move(dir.rotateLeft());
-                        } else {
-                            creepController.move(dir.rotateRight());
-                        }
-                    }
-                }
+            while(creepController.getCharacter().isActive()) {
+                creepController.character.takeAction();
+                this.takeCreepTurn(creepController, dijk)
             }
         }
 

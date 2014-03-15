@@ -1,5 +1,6 @@
 var Experience = require('./Experience');
 var Utility = require('./../Utility');
+var Chat = require('../Chat');
 
 function Dimension(rgb) {
     this.experience = 0;
@@ -19,11 +20,10 @@ Utility.extend(Dimension, {
         return this.rgb;
     },
     applyKillEffects: function(hero, victim) {
-        // TODO: possibly add RGB vs victim RGB in this calc?
-        var toAdd = victim.getMaxHealth() * (this.rgb.toDecimal() / 255);
+        var toAdd = victim.getMaxHealth();
         hero.addHealth(toAdd);
-    },
-
+        Chat.log("You absorb " + victim.getName() + "'s life force.")
+    }
 });
 
 module.exports = Dimension;

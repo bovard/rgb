@@ -15,14 +15,14 @@ Character.prototype = new GameObject();
 
 utils.extend(Character, {
     tick: function() {
-        this.actionDelay -= this.numActions;
+        this.actionDelay -= 1;
         this.actionDelay = Math.max(this.actionDelay, 0);
     },
     isActive: function() {
         return this.actionDelay < this.numActions;
     },
     takeAction: function() {
-        this.actionDelay += 1;
+        this.actionDelay += 1 / this.numActions;
     },
     setHealth: function(health) { this.health = health; },
     addHealth: function(toAdd) {

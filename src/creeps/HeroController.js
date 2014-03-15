@@ -26,13 +26,12 @@ util.extend(HeroController, {
             Chat.log("You bump against an entity in another dimension");
         } else if(this.getCharacter().getStats().resolveHit(target.getStats())) {
             var dmg = this.getCharacter().getStats().resolveDamage(target.getStats());
-            dmg *= 2;
             Chat.log("You hit " + target.name + " for " + Math.round(dmg) + " damage!");
             target.applyDamage(dmg, this.getCharacter().getDimension().getRGB());
             console.log(target.name, target.getHealth());
             if (target.isDead()) {
                 console.log("We killed it!");
-                this.getCharacter().gainXPForKill(target);
+                this.character.gainXPForKill(target);
                 this.getCreepMap().deleteCreepAtLoc(loc);
                 this.getCreepMap().moveHeroToLoc(loc);
             }

@@ -14,7 +14,6 @@ function Hero(deathCallback) {
     this.deathCallback = deathCallback;
     this.location = null;
     this.numActions = 1;
-    this.actionsPerformed = 0;
 	this.stats = new CoreStats(1, CoreStats.HeroStatGain, CoreStats.HeoStatSeed);
     this.health = this.stats.getMaxHealth();
     console.log("made hero with hp:", this.health);

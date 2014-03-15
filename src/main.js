@@ -28,17 +28,17 @@ $(document).keyup(function(event) {
 
 
 function turn(code) {
-    // if code is no good, return
+    if (!game.hero.isActive()) {
+        game.hero.tick();
+    }
 
     game.takeHeroTurn(code);
 
-    if (game.hero.actionsPerformed < game.hero.numActions) {
+    if (game.hero.isActive()) {
         console.log("not done yet!");
+        render();
         return;
     }
-
-    game.hero.actionsPerformed = 0;
-
     render();
 
     if (!needsRestart) {
@@ -52,23 +52,12 @@ function turn(code) {
 
 
 function render() {
-    //renderer.render(game.getTileMap(), game.getCreepMap(), game.getHero(), game.getHero().getDimension().getRGB());
 	rendererCompositor.compose();
-    //StatusRenderer.renderHeroStatusToDiv(heroStatDev, game.getHero());
-    /*StatusRenderer.renderCreepStatiToDivs(
-        [
-            creep1StatDiv,
-            creep2StatDiv,
-            creep3StatDiv,
-            creep4StatDiv
-        ],
-        game.getHeroController().getCreepsInRadiusSquared(1),
-        game.getHero()
-    )*/
 }
 
 
 function restart() {
+    $('#chat').empty();
     needsRestart = false;
     game = new Game(gameOver);
 	setupRenderCompositor();
