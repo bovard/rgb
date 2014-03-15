@@ -47,6 +47,9 @@ util.extend(Hero, {
             this.numActions = 1;
         }
     },
+    getPowerUpPercent: function() {
+        return Math.ceil(Math.max(100, Math.random() * 100));
+    },
     addToSpeedBoost: function(rounds) {
         this.speedBoost += rounds;
     },

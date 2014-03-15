@@ -57,13 +57,13 @@ function createLevel(height, width, dungeonLevel, heroLevel) {
     var green = new RGB(0, 100, 0);
     var blue = new RGB(0, 0, 100);
 
-    var poi = createTestTileMap(tileMap, red, true);
+    var poi = createTestTileMap(tileMap, RGB.Red, true);
     var creeps = createTestCreepMap(tileMap, creepMap, poi, red);
 
-    poi = createTestTileMap(tileMap, green, false);
+    poi = createTestTileMap(tileMap, RGB.Green, false);
     creeps = creeps.concat(createTestCreepMap(tileMap, creepMap, poi, green));
 
-    poi = createTestTileMap(tileMap, blue, false);
+    poi = createTestTileMap(tileMap, RGB.Blue, false);
     creeps = creeps.concat(createTestCreepMap(tileMap, creepMap, poi, blue));
 
     return new TestLevel(tileMap, creepMap, creeps);

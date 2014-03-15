@@ -60,6 +60,7 @@ RGB.prototype = {
 };
 
 RGB.Black = new RGB(0, 0, 0);
+RGB.Blue = new RGB(0, 0, 255);
 RGB.Gold = new RGB(255, 165, 0);
 RGB.Grey = new RGB(192, 192, 192);
 RGB.Green = new RGB(0, 128, 0);
