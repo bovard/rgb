@@ -81,8 +81,29 @@ Dijkstra.prototype = {
 			return;
 		}
 		return loc.addLoc(this.moveMap[loc.x][loc.y]);
-    }
-
+    },
+	//Debug function: allows drawing move map for debugging 
+	getDijkstraSymbol: function(loc) {
+		var offsets = [new Location(0,1), new Location(0,-1), new Location(1,0), new Location(-1,0)];
+		var offset = this.moveMap[loc.x][loc.y];
+		var symbol;
+		if (offset) {
+			if (offset.isEqualTo(offsets[0])) {
+				symbol = "S";
+			} else if (offset.isEqualTo(offsets[1])) {
+				symbol = "N";
+			} else if (offset.isEqualTo(offsets[2])) {
+				symbol = "E";
+			} else if (offset.isEqualTo(offsets[3])) {
+				symbol = "W";
+			} else {
+				symbol = "<" + offset.x + "," + offset.y + ">";
+			}
+		} else {
+			symbol = "U";
+		}
+		return symbol;
+	}
 };
 
 module.exports = Dijkstra;

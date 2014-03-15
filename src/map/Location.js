@@ -7,7 +7,7 @@ function Location(x, y) {
 
 Location.prototype = {
     isEqualTo: function(location) {
-        return this.x && this.y && this.x === location.x && this.y === location.y;
+        return this.x !== null && this.y !== null && this.x === location.x && this.y === location.y;
     },
     add: function(direction, times) {
         if (!times) {
