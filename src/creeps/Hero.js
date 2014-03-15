@@ -56,6 +56,12 @@ util.extend(Hero, {
         }
         this.dimensionCoolDown = Math.max(this.dimensionCoolDown - 1, 0);
     },
+    getPowerUpCurr: function() {
+        return this.powerUpCount;
+    },
+    getPowerUpMax: function() {
+        return this.requiredPowerUps;
+    },
     getPowerUpPercent: function() {
         return Math.round((this.powerUpCount * 100)/this.requiredPowerUps);
     },
