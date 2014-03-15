@@ -84,16 +84,23 @@ Renderer.prototype = {
                     // COMMENT OUT THE continue TO SEE EVERYTHING
                     continue;
                 }
+
+                var tile = tileMap.getTileAtLoc(loc);
 				// If there is a tile to draw in this location, draw it
-				if (tileMap.getTileAtLoc(loc)) {
+				if (tile) {
 					drawTile.call(this, tileMap.getTileAtLoc(loc), loc, filter);
 				}
 				// If a character or the hero resides in this location, draw it
-				if (creepMap.getCreepAtLoc(loc)) {
+                var creep = creepMap.getCreepAtLoc(loc);
+				if (creep) {
 					if (creepMap.heroAtLoc(loc)) {
-						drawSymbol.call(this, creepMap.getCreepAtLoc(loc), loc, filter, true);
+						drawSymbol.call(this, creep, loc, filter, true);
 					} else {
-						drawSymbol.call(this, creepMap.getCreepAtLoc(loc), loc, filter, false);
+                        // if the tile is not black or the creep is not black, draw it
+                        if (tile.getRGB(hero.getDimension().getRGB()).isNotBlack()
+                                || creep.getRGB(hero.getDimension().getRGB()).isNotBlack()) {
+                            drawSymbol.call(this, creepMap.getCreepAtLoc(loc), loc, filter, false);
+                        }
 					}
 				}
 			}
