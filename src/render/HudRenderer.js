@@ -17,10 +17,10 @@ function renderHudText(txt, color) {
 function renderCreep(creep, color, isHero) {
     var creepHeader = creep.getRepr() + ": " + creep.getName() + " - lvl " + creep.getLevel();
 	renderHudText.call(this, creepHeader, color);
-    //var creepHp = Math.ceil(creep.getHealth()) + " hp ";
-	//renderHudText.call(this, creepHp, color);
-	//drawStatSymbolBar.call(this, creep.health, HudRenderer.HUD_HEALTH_SYM,
-	//		HudRenderer.HUD_HEALTH_SYM_COUNT, color);
+	/* Add a little bit of vertical buffer for the first bar. Since its following 
+	   text it will be a bit smushed otherwise.
+	*/
+		this.currDrawLoc.y += Math.max(HudRenderer.HUD_BAR_HEIGHT - HudRenderer.HUD_FONT_HEIGHT, 2);
 	drawHudBar.call(this, creep.getHealth(), creep.getMaxHealth(), 
 		HudRenderer.HUD_HP_BAR_COLOR, HudRenderer.HUD_HP_BAR_COLOR_BKG);
 	if (isHero) {
@@ -172,19 +172,19 @@ HudRenderer.prototype = {
 HudRenderer.HUD_OUTLINE_COLOR = RGB.White.toString();
 HudRenderer.HUD_OUTLINE_WIDTH = 5;
 HudRenderer.HUD_FONT = "12px Comic Sans MS";
-HudRenderer.HUD_FONT_HEIGHT = parseInt(HudRenderer.HUD_FONT) * 1.5; // approx height
+HudRenderer.HUD_FONT_HEIGHT = parseInt(HudRenderer.HUD_FONT) * 1.25; // approx height
 HudRenderer.HUD_BAR_FONT_COLOR = RGB.White.toString();
 HudRenderer.HUD_SYM_BAR_FONT = "24px Arial";
 HudRenderer.HUD_SYM_BAR_FONT_HEIGHT = parseInt(HudRenderer.HUD_SYM_BAR_FONT) * 1.0; // approx height
 
 /**** HUD bar stuff ****/
 // Font
-HudRenderer.HUD_BAR_FONT = "8px Comic Sans MS";
+HudRenderer.HUD_BAR_FONT = "10px Comic Sans MS";
 HudRenderer.HUD_BAR_FONT_HEIGHT = parseInt(HudRenderer.HUD_BAR_FONT) * 0.80; // approx height
 
 // Dimensions
-HudRenderer.HUD_BAR_HEIGHT = 10;
-HudRenderer.HUD_BAR_LENGTH = 100;
+HudRenderer.HUD_BAR_HEIGHT = 15;
+HudRenderer.HUD_BAR_LENGTH = 120;
 
 // Colors
 HudRenderer.HUD_HP_BAR_COLOR = RGB.Red.toString();
