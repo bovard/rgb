@@ -83,7 +83,7 @@ function setupRenderCompositor() {
 	if (!rendererCompositor) {
 		var renderData = {
 			game: {
-				canvas: util.dom("canvas", {width: "480", height: "600"}),
+				canvas: util.dom("canvas", {width: "450", height: "600"}),
 				data: function() {
 					return [game.getTileMap(), 
 					        game.getCreepMap(), 
@@ -92,7 +92,7 @@ function setupRenderCompositor() {
 				}
 			},
 			hud: {
-				canvas: util.dom("canvas", {width: "120", height: "600"}),
+				canvas: util.dom("canvas", {width: "150", height: "600"}),
 				data: function() {
 					return [game.getHero(), 
 					        game.getHeroController().getCreepsInRadiusSquared(1)];
