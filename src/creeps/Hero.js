@@ -56,7 +56,6 @@ util.extend(Hero, {
     },
 	applyDamage: function(damage, rgb) {
         // calculate the amount of damage you can do
-        Chat.warn("You are hit for " + Math.max(1, Math.round(damage)) + " damage!");
         console.log("Applying", damage, " damage to", this.getName());
         // first subtract from shield if there is one
         if (this.shield > 0) {

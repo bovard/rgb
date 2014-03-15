@@ -9,7 +9,7 @@ module.exports = {
         var options = {
             name: 'gnome',
             repr: 'g',
-            radiusSquared: 2,
+            radiusSquared: 4,
             rgb: rgb,
 
             numActions: 1,
@@ -33,7 +33,7 @@ module.exports = {
         var options = {
             name: 'orc',
             repr: 'o',
-            radiusSquared: 4,
+            radiusSquared: 9,
             rgb: rgb,
 
             numActions: 1,

@@ -2,6 +2,7 @@
 var Character = require('./Character');
 var util = require('./../Utility');
 var Messages = require('./Messages');
+var Chat = require('../Chat');
 var CoreStats = require('./CoreStats');
 
 function Creep(options) {
@@ -48,18 +49,23 @@ util.extend(Creep, {
             return true;
         }
     },
-    getAttackHitMessage: function() {
-        return this.messages.getHitMessage()
+    getHitMessage: function() {
+        return this.messages.getHitMessage();
+    },
+    getMissMessage: function() {
+        return this.messages.getMissMessage();
+    },
+    getAlertMessage: function() {
+        return this.messages.getAlertMessage();
     },
     setAggro: function(aggro) {
         this.aggro = aggro;
     },
     isAggroed: function() { return this.aggro; },
-    kill: function() {},
+    kill: function() {
+        Chat.log(this.messages.getDeathMessage());
+    },
     isHero: function() { return false; }
 });
-
-console.log(Creep);
-console.log(Creep.prototype);
 
 module.exports = Creep;

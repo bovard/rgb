@@ -26,8 +26,11 @@ Messages.prototype = {
         return this.alert;
     },
     getDeathMessage: function() {
-
-    },
+        if (!this.death) {
+            return this.name + " dies";
+        }
+        return this.death;
+    }
 };
 
 module.exports = Messages;
