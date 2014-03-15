@@ -30,6 +30,10 @@ function renderCreep(creep, color, isHero) {
 			HudRenderer.HUD_XP_BAR_COLOR, HudRenderer.HUD_XP_BAR_COLOR_BKG);
 			
 		// TODO: draw powerup bar when hooks are in place
+		drawHudBar.call(this, 
+			creep.getPowerUpCurr(), 
+			creep.getPowerUpMax(), 
+			HudRenderer.HUD_POWER_BAR_COLOR, HudRenderer.HUD_POWER_BAR_COLOR_BKG);
 	}
 	this.currDrawLoc.y += HudRenderer.STAT_BUFFER_HEIGHT;
 }
@@ -191,9 +195,11 @@ HudRenderer.HUD_HP_BAR_COLOR = RGB.Red.toString();
 HudRenderer.HUD_HP_BAR_COLOR_BKG = RGB.DarkRed.toString();
 HudRenderer.HUD_XP_BAR_COLOR = RGB.Gold.toString();
 HudRenderer.HUD_XP_BAR_COLOR_BKG = RGB.DarkGold.toString();
+HudRenderer.HUD_POWER_BAR_COLOR = RGB.Blue.toString();
+HudRenderer.HUD_POWER_BAR_COLOR_BKG = RGB.DarkBlue.toString();
 /**** End HUD bar stuff ****/
 
-HudRenderer.HUD_COLOR = RGB.DarkGrey.toString();
+HudRenderer.HUD_COLOR = RGB.Black.toString();//RGB.DarkGrey.toString();
 HudRenderer.FONT_COLOR_HERO_STAT = RGB.LightGreen.toString();
 HudRenderer.FONT_COLOR_HERO_PERCENT_TO_LVL = RGB.Gold.toString();
 // Vertical space between hero/creep statuses
