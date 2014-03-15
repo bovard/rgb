@@ -55,7 +55,7 @@ util.extend(CreepController, {
         var ourLoc = this.character.getLocation();
         var theirLoc = this.creepMap.getHero().getLocation();
         if (!ourLoc || !theirLoc) {
-            throw "something wrong here!";
+            console.warn("something wrong here!");
         }
         var sees = ourLoc && theirLoc && ourLoc.distanceSquaredTo(theirLoc) <= this.getCharacter().getRadiusSquared();
         if (sees && !this.getCharacter().isAggroed()) {
