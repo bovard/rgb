@@ -50,6 +50,9 @@ util.extend(Hero, {
     getPowerUpPercent: function() {
         return Math.ceil(Math.max(100, Math.random() * 100));
     },
+    isPoweredUp: function() {
+        return Math.random() < .1;
+    },
     addToSpeedBoost: function(rounds) {
         this.speedBoost += rounds;
     },
