@@ -147,7 +147,7 @@ Game.prototype = {
         }
     },
     getScore: function() {
-        return this.levels.length * 1000 + this.heroController.getScore();
+        return (this.levels.length - 1) * 1000 + this.heroController.getScore();
     },
     getDungeonLevel: function() {
         return this.levelIndex + 1;
