@@ -37,8 +37,8 @@ util.extend(CreepController, {
 
         if(this.getCharacter().getStats().resolveHit(target.getStats())) {
             var dmg = this.getCharacter().getStats().resolveDamage(target.getStats());
-            target.applyDamage(dmg, this.getCharacter().getRGB());
             Chat.warn(this.character.getHitMessage());
+            target.applyDamage(dmg, this.getCharacter().getRGB());
         } else {
             Chat.debug(this.character.getMissMessage());
         }
