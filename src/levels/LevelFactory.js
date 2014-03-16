@@ -155,6 +155,8 @@ function getLevel(dungeonLevel, heroLevel) {
         return makeDoubleDimensionLevel(dungeonLevel, heroLevel);
     } else if (dungeonLevel % 10 === 0) {
         return makeRatKingLevel(dungeonLevel, heroLevel);
+    } else {
+        return makeDoubleDimensionLevel(dungeonLevel, heroLevel);
     }
 }
 
