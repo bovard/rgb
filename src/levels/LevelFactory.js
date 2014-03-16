@@ -8,6 +8,7 @@ var CaveSpawner = require('./CaveSpawner');
 var Spawner = require('./Spawner');
 var CreepFactory = require('./../creeps/CreepFactory');
 var CityBuilder = require('./builders/CityBuilder');
+var util = require('./../Utility');
 
 function initTileMapAndCreepMap(level) {
     var randWidth = Math.round(Math.random() * (10 + level/2));
@@ -59,6 +60,27 @@ function makeSimpleMonotoneLevel(level, heroLevel) {
     creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, rgb, spawnFunction, 3, heroLevel));
     creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, rgb, spawnFunction, 1, heroLevel + 2));
 
+	// 30% chance to spawn some bulls to mix things up
+	if (Math.random() < .30) {
+		poi = CaveBuilder.build(tileMap, rgb, [upStairsLoc, downStairsLoc]);
+		spawnFunction = CreepFactory.getBull;
+		creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, rgb, spawnFunction, 1, heroLevel));
+	}
+	
+	// 10% chance to spawn a she-devil to surprise the player
+	if (Math.random() < .10) {
+		poi = CaveBuilder.build(tileMap, rgb, [upStairsLoc, downStairsLoc]);
+		spawnFunction = CreepFactory.getSheDevil;
+		creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, [poi[util.rand(0, poi.length - 1)]], rgb, spawnFunction, 1, heroLevel));
+	}
+	
+	// 5% chance to spawn a giant to rickroll the player
+	if (Math.random() < .05) {
+		poi = CaveBuilder.build(tileMap, rgb, [upStairsLoc, downStairsLoc]);
+		spawnFunction = CreepFactory.getGiant;
+		creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, [poi[util.rand(0, poi.length - 1)]], rgb, spawnFunction, 1, heroLevel));
+	}
+	
     return new Level(tileMap, creepMap, creeps);
 }
 
@@ -110,6 +132,39 @@ function makeDoubleDimensionLevel(level, heroLevel) {
     creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, secondDimRGB, spawnFunction, 3, heroLevel));
     creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, secondDimRGB, spawnFunction, 1, heroLevel + 1));
 
+	// She-Devil level
+	poi = CaveBuilder.build(tileMap, secondDimRGB, [upStairsLoc, downStairsLoc]);
+	if (heroLevel > 10) {
+        spawnFunction = CreepFactory.getSheDevil;
+        creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, secondDimRGB, spawnFunction, 1, heroLevel));
+    }
+    if (heroLevel > 15) {
+        spawnFunction = CreepFactory.getSheDevil;
+        creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, secondDimRGB, spawnFunction, 2, heroLevel + 2));
+    }
+	
+	// Giant level
+	poi = CaveBuilder.build(tileMap, firstDimRGB, [upStairsLoc, downStairsLoc]);
+	if (heroLevel > 10) {
+        spawnFunction = CreepFactory.getGiant;
+        creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, firstDimRGB, spawnFunction, 2, heroLevel));
+    }
+    if (heroLevel > 20) {
+        spawnFunction = CreepFactory.getGiant;
+        creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, firstDimRGB, spawnFunction, 4, heroLevel + 2));
+    }
+	
+	// Bull level
+	poi = CaveBuilder.build(tileMap, firstDimRGB, [upStairsLoc, downStairsLoc]);
+	if (heroLevel > 5) {
+        spawnFunction = CreepFactory.getBull;
+        creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, firstDimRGB, spawnFunction, 5, heroLevel));
+    }
+    if (heroLevel > 10) {
+        spawnFunction = CreepFactory.getBull;
+        creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, firstDimRGB, spawnFunction, 10, heroLevel + 2));
+    }
+	
     return new Level(tileMap, creepMap, creeps);
 }
 
