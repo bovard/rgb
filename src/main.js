@@ -144,4 +144,5 @@ $(function() {
     Chat.log("1,2,3 to switch dimensions");
     Chat.log("Space to activate power up (blue bar)");
     Chat.ding("Escape the dungeon!");
+    Chat.log('(head upstairs "^")');
 });
