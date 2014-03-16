@@ -2,25 +2,60 @@
 var RGB = require('./../RGB');
 var Location = require('./../map/Location');
 
-function renderHudText(txt, color) {
+/* orientation: 
+   1 - centered
+   2 - left-justified
+   3 - right-justified 
+   addNewLine: if true, incr draw loc.y so that subsequent calls will draw text
+               on the next line. */
+function renderHudText(txt, color, orientation, addNewLine) {
+	// Bump draw loc.y by default
+	var incDrawY = addNewLine == undefined ? true : addNewLine; 
+	
 	// Set font
 	this.context.font = HudRenderer.HUD_FONT;
 	this.context.fillStyle = color;
 	var txtWidth = this.context.measureText(txt).width;
 	var txtHeight = HudRenderer.HUD_FONT_HEIGHT;
+	var orientedLoc;
+	// Center text
+	if (orientation === 1) {
+		orientedLoc = new Location(this.currDrawLoc.x - txtWidth/2,
+								   this.currDrawLoc.y + txtHeight/2);
+	}
+	// Left-justify text
+	else if (orientation === 2) {
+		orientedLoc = new Location(
+		-this.canvas.width / 2 +
+		HudRenderer.HUD_CREEP_HDR_TXT_LEFT_MARGIN,
+							       this.currDrawLoc.y + txtHeight/2);
+	}
+	// Right-justify text
+	else if (orientation === 3) {
+		orientedLoc = new Location(
+			this.canvas.width/2 - txtWidth - HudRenderer.HUD_CREEP_HDR_TXT_RIGHT_MARGIN,
+			this.currDrawLoc.y + txtHeight/2);
+	} else {
+		throw "HudRenderer: renderHudText - unknown orientation parameter.";
+	}
 	this.context.fillText(txt,
-		this.currDrawLoc.x - txtWidth/2, 
-		this.currDrawLoc.y + txtHeight/2);
-	this.currDrawLoc.y += txtHeight;
+		orientedLoc.x, 
+		orientedLoc.y);
+	if (incDrawY) {
+		this.currDrawLoc.y += txtHeight;
+	}
 }
 
 function renderCreep(creep, color, isHero) {
-    var creepHeader = creep.getRepr() + ": " + creep.getName() + " - lvl " + creep.getLevel();
-	renderHudText.call(this, creepHeader, color);
+    //var creepHeader = creep.getRepr() + ": " + creep.getName() + " - lvl " + creep.getLevel();
+	var creepHeader = creep.getRepr() + ": " + creep.getName();
+	renderHudText.call(this, creepHeader, color, 2, false);
+	var creepLevel = "Level " + creep.getLevel();
+	renderHudText.call(this, creepLevel, color, 3);
 	/* Add a little bit of vertical buffer for the first bar. Since its following 
 	   text it will be a bit smushed otherwise.
 	*/
-		this.currDrawLoc.y += Math.max(HudRenderer.HUD_BAR_HEIGHT - HudRenderer.HUD_FONT_HEIGHT, 2);
+		this.currDrawLoc.y += Math.max(HudRenderer.HUD_BAR_HEIGHT - HudRenderer.HUD_FONT_HEIGHT, 5);
 	drawHudBar.call(this, creep.getHealth(), creep.getMaxHealth(), 
 		HudRenderer.HUD_HP_BAR_COLOR, HudRenderer.HUD_HP_BAR_COLOR_BKG);
 	if (isHero) {
@@ -66,7 +101,7 @@ function renderCreepStats(creepList, hero) {
 }
 
 function renderHeroStatus(hero) {
-    renderCreep.call(this, hero, HudRenderer.FONT_COLOR_HERO_STAT, true);
+    renderCreep.call(this, hero, HudRenderer.HUD_HERO_STAT_FONT_COLOR, true);
 }
 
 // Draws HUD symbol bars for relevant stats (hp, xp, etc) for an entity
@@ -138,7 +173,7 @@ function drawHudBar(curr, max, color, bkgColor) {
 function HudRenderer(canvas) {
 	this.canvas = canvas;
 	this.context = canvas.getContext("2d");
-	this.zoomFactor = 1.3;
+	this.zoomFactor = 1.0;
 }
 
 HudRenderer.prototype = {
@@ -173,22 +208,33 @@ HudRenderer.prototype = {
 	}
 }
 
+/**** General HUD stuff ****/
 HudRenderer.HUD_OUTLINE_COLOR = RGB.White.toString();
 HudRenderer.HUD_OUTLINE_WIDTH = 5;
-HudRenderer.HUD_FONT = "12px Comic Sans MS";
+HudRenderer.HUD_COLOR = RGB.Black.toString();
+// Vertical space between hero/creep statuses
+HudRenderer.STAT_BUFFER_HEIGHT = 10;
+/**** End General HUD stuff ****/
+
+/**** HUD text stuff ****/
+HudRenderer.HUD_FONT = "14px Comic Sans MS";
 HudRenderer.HUD_FONT_HEIGHT = parseInt(HudRenderer.HUD_FONT) * 1.25; // approx height
-HudRenderer.HUD_BAR_FONT_COLOR = RGB.White.toString();
 HudRenderer.HUD_SYM_BAR_FONT = "24px Arial";
 HudRenderer.HUD_SYM_BAR_FONT_HEIGHT = parseInt(HudRenderer.HUD_SYM_BAR_FONT) * 1.0; // approx height
+HudRenderer.HUD_HERO_STAT_FONT_COLOR = RGB.LightGreen.toString();
+HudRenderer.HUD_CREEP_HDR_TXT_LEFT_MARGIN = 20;
+HudRenderer.HUD_CREEP_HDR_TXT_RIGHT_MARGIN = HudRenderer.HUD_CREEP_HDR_TXT_LEFT_MARGIN;
+/**** End HUD text stuff ****/
 
 /**** HUD bar stuff ****/
 // Font
-HudRenderer.HUD_BAR_FONT = "10px Comic Sans MS";
+HudRenderer.HUD_BAR_FONT = "12px Comic Sans MS";
 HudRenderer.HUD_BAR_FONT_HEIGHT = parseInt(HudRenderer.HUD_BAR_FONT) * 0.80; // approx height
+HudRenderer.HUD_BAR_FONT_COLOR = RGB.White.toString();
 
 // Dimensions
-HudRenderer.HUD_BAR_HEIGHT = 15;
-HudRenderer.HUD_BAR_LENGTH = 120;
+HudRenderer.HUD_BAR_HEIGHT = 17;
+HudRenderer.HUD_BAR_LENGTH = 150;
 
 // Colors
 HudRenderer.HUD_HP_BAR_COLOR = RGB.Red.toString();
@@ -199,13 +245,10 @@ HudRenderer.HUD_POWER_BAR_COLOR = RGB.Blue.toString();
 HudRenderer.HUD_POWER_BAR_COLOR_BKG = RGB.DarkBlue.toString();
 /**** End HUD bar stuff ****/
 
-HudRenderer.HUD_COLOR = RGB.Black.toString();//RGB.DarkGrey.toString();
-HudRenderer.FONT_COLOR_HERO_STAT = RGB.LightGreen.toString();
-HudRenderer.FONT_COLOR_HERO_PERCENT_TO_LVL = RGB.Gold.toString();
-// Vertical space between hero/creep statuses
-HudRenderer.STAT_BUFFER_HEIGHT = 10;
+/**** HUD symbol bar stuff ****/
 HudRenderer.HUD_HEALTH_SYM = "=";
 // Each HUD_HEALTH_SYM represents HUD_HEALTH_SYM_COUNT health
 HudRenderer.HUD_HEALTH_SYM_COUNT = 5;
+/**** End HUD symbol bar stuff ****/
 
 module.exports = HudRenderer;
