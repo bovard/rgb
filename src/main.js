@@ -92,6 +92,7 @@ function setupRenderCompositor() {
 							game.getHero(), 
 							game.getHero().getDimension().getRGB(),
 							game.getScore(),
+							game.getDungeonLevel(),
 							game.getCloseQtrDijkstra(),
 							game.getDijkstra()];
 				}

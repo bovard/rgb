@@ -82,7 +82,7 @@ function Renderer(canvas) {
 }
 
 Renderer.prototype = {
-    render: function(tileMap, creepMap, hero, filter, score, closeQtrDijkstra, dijkstra) {
+    render: function(tileMap, creepMap, hero, filter, score, dungeonLvl, closeQtrDijkstra, dijkstra) {
 		this.context.save();
 		this.centerLoc = hero.getLocation();
 		var canvasLoc;
@@ -133,12 +133,12 @@ Renderer.prototype = {
 				/* Debug: draw dijkstra move map data. Move symbol = N,S,E,W,
 				   U for undefined, and B for BAD if unknown offset. closeQtrDijkstra/dijkstra will
 				   be null on first couple renders. */
-				if (closeQtrDijkstra) {
+				/*if (closeQtrDijkstra) {
 					var moveSymbol = closeQtrDijkstra.getDijkstraSymbol(loc);
 					this.context.save();
 					drawText.call(this, moveSymbol, toCanvasSpace(loc, this.centerLoc), "#00FF00", "4px Arial");
 					this.context.restore();
-				}
+				}*/
 				// Debug: end draw dijkstra move map data
 			}
 		}
@@ -153,6 +153,13 @@ Renderer.prototype = {
 		// Draw score using current filter
 		drawText.call(this, Renderer.SCORE_TXT + score, 
 			new Location(-this.canvas.width/(2 * this.zoomFactor) + Renderer.GAME_INFO_BUFFER_SPACE_X,
+						 -this.canvas.height/(2 * this.zoomFactor) + Renderer.GAME_INFO_BUFFER_SPACE_Y), 
+						 filter.toString(), 
+						 Renderer.GAME_SCORE_FONT,
+						 Renderer.GAME_SCORE_FONT_HEIGHT);
+		// Draw dungeon lvl
+		drawText.call(this, Renderer.DUNGEON_LVL_TXT + dungeonLvl, 
+			new Location(0,
 						 -this.canvas.height/(2 * this.zoomFactor) + Renderer.GAME_INFO_BUFFER_SPACE_Y), 
 						 filter.toString(), 
 						 Renderer.GAME_SCORE_FONT,
@@ -179,6 +186,7 @@ Renderer.FONT = "12px Arial";
 Renderer.FONT_HEIGHT = parseInt(Renderer.FONT) * .5;
 Renderer.GAME_TITLE = "RGB";
 Renderer.SCORE_TXT = "Score: ";
+Renderer.DUNGEON_LVL_TXT = "Dungeon: ";
 Renderer.GAME_INFO_COLOR = RGB.LightGreen.toString();
 Renderer.GAME_TITLE_FONT = "24px Impact";
 Renderer.GAME_TITLE_FONT_HEIGHT = parseInt(Renderer.GAME_TITLE_FONT) * 1.0;
