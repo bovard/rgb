@@ -5,6 +5,7 @@ var InputTrigger = require('./InputTrigger');
 var TestLevelCreator = require('./levels/TestLevelCreator');
 var HeroController = require('./creeps/HeroController');
 var Chat = require('./Chat');
+var util = require('./Utility');
 
 
 function Game(deathCallback) {
@@ -45,17 +46,70 @@ Game.prototype = {
             var next = closeQuartersDijk.getNextTile(creepController.getCharacter().getLocation());
             if (!next) {
                 next = dijk.getNextTile(creepController.getCharacter().getLocation());
-                console.log("Dikj is telling me to go to", next.toString(), 'from', creepController.getCharacter().getLocation().toString());
+                if (next)
+					console.log("Dikj is telling me to go to", next.toString(), 'from', creepController.getCharacter().getLocation().toString());
             }
             else {
-                console.log("closeQtrDikj is telling me to go to", next.toString(), 'from', creepController.getCharacter().getLocation().toString());
+				if (next)
+					console.log("closeQtrDikj is telling me to go to", next.toString(), 'from', creepController.getCharacter().getLocation().toString());
             }
-            var dir = creepController.getCharacter().getLocation().directionTo(next);
-            if (creepController.canMove(dir)) {
-                creepController.move(dir);
-            }
+			if (next) {
+				var dir = creepController.getCharacter().getLocation().directionTo(next);
+				if (creepController.canMove(dir)) {
+					creepController.move(dir);
+				} else {
+					// Dijkstra should never tell the creep to move where it can't BUT just in case it does
+					this.doBestAdjacentMove(creepController);
+				}
+			} else {
+				this.doBestAdjacentMove(creepController);
+			}
         }
     },
+	/* This serves as a workaround for the problem state we've been running into where both
+	   closeQtrDijkstra and dijkstra have no information for a particular creep location,
+	   which causes errors. As root cause is unknown, we will simply attempt the best adjacent
+	   move in this scenario and if that fails keep the creep stationary. */
+	doBestAdjacentMove: function(creepController) {
+		var dir = Direction.NORTH;
+		var loc = creepController.getCharacter().getLocation();
+		var heroLoc = creepController.getCreepMap().getHero().getLocation();
+		var left = 100000;
+		var right = 100000;
+		var straight = 100000;
+		var behind = 100000;
+		var canMove = false;
+		var moveWeights = [];
+		var moves = {};
+		if (creepController.canMove(dir)) {
+			canMove = true;
+			straight = loc.add(dir).distanceSquaredTo(heroLoc);
+			moveWeights.push(straight);
+			moves[straight] = dir;
+		}
+		if (creepController.canMove(dir.rotateLeft())) {
+			canMove = true;
+			left = loc.add(dir.rotateLeft()).distanceSquaredTo(heroLoc);
+			moveWeights.push(left);
+			moves[left] = dir.rotateLeft();
+		}
+		if (creepController.canMove(dir.rotateRight())) {
+			canMove = true;
+			right = loc.add(dir.rotateRight()).distanceSquaredTo(heroLoc);
+			moveWeights.push(right);
+			moves[right] = dir.rotateRight();
+		}
+		if (creepController.canMove(dir.opposite())) {
+			canMove = true;
+			behind = loc.add(dir.opposite()).distanceSquaredTo(heroLoc);
+			moveWeights.push(behind);
+			moves[behind] = dir.opposite();
+		}
+		if (canMove) {
+			moveWeights.sort(util.op("sortAsc"));
+			creepController.move(moves[moveWeights[0]]);
+		}
+	},
 	/* dijk - move map where the absence of a tile is the obstacle
        closeQuartersDijk - move map of radius sqaured r^2 around hero where the presence 
 						   of a creep is the obstacle */
