@@ -55,7 +55,7 @@ Game.prototype = {
                 creepController.move(dir);
             }
         }
-},
+    },
 	/* dijk - move map where the absence of a tile is the obstacle
        closeQuartersDijk - move map of radius sqaured r^2 around hero where the presence 
 						   of a creep is the obstacle */
@@ -100,6 +100,7 @@ Game.prototype = {
         }
     },
     activatePowerUp: function() {
+        var neighbors, i, creep;
         console.log("activating power up");
         if (!this.hero.canPowerUp()) {
             console.log("can't activate yet!");
@@ -107,30 +108,42 @@ Game.prototype = {
             return;
         }
         var times = 5 + Math.ceil(this.hero.getDimension().getLevel() / 5);
+        var radius =  Math.ceil(this.hero.getDimension().getLevel() / 5);
+        var dmg = this.hero.getMaxHealth() * (this.hero.getDimension().getRGB().toDecimal() / 255);
 
         if (this.hero.getDimension().getRGB().hasRed()) {
             console.log("Activating blue power up");
             this.hero.powerUp();
             this.hero.poweredUp = false;
-            var neighbors = this.heroController.getCreepsInRadiusSquared(1);
-            Chat.log("You release a pulse of energy");
-            for (var i = 0; i < neighbors.length; i++) {
-                var creep = neighbors[i];
+            neighbors = this.heroController.getCreepsInRadiusSquared(radius);
+            Chat.warn("You release a pulse of energy");
+            for (i = 0; i < neighbors.length; i++) {
+                creep = neighbors[i];
                 if (creep.getRGB().hasRed()) {
                     creep.addToActionDelay(times);
-                    Chat.log(creep.getName() + " is stunned!")
-
+                    Chat.warn(creep.getName() + " is stunned!")
                 }
             }
         } else if (this.hero.getDimension().getRGB().hasGreen()) {
             console.log("Activating green power up");
-            Chat.log("You feel faster!");
+            Chat.warn("You feel faster!");
             this.hero.powerUp();
             this.hero.addToSpeedBoost(times);
         } else if (this.hero.getDimension().getRGB().hasBlue()) {
-            console.log("Activating green power up");
-
+            console.log("Activating blue power up");
             this.hero.powerUp();
+            this.hero.poweredUp = false;
+            neighbors = this.heroController.getCreepsInRadiusSquared(radius);
+
+            Chat.warn("You release a wave of fire");
+            for (i = 0; i < neighbors.length; i++) {
+                creep = neighbors[i];
+                if (creep.getRGB().hasBlue()) {
+                    this.heroController.doDamageToCreep(creep, dmg);
+                    Chat.warn(creep.getName() + " is damaged by the flames!")
+
+                }
+            }
         }
     },
 	initInput: function() {

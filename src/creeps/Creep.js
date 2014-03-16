@@ -15,6 +15,7 @@ function Creep(options) {
 	this.rgb = options.rgb;
 
     // optional attributes
+    this.alertRange = options.alertRange || this.radiusSquared;
     this.numActions = options.numActions || 1;
 	this.stats = options.stats || new CoreStats(1);
     this.messages = options.messages || new Messages(this.name);
