@@ -42,6 +42,18 @@ CoreStats.EasySeed = {
     con: 8
 };
 
+CoreStats.MediumGain = {
+    str: 1.0,
+    agi: 1.0,
+    con: 1.0
+};
+
+CoreStats.MediumSeed = {
+    str: 10,
+    agi: 10,
+    con: 10
+};
+
 CoreStats.FastSeed = {
     str: 10,
     agi: 10,
@@ -78,6 +90,42 @@ CoreStats.HardGain = {
     str: 1.2,
     agi: 1.2,
     con: 1.2
+};
+
+CoreStats.GlassCannonSeed = {
+    str: 20,
+    agi: 8,
+    con: 2
+};
+
+CoreStats.GlassCannonGain = {
+    str: 1.2,
+    agi: 1.2,
+    con: 0.2
+};
+
+CoreStats.LumberingMonstrositySeed = {
+    str: 20,
+    agi: 3,
+    con: 20
+};
+
+CoreStats.LumberingMonstrosityGain = {
+    str: 1.2,
+    agi: 0.3,
+    con: 1.5
+};
+
+CoreStats.NinjaSeed = {
+    str: 13,
+    agi: 30,
+    con: 5
+};
+
+CoreStats.NinjaGain = {
+    str: 1.0,
+    agi: 2.0,
+    con: 0.1,
 };
 
 CoreStats.prototype = new Experience();

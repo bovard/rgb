@@ -5,7 +5,10 @@ var CoreStats = require('./CoreStats');
 var FastStats = require('./stats/FastStats');
 var SlowStats = require('./stats/SlowStats');
 var EasyStats = require('./stats/EasyStats');
-var HardStats = require('./stats/EasyStats');
+var HardStats = require('./stats/HardStats');
+var GlassCannonStats = require('./stats/GlassCannonStats');
+var LumberingMonstrosityStats = require('./stats/LumberingMonstrosityStats');
+var NinjaStats = require('./stats/NinjaStats');
 
 
 module.exports = {
@@ -162,6 +165,75 @@ module.exports = {
                     miss: "The rat king lunges for you but misses!",
                     alert: "The rat king squeaks regally and closes.",
                     death: "The rat king squeaks and dies"
+                }
+            )
+        };
+
+        return new Creep(options);
+    },
+	getSheDevil: function(rgb, level) {
+        var options = {
+            name: 'she-devil',
+            repr: 'S',
+            radiusSquared: 999,
+            rgb: rgb,
+
+            alertRange: 0,
+            numActions: 2,
+            stats: new NinjaStats(level),
+            messages: new Messages(
+                "she-devil",
+                {
+                    hit: "The she-devil swipes at you with her poisonous claws",
+                    miss: "The she-devil's baneful claws miss you by mere inches",
+                    alert: "The she-devil alerts no one...she wants you all to herself",
+                    death: "The she-devil saves her last breath for a diatribe as cutting as her claws"
+                }
+            )
+        };
+
+        return new Creep(options);
+    },
+	getGiant: function(rgb, level) {
+        var options = {
+            name: 'giant',
+            repr: 'G',
+            radiusSquared: 45,
+            rgb: rgb,
+
+            alertRange: 15,
+            numActions: .5,
+            stats: new LumberingMonstrosityStats(level),
+            messages: new Messages(
+                "giant",
+                {
+                    hit: "The giant's massive fist almost knocks you into another dimension",
+                    miss: "The giant stomps the ground next to you with his colossal foot",
+                    alert: "The giant rallies surrounding creeps visible from his high vantage point",
+                    death: "The giant teeters precariously before crashing to the ground in a deafening cacophony"
+                }
+            )
+        };
+
+        return new Creep(options);
+    },
+	getBull: function(rgb, level) {
+        var options = {
+            name: 'bull',
+            repr: 'B',
+            radiusSquared: 20,
+            rgb: rgb,
+
+            alertRange: 10,
+            numActions: 3,
+            stats: new GlassCannonStats(level),
+            messages: new Messages(
+                "bull",
+                {
+                    hit: "The bull puts its enormous bulk to good use and tramples you violenty",
+                    miss: "You veer out of the bull's killing path at the last second",
+                    alert: "The bull's thundering hooves bring nearby enemies in tow",
+                    death: "The bull falls on its side from exhaustion, snorts once, and then dies"
                 }
             )
         };
