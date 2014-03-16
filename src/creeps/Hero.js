@@ -51,7 +51,7 @@ util.extend(Hero, {
             if (this.speedBoost === 0) {
                 this.numActions = 1;
                 this.poweredUp = false;
-                Chat.log("You feel yourself slow down");
+                Chat.warn("You feel yourself slow down");
             }
         }
         this.dimensionCoolDown = Math.max(this.dimensionCoolDown - 1, 0);

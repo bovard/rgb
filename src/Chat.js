@@ -13,7 +13,6 @@ function _write(message, color) {
     }
 }
 
-
 function crit(message) {
     _write(message, "#FF0000");
 }
