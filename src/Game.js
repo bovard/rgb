@@ -46,9 +46,12 @@ Game.prototype = {
             var next = closeQuartersDijk.getNextTile(creepController.getCharacter().getLocation());
             if (!next) {
                 next = dijk.getNextTile(creepController.getCharacter().getLocation());
-                console.log("Dikj is telling me to go to", next.toString(), 'from', creepController.getCharacter().getLocation().toString());
-            }
-            else {
+                if (next) {
+                    console.log("Dikj is telling me to go to", next.toString(), 'from', creepController.getCharacter().getLocation().toString());
+                } else {
+                    console.log("Failed!");
+                }
+            } else {
                 console.log("closeQtrDikj is telling me to go to", next.toString(), 'from', creepController.getCharacter().getLocation().toString());
             }
             var dir = creepController.getCharacter().getLocation().directionTo(next);
