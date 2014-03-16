@@ -1,6 +1,4 @@
-require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"jquery":[function(require,module,exports){
-module.exports=require('TZeL/P');
-},{}],"TZeL/P":[function(require,module,exports){
+require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"TZeL/P":[function(require,module,exports){
 (function (global){
 (function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
 /*! jQuery v1.11.0 | (c) 2005, 2014 jQuery Foundation, Inc. | jquery.org/license */
@@ -13,6 +11,8 @@ module.exports=require('TZeL/P');
 }).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],"jquery":[function(require,module,exports){
+module.exports=require('TZeL/P');
 },{}],3:[function(require,module,exports){
 
 var RGB = require('./RGB');
@@ -336,7 +336,7 @@ Game.prototype = {
 };
 
 module.exports = Game;
-},{"./Chat":3,"./InputTrigger":6,"./Utility":8,"./creeps/Hero":17,"./creeps/HeroController":18,"./levels/LevelFactory":26,"./map/Direction":34}],5:[function(require,module,exports){
+},{"./Chat":3,"./InputTrigger":6,"./Utility":8,"./creeps/Hero":17,"./creeps/HeroController":18,"./levels/LevelFactory":30,"./map/Direction":38}],5:[function(require,module,exports){
 function GameObject() {
 }
 
@@ -1040,6 +1040,18 @@ CoreStats.EasySeed = {
     con: 8
 };
 
+CoreStats.MediumGain = {
+    str: 1.0,
+    agi: 1.0,
+    con: 1.0
+};
+
+CoreStats.MediumSeed = {
+    str: 10,
+    agi: 10,
+    con: 10
+};
+
 CoreStats.FastSeed = {
     str: 10,
     agi: 10,
@@ -1076,6 +1088,42 @@ CoreStats.HardGain = {
     str: 1.2,
     agi: 1.2,
     con: 1.2
+};
+
+CoreStats.GlassCannonSeed = {
+    str: 20,
+    agi: 8,
+    con: 2
+};
+
+CoreStats.GlassCannonGain = {
+    str: 1.2,
+    agi: 1.2,
+    con: 0.2
+};
+
+CoreStats.LumberingMonstrositySeed = {
+    str: 20,
+    agi: 3,
+    con: 20
+};
+
+CoreStats.LumberingMonstrosityGain = {
+    str: 1.2,
+    agi: 0.3,
+    con: 1.5
+};
+
+CoreStats.NinjaSeed = {
+    str: 13,
+    agi: 30,
+    con: 5
+};
+
+CoreStats.NinjaGain = {
+    str: 1.0,
+    agi: 2.0,
+    con: 0.1,
 };
 
 CoreStats.prototype = new Experience();
@@ -1245,8 +1293,8 @@ util.extend(CreepController, {
 
         if(this.getCharacter().getStats().resolveHit(target.getStats())) {
             var dmg = this.getCharacter().getStats().resolveDamage(target.getStats());
-            target.applyDamage(dmg, this.getCharacter().getRGB());
             Chat.warn(this.character.getHitMessage());
+            target.applyDamage(dmg, this.getCharacter().getRGB());
         } else {
             Chat.debug(this.character.getMissMessage());
         }
@@ -1291,7 +1339,10 @@ var CoreStats = require('./CoreStats');
 var FastStats = require('./stats/FastStats');
 var SlowStats = require('./stats/SlowStats');
 var EasyStats = require('./stats/EasyStats');
-var HardStats = require('./stats/EasyStats');
+var HardStats = require('./stats/HardStats');
+var GlassCannonStats = require('./stats/GlassCannonStats');
+var LumberingMonstrosityStats = require('./stats/LumberingMonstrosityStats');
+var NinjaStats = require('./stats/NinjaStats');
 
 
 module.exports = {
@@ -1453,10 +1504,79 @@ module.exports = {
         };
 
         return new Creep(options);
+    },
+	getSheDevil: function(rgb, level) {
+        var options = {
+            name: 'she-devil',
+            repr: 'S',
+            radiusSquared: 999,
+            rgb: rgb,
+
+            alertRange: 0,
+            numActions: 2,
+            stats: new NinjaStats(level),
+            messages: new Messages(
+                "she-devil",
+                {
+                    hit: "The she-devil swipes at you with her poisonous claws",
+                    miss: "The she-devil's baneful claws miss you by mere inches",
+                    alert: "The she-devil alerts no one...she wants you all to herself",
+                    death: "The she-devil saves her last breath for a diatribe as cutting as her claws"
+                }
+            )
+        };
+
+        return new Creep(options);
+    },
+	getGiant: function(rgb, level) {
+        var options = {
+            name: 'giant',
+            repr: 'G',
+            radiusSquared: 45,
+            rgb: rgb,
+
+            alertRange: 15,
+            numActions: .5,
+            stats: new LumberingMonstrosityStats(level),
+            messages: new Messages(
+                "giant",
+                {
+                    hit: "The giant's massive fist almost knocks you into another dimension",
+                    miss: "The giant stomps the ground next to you with his colossal foot",
+                    alert: "The giant rallies surrounding creeps visible from his high vantage point",
+                    death: "The giant teeters precariously before crashing to the ground in a deafening cacophony"
+                }
+            )
+        };
+
+        return new Creep(options);
+    },
+	getBull: function(rgb, level) {
+        var options = {
+            name: 'bull',
+            repr: 'B',
+            radiusSquared: 20,
+            rgb: rgb,
+
+            alertRange: 10,
+            numActions: 3,
+            stats: new GlassCannonStats(level),
+            messages: new Messages(
+                "bull",
+                {
+                    hit: "The bull puts its enormous bulk to good use and tramples you violenty",
+                    miss: "You veer out of the bull's killing path at the last second",
+                    alert: "The bull's thundering hooves bring nearby enemies in tow",
+                    death: "The bull falls on its side from exhaustion, snorts once, and then dies"
+                }
+            )
+        };
+
+        return new Creep(options);
     }
 };
 
-},{"../RGB":7,"./CoreStats":11,"./Creep":12,"./Messages":19,"./stats/EasyStats":20,"./stats/FastStats":21,"./stats/SlowStats":22}],15:[function(require,module,exports){
+},{"../RGB":7,"./CoreStats":11,"./Creep":12,"./Messages":19,"./stats/EasyStats":20,"./stats/FastStats":21,"./stats/GlassCannonStats":22,"./stats/HardStats":23,"./stats/LumberingMonstrosityStats":24,"./stats/NinjaStats":25,"./stats/SlowStats":26}],15:[function(require,module,exports){
 var Experience = require('./Experience');
 var Utility = require('./../Utility');
 var Chat = require('../Chat');
@@ -1828,6 +1948,78 @@ module.exports = FastStats;
 },{"../CoreStats":11}],22:[function(require,module,exports){
 var CoreStats = require('../CoreStats');
 
+function GlassCannonStats(level) {
+    this.str = CoreStats.GlassCannonSeed.str;
+    this.agi = CoreStats.GlassCannonSeed.agi;
+    this.con = CoreStats.GlassCannonSeed.con;
+    this.level = 3;
+    this.statGain = CoreStats.GlassCannonGain;
+    for (var i = 0; i < level; i++) {
+        this.levelUp();
+    }
+    this.experience = this.getXPForLevel(level);
+}
+
+GlassCannonStats.prototype = new CoreStats();
+
+module.exports = GlassCannonStats;
+},{"../CoreStats":11}],23:[function(require,module,exports){
+var CoreStats = require('../CoreStats');
+
+function HardStats(level) {
+    this.str = CoreStats.HardSeed.str;
+    this.agi = CoreStats.HardSeed.agi;
+    this.con = CoreStats.HardSeed.con;
+    this.level = 0;
+    this.statGain = CoreStats.HardGain;
+    for (var i = 0; i < level; i++) {
+        this.levelUp();
+    }
+    this.experience = this.getXPForLevel(level);
+}
+
+HardStats.prototype = new CoreStats();
+
+module.exports = HardStats;
+},{"../CoreStats":11}],24:[function(require,module,exports){
+var CoreStats = require('../CoreStats');
+
+function LumberingMonstrosityStats(level) {
+    this.str = CoreStats.LumberingMonstrositySeed.str;
+    this.agi = CoreStats.LumberingMonstrositySeed.agi;
+    this.con = CoreStats.LumberingMonstrositySeed.con;
+    this.level = 8;
+    this.statGain = CoreStats.LumberingMonstrosityGain;
+    for (var i = 0; i < level; i++) {
+        this.levelUp();
+    }
+    this.experience = this.getXPForLevel(level);
+}
+
+LumberingMonstrosityStats.prototype = new CoreStats();
+
+module.exports = LumberingMonstrosityStats;
+},{"../CoreStats":11}],25:[function(require,module,exports){
+var CoreStats = require('../CoreStats');
+
+function NinjaStats(level) {
+    this.str = CoreStats.NinjaSeed.str;
+    this.agi = CoreStats.NinjaSeed.agi;
+    this.con = CoreStats.NinjaSeed.con;
+    this.level = 2;
+    this.statGain = CoreStats.NinjaGain;
+    for (var i = 0; i < level; i++) {
+        this.levelUp();
+    }
+    this.experience = this.getXPForLevel(level);
+}
+
+NinjaStats.prototype = new CoreStats();
+
+module.exports = NinjaStats;
+},{"../CoreStats":11}],26:[function(require,module,exports){
+var CoreStats = require('../CoreStats');
+
 function SlowStats(level) {
     this.str = CoreStats.SlowSeed.str;
     this.agi = CoreStats.SlowSeed.agi;
@@ -1843,7 +2035,7 @@ function SlowStats(level) {
 SlowStats.prototype = new CoreStats();
 
 module.exports = SlowStats;
-},{"../CoreStats":11}],23:[function(require,module,exports){
+},{"../CoreStats":11}],27:[function(require,module,exports){
 var Game = require('./Game');
 var Dijkstra = require('./map/Dijkstra');
 var RenderCompositor = require('./render/RenderCompositor');
@@ -1989,10 +2181,12 @@ $(function() {
     Chat.log("Arrows to move/attack");
     Chat.log("1,2,3 to switch dimensions");
     Chat.log("Space to activate power up (blue bar)");
+	Chat.log("^ = upstairs to next dungeon floor");
+	Chat.log("/ = downstairs to previous dungeon floor");
     Chat.ding("Escape the dungeon!");
     Chat.log('(head upstairs "^")');
 });
-},{"./Chat":3,"./Game":4,"./Utility":8,"./map/Dijkstra":33,"./render/RenderCompositor":40}],24:[function(require,module,exports){
+},{"./Chat":3,"./Game":4,"./Utility":8,"./map/Dijkstra":37,"./render/RenderCompositor":44}],28:[function(require,module,exports){
 
 // all of the creeps one would find in a cave!
 var CreepFactory = require('../creeps/CreepFactory');
@@ -2041,7 +2235,7 @@ function spawnCreeps(tileMap, creepMap, poi, rgb, heroLevel) {
 module.exports = {
     spawnCreeps: spawnCreeps
 };
-},{"../creeps/CreepFactory":14,"../map/Direction":34,"../map/Location":35}],25:[function(require,module,exports){
+},{"../creeps/CreepFactory":14,"../map/Direction":38,"../map/Location":39}],29:[function(require,module,exports){
 var CreepMap = require('../map/CreepMap');
 var CreepController = require('../creeps/CreepController');
 
@@ -2085,7 +2279,7 @@ Level.prototype = {
 };
 
 module.exports = Level;
-},{"../creeps/CreepController":13,"../map/CreepMap":32}],26:[function(require,module,exports){
+},{"../creeps/CreepController":13,"../map/CreepMap":36}],30:[function(require,module,exports){
 var Level = require('./Level');
 var RGB = require('../RGB');
 var LevelUtils = require('./LevelUtils');
@@ -2096,6 +2290,7 @@ var CaveSpawner = require('./CaveSpawner');
 var Spawner = require('./Spawner');
 var CreepFactory = require('./../creeps/CreepFactory');
 var CityBuilder = require('./builders/CityBuilder');
+var util = require('./../Utility');
 
 function initTileMapAndCreepMap(level) {
     var randWidth = Math.round(Math.random() * (10 + level/2));
@@ -2147,6 +2342,27 @@ function makeSimpleMonotoneLevel(level, heroLevel) {
     creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, rgb, spawnFunction, 3, heroLevel));
     creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, rgb, spawnFunction, 1, heroLevel + 2));
 
+	// 30% chance to spawn some bulls to mix things up
+	if (Math.random() < .30) {
+		poi = CaveBuilder.build(tileMap, rgb, [upStairsLoc, downStairsLoc]);
+		spawnFunction = CreepFactory.getBull;
+		creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, rgb, spawnFunction, 1, heroLevel));
+	}
+	
+	// 10% chance to spawn a she-devil to surprise the player
+	if (Math.random() < .10) {
+		poi = CaveBuilder.build(tileMap, rgb, [upStairsLoc, downStairsLoc]);
+		spawnFunction = CreepFactory.getSheDevil;
+		creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, [poi[util.rand(0, poi.length - 1)]], rgb, spawnFunction, 1, heroLevel));
+	}
+	
+	// 5% chance to spawn a giant to rickroll the player
+	if (Math.random() < .05) {
+		poi = CaveBuilder.build(tileMap, rgb, [upStairsLoc, downStairsLoc]);
+		spawnFunction = CreepFactory.getGiant;
+		creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, [poi[util.rand(0, poi.length - 1)]], rgb, spawnFunction, 1, heroLevel));
+	}
+	
     return new Level(tileMap, creepMap, creeps);
 }
 
@@ -2198,6 +2414,39 @@ function makeDoubleDimensionLevel(level, heroLevel) {
     creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, secondDimRGB, spawnFunction, 3, heroLevel));
     creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, secondDimRGB, spawnFunction, 1, heroLevel + 1));
 
+	// She-Devil level
+	poi = CaveBuilder.build(tileMap, secondDimRGB, [upStairsLoc, downStairsLoc]);
+	if (heroLevel > 10) {
+        spawnFunction = CreepFactory.getSheDevil;
+        creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, secondDimRGB, spawnFunction, 1, heroLevel));
+    }
+    if (heroLevel > 15) {
+        spawnFunction = CreepFactory.getSheDevil;
+        creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, secondDimRGB, spawnFunction, 2, heroLevel + 2));
+    }
+	
+	// Giant level
+	poi = CaveBuilder.build(tileMap, firstDimRGB, [upStairsLoc, downStairsLoc]);
+	if (heroLevel > 10) {
+        spawnFunction = CreepFactory.getGiant;
+        creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, firstDimRGB, spawnFunction, 2, heroLevel));
+    }
+    if (heroLevel > 20) {
+        spawnFunction = CreepFactory.getGiant;
+        creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, firstDimRGB, spawnFunction, 4, heroLevel + 2));
+    }
+	
+	// Bull level
+	poi = CaveBuilder.build(tileMap, firstDimRGB, [upStairsLoc, downStairsLoc]);
+	if (heroLevel > 5) {
+        spawnFunction = CreepFactory.getBull;
+        creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, firstDimRGB, spawnFunction, 5, heroLevel));
+    }
+    if (heroLevel > 10) {
+        spawnFunction = CreepFactory.getBull;
+        creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, firstDimRGB, spawnFunction, 10, heroLevel + 2));
+    }
+	
     return new Level(tileMap, creepMap, creeps);
 }
 
@@ -2252,7 +2501,7 @@ function getLevel(dungeonLevel, heroLevel) {
 module.exports = {
     getLevel: getLevel
 };
-},{"../RGB":7,"../map/CreepMap":32,"../map/TileMap":38,"./../creeps/CreepFactory":14,"./CaveSpawner":24,"./Level":25,"./LevelUtils":27,"./Spawner":28,"./builders/CaveBuilder":29,"./builders/CityBuilder":30}],27:[function(require,module,exports){
+},{"../RGB":7,"../map/CreepMap":36,"../map/TileMap":42,"./../Utility":8,"./../creeps/CreepFactory":14,"./CaveSpawner":28,"./Level":29,"./LevelUtils":31,"./Spawner":32,"./builders/CaveBuilder":33,"./builders/CityBuilder":34}],31:[function(require,module,exports){
 var RGB = require('../RGB');
 var Location = require('../map/Location');
 
@@ -2327,7 +2576,7 @@ module.exports = {
     }
 };
 
-},{"../RGB":7,"../map/Location":35}],28:[function(require,module,exports){
+},{"../RGB":7,"../map/Location":39}],32:[function(require,module,exports){
 
 var Direction = require('./../map/Direction');
 
@@ -2364,7 +2613,7 @@ module.exports = {
     spawn: addCreepsNearPoi
 };
 
-},{"./../map/Direction":34}],29:[function(require,module,exports){
+},{"./../map/Direction":38}],33:[function(require,module,exports){
 var Location = require('../../map/Location');
 var Direction = require('../../map/Direction');
 var CoarserMap = require('../../map/CoarserMap');
@@ -2539,7 +2788,7 @@ function buildCaveSystem(tileMap, rgb, includeLocs) {
 module.exports = {
     build: buildCaveSystem
 };
-},{"../../map/CoarserMap":31,"../../map/Direction":34,"../../map/Location":35}],30:[function(require,module,exports){
+},{"../../map/CoarserMap":35,"../../map/Direction":38,"../../map/Location":39}],34:[function(require,module,exports){
 var Location = require('../../map/Location');
 var Direction = require('../../map/Direction');
 var CoarserMap = require('../../map/CoarserMap');
@@ -2698,7 +2947,7 @@ function buildCitySystem(tileMap, rgb, includeLocs) {
 module.exports = {
     build: buildCitySystem
 };
-},{"../../map/CoarserMap":31,"../../map/Direction":34,"../../map/Location":35}],31:[function(require,module,exports){
+},{"../../map/CoarserMap":35,"../../map/Direction":38,"../../map/Location":39}],35:[function(require,module,exports){
 var Map = require('./Map');
 var Location = require('./Location');
 
@@ -2737,7 +2986,7 @@ CoarserMap.prototype = {
 
 
 module.exports = CoarserMap;
-},{"./Location":35,"./Map":36}],32:[function(require,module,exports){
+},{"./Location":39,"./Map":40}],36:[function(require,module,exports){
 var Location = require('./Location');
 var Map = require('./Map');
 
@@ -2814,7 +3063,7 @@ CreepMap.prototype = {
 };
 
 module.exports = CreepMap;
-},{"./Location":35,"./Map":36}],33:[function(require,module,exports){
+},{"./Location":39,"./Map":40}],37:[function(require,module,exports){
 var Location = require('./Location');
 
 /* Runs Dijkstra to compute moveMap. Each value in moveMap is one of the following offsets
@@ -2924,7 +3173,7 @@ Dijkstra.prototype = {
 };
 
 module.exports = Dijkstra;
-},{"./Location":35}],34:[function(require,module,exports){
+},{"./Location":39}],38:[function(require,module,exports){
 function Direction(x, y) {
     var result;
     if (Math.abs(x) + Math.abs(y) > 1) {
@@ -3025,7 +3274,7 @@ Direction.randomDir = function() {
 
 
 module.exports = Direction;
-},{}],35:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 var Direction = require('./Direction');
 
 function Location(x, y) {
@@ -3078,7 +3327,7 @@ Location.prototype = {
 };
 
 module.exports = Location;
-},{"./Direction":34}],36:[function(require,module,exports){
+},{"./Direction":38}],40:[function(require,module,exports){
 var Location = require('./Location');
 
 var Map = {
@@ -3128,7 +3377,7 @@ var Map = {
 
 
 module.exports = Map;
-},{"./Location":35}],37:[function(require,module,exports){
+},{"./Location":39}],41:[function(require,module,exports){
 var GameObject = require('../GameObject');
 var RGB = require('../RGB');
 var util = require('./../Utility');
@@ -3150,7 +3399,7 @@ util.inherit(Tile, GameObject);
 
 module.exports = Tile;
 
-},{"../GameObject":5,"../RGB":7,"./../Utility":8}],38:[function(require,module,exports){
+},{"../GameObject":5,"../RGB":7,"./../Utility":8}],42:[function(require,module,exports){
 var Location = require('./Location');
 var Map = require('./Map');
 var Tile = require('./Tile');
@@ -3236,7 +3485,7 @@ TileMap.prototype = {
 };
 
 module.exports = TileMap;
-},{"./Location":35,"./Map":36,"./Tile":37}],39:[function(require,module,exports){
+},{"./Location":39,"./Map":40,"./Tile":41}],43:[function(require,module,exports){
 /* Draws the game hud. */
 var RGB = require('./../RGB');
 var Location = require('./../map/Location');
@@ -3491,7 +3740,7 @@ HudRenderer.HUD_HEALTH_SYM_COUNT = 5;
 /**** End HUD symbol bar stuff ****/
 
 module.exports = HudRenderer;
-},{"./../RGB":7,"./../map/Location":35}],40:[function(require,module,exports){
+},{"./../RGB":7,"./../map/Location":39}],44:[function(require,module,exports){
 /* Composes the master canvas with the hidden sub-canvases for game, hud, etc. */
 var Renderer = require('./Renderer');
 var HudRenderer = require('./HudRenderer');
@@ -3555,7 +3804,7 @@ RenderCompositor.prototype = {
 RenderCompositor.HUD_PERCENT = .25;
 
 module.exports = RenderCompositor;
-},{"./HudRenderer":39,"./Renderer":41}],41:[function(require,module,exports){
+},{"./HudRenderer":43,"./Renderer":45}],45:[function(require,module,exports){
 /* Renders the game to the canvas. */
 var Location = require('./../map/Location');
 var Tile = require('./../map/Tile');
@@ -3744,7 +3993,7 @@ Renderer.FONT = "12px Arial";
 Renderer.FONT_HEIGHT = parseInt(Renderer.FONT) * .5;
 Renderer.GAME_TITLE = "RGB";
 Renderer.SCORE_TXT = "Score: ";
-Renderer.DUNGEON_LVL_TXT = "Dungeon: ";
+Renderer.DUNGEON_LVL_TXT = "Dungeon Floor: ";
 Renderer.GAME_INFO_COLOR = RGB.LightGreen.toString();
 Renderer.GAME_TITLE_FONT = "24px Impact";
 Renderer.GAME_TITLE_FONT_HEIGHT = parseInt(Renderer.GAME_TITLE_FONT) * 1.0;
@@ -3754,4 +4003,4 @@ Renderer.GAME_INFO_BUFFER_SPACE_X = 40;
 Renderer.GAME_INFO_BUFFER_SPACE_Y = 20;
 
 module.exports = Renderer;
-},{"../RGB":7,"./../map/Location":35,"./../map/Tile":37}]},{},[23])
+},{"../RGB":7,"./../map/Location":39,"./../map/Tile":41}]},{},[27])
