@@ -57,13 +57,17 @@ function drawSymbol(entity, loc, filter, isHero) {
 	}*/
 }
 
-function drawText(txt, loc, color, font) {
-	// Set font size
-	this.context.font = font ? font : Renderer.FONT;
+/* Why not just compute fontHeight from font? Good question. Apparently formula
+   for approximating font height varies by font and possibly zoom, so have to 
+   pass it in so that the ideal formula can be used. If it's not passed, 
+   assume parseInt(font) * .5, which works great for the game font. */
+function drawText(txt, loc, color, font, fontHeight) {
+	this.context.font = font == undefined ? Renderer.FONT : font;
+	fontHeight = fontHeight == undefined ? Renderer.FONT_HEIGHT : fontHeight;
 	this.context.fillStyle = color;
 	var txt = txt;
 	var txtWidth = this.context.measureText(txt).width;
-	var txtHeight = parseInt(Renderer.FONT) * .5; // approx height
+	var txtHeight = fontHeight; // approx height
 	this.context.fillText(txt,
 		loc.x - txtWidth/2, 
 		loc.y + txtHeight/2);
@@ -139,6 +143,21 @@ Renderer.prototype = {
 			}
 		}
 		
+		// Draw game title using current filter
+		drawText.call(this, Renderer.GAME_TITLE, 
+			new Location(this.canvas.width/(2 * this.zoomFactor) - Renderer.GAME_INFO_BUFFER_SPACE_X,
+						 -this.canvas.height/(2 * this.zoomFactor) + Renderer.GAME_INFO_BUFFER_SPACE_Y), 
+						 filter.toString(), 
+						 Renderer.GAME_TITLE_FONT,
+						 Renderer.GAME_TITLE_FONT_HEIGHT);
+		// Draw score using current filter
+		drawText.call(this, Renderer.SCORE_TXT, 
+			new Location(-this.canvas.width/(2 * this.zoomFactor) + Renderer.GAME_INFO_BUFFER_SPACE_X,
+						 -this.canvas.height/(2 * this.zoomFactor) + Renderer.GAME_INFO_BUFFER_SPACE_Y), 
+						 filter.toString(), 
+						 Renderer.GAME_SCORE_FONT,
+						 Renderer.GAME_SCORE_FONT_HEIGHT);
+		
 		this.context.restore();
     }
 };
@@ -157,5 +176,15 @@ Renderer.BACKGROUND_COLOR = RGB.Black.toString();
 Renderer.GAME_TO_CANVAS = 18;
 Renderer.TILE_WIDTH = 15;
 Renderer.FONT = "12px Arial";
+Renderer.FONT_HEIGHT = parseInt(Renderer.FONT) * .5;
+Renderer.GAME_TITLE = "RGB";
+Renderer.SCORE_TXT = "Score: ";
+Renderer.GAME_INFO_COLOR = RGB.LightGreen.toString();
+Renderer.GAME_TITLE_FONT = "24px Impact";
+Renderer.GAME_TITLE_FONT_HEIGHT = parseInt(Renderer.GAME_TITLE_FONT) * 1.0;
+Renderer.GAME_SCORE_FONT = "12px Impact";
+Renderer.GAME_SCORE_FONT_HEIGHT = parseInt(Renderer.GAME_SCORE_FONT) * 1.0;
+Renderer.GAME_INFO_BUFFER_SPACE_X = 40;
+Renderer.GAME_INFO_BUFFER_SPACE_Y = 20;
 
 module.exports = Renderer;
