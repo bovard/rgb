@@ -1,6 +1,6 @@
 require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"jquery":[function(require,module,exports){
-module.exports=require('xJyVff');
-},{}],"xJyVff":[function(require,module,exports){
+module.exports=require('TZeL/P');
+},{}],"TZeL/P":[function(require,module,exports){
 (function (global){
 (function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
 /*! jQuery v1.11.0 | (c) 2005, 2014 jQuery Foundation, Inc. | jquery.org/license */
@@ -59,20 +59,20 @@ module.exports = {
 };
 },{"./RGB":7}],4:[function(require,module,exports){
 var Hero = require('./creeps/Hero');
-var TestLevel = require('./levels/TestLevel');
 var Direction = require('./map/Direction');
 var InputTrigger = require('./InputTrigger');
-var TestLevelCreator = require('./levels/TestLevelCreator');
+var LevelFactory = require('./levels/LevelFactory');
 var HeroController = require('./creeps/HeroController');
 var Chat = require('./Chat');
+var util = require('./Utility');
 
 
 function Game(deathCallback) {
     this.hero = new Hero(deathCallback);
     this.heroController = new HeroController(null, null, this.hero);
     this.levels = [];
-    this.generateNewLevel();
     this.levelIndex = 0;
+    this.generateNewLevel();
     this.moveHeroToLevel(0);
     this.chat = chat;
 	this.input = {};
@@ -105,17 +105,70 @@ Game.prototype = {
             var next = closeQuartersDijk.getNextTile(creepController.getCharacter().getLocation());
             if (!next) {
                 next = dijk.getNextTile(creepController.getCharacter().getLocation());
-                console.log("Dikj is telling me to go to", next.toString(), 'from', creepController.getCharacter().getLocation().toString());
+                if (next)
+					console.log("Dikj is telling me to go to", next.toString(), 'from', creepController.getCharacter().getLocation().toString());
             }
             else {
-                console.log("closeQtrDikj is telling me to go to", next.toString(), 'from', creepController.getCharacter().getLocation().toString());
+				if (next)
+					console.log("closeQtrDikj is telling me to go to", next.toString(), 'from', creepController.getCharacter().getLocation().toString());
             }
-            var dir = creepController.getCharacter().getLocation().directionTo(next);
-            if (creepController.canMove(dir)) {
-                creepController.move(dir);
-            }
+			if (next) {
+				var dir = creepController.getCharacter().getLocation().directionTo(next);
+				if (creepController.canMove(dir)) {
+					creepController.move(dir);
+				} else {
+					// Dijkstra should never tell the creep to move where it can't BUT just in case it does
+					this.doBestAdjacentMove(creepController);
+				}
+			} else {
+				this.doBestAdjacentMove(creepController);
+			}
         }
     },
+	/* This serves as a workaround for the problem state we've been running into where both
+	   closeQtrDijkstra and dijkstra have no information for a particular creep location,
+	   which causes errors. As root cause is unknown, we will simply attempt the best adjacent
+	   move in this scenario and if that fails keep the creep stationary. */
+	doBestAdjacentMove: function(creepController) {
+		var dir = Direction.NORTH;
+		var loc = creepController.getCharacter().getLocation();
+		var heroLoc = creepController.getCreepMap().getHero().getLocation();
+		var left = 100000;
+		var right = 100000;
+		var straight = 100000;
+		var behind = 100000;
+		var canMove = false;
+		var moveWeights = [];
+		var moves = {};
+		if (creepController.canMove(dir)) {
+			canMove = true;
+			straight = loc.add(dir).distanceSquaredTo(heroLoc);
+			moveWeights.push(straight);
+			moves[straight] = dir;
+		}
+		if (creepController.canMove(dir.rotateLeft())) {
+			canMove = true;
+			left = loc.add(dir.rotateLeft()).distanceSquaredTo(heroLoc);
+			moveWeights.push(left);
+			moves[left] = dir.rotateLeft();
+		}
+		if (creepController.canMove(dir.rotateRight())) {
+			canMove = true;
+			right = loc.add(dir.rotateRight()).distanceSquaredTo(heroLoc);
+			moveWeights.push(right);
+			moves[right] = dir.rotateRight();
+		}
+		if (creepController.canMove(dir.opposite())) {
+			canMove = true;
+			behind = loc.add(dir.opposite()).distanceSquaredTo(heroLoc);
+			moveWeights.push(behind);
+			moves[behind] = dir.opposite();
+		}
+		if (canMove) {
+			moveWeights.sort(util.op("sortAsc"));
+			creepController.move(moves[moveWeights[0]]);
+		}
+	},
 	/* dijk - move map where the absence of a tile is the obstacle
        closeQuartersDijk - move map of radius sqaured r^2 around hero where the presence 
 						   of a creep is the obstacle */
@@ -207,7 +260,7 @@ Game.prototype = {
         }
     },
     getScore: function() {
-        return Math.round(Math.random() * 12234 + 1);
+        return (this.levels.length - 1) * 1000 + this.heroController.getScore();
     },
     getDungeonLevel: function() {
         return this.levelIndex + 1;
@@ -243,7 +296,11 @@ Game.prototype = {
         }, this);
 	},
     generateNewLevel: function() {
-        this.levels.push(TestLevelCreator.createLevel(50, 50));
+        if (!this.levels.length) {
+            this.levels.push(LevelFactory.getLevel(0, this.hero.getLevel()));
+        } else {
+            this.levels.push(LevelFactory.getLevel(this.levelIndex + 1, this.hero.getLevel()));
+        }
     },
     moveHeroToLevel: function(index) {
         if (this.level) {
@@ -279,7 +336,7 @@ Game.prototype = {
 };
 
 module.exports = Game;
-},{"./Chat":3,"./InputTrigger":6,"./creeps/Hero":17,"./creeps/HeroController":18,"./levels/TestLevel":24,"./levels/TestLevelCreator":25,"./map/Direction":29}],5:[function(require,module,exports){
+},{"./Chat":3,"./InputTrigger":6,"./Utility":8,"./creeps/Hero":17,"./creeps/HeroController":18,"./levels/LevelFactory":26,"./map/Direction":34}],5:[function(require,module,exports){
 function GameObject() {
 }
 
@@ -971,6 +1028,56 @@ CoreStats.HeoStatSeed = {
     con: 12
 };
 
+CoreStats.EasyGain = {
+    str: .8,
+    agi: .8,
+    con: .8
+};
+
+CoreStats.EasySeed = {
+    str: 8,
+    agi: 8,
+    con: 8
+};
+
+CoreStats.FastSeed = {
+    str: 10,
+    agi: 10,
+    con: 5
+};
+
+CoreStats.FastGain = {
+    str: 1,
+    agi: 1,
+    con:.5
+};
+
+
+CoreStats.SlowSeed = {
+    str: 20,
+    agi: 10,
+    con: 20
+};
+
+CoreStats.SlowGain = {
+    str: 2,
+    agi: .9,
+    con: 2
+};
+
+
+CoreStats.HardSeed = {
+    str: 12,
+    agi: 12,
+    con: 12
+};
+
+CoreStats.HardGain = {
+    str: 1.2,
+    agi: 1.2,
+    con: 1.2
+};
+
 CoreStats.prototype = new Experience();
 
 Utility.extend(CoreStats, {
@@ -1181,6 +1288,10 @@ var Creep = require("./Creep");
 var Messages = require("./Messages");
 var RGB = require('../RGB');
 var CoreStats = require('./CoreStats');
+var FastStats = require('./stats/FastStats');
+var SlowStats = require('./stats/SlowStats');
+var EasyStats = require('./stats/EasyStats');
+var HardStats = require('./stats/EasyStats');
 
 
 module.exports = {
@@ -1192,7 +1303,7 @@ module.exports = {
             rgb: rgb,
 
             numActions: 1,
-            stats: new CoreStats(level || 1),
+            stats: new CoreStats(level),
             messages: new Messages(
                 "Gnome",
                 {
@@ -1208,6 +1319,30 @@ module.exports = {
 
         return new Creep(options);
     },
+    getConstruct: function(rgb, level) {
+        var options = {
+            name: 'gnomish construct',
+            repr: 'c',
+            radiusSquared: 8,
+            rgb: rgb,
+
+            numActions: .5,
+            stats: new SlowStats(level),
+            messages: new Messages(
+                "Gnomish Construct",
+                {
+
+                    hit: "The gnomish construct slams its fist into you.",
+                    miss: "The gnomish construct wiffs.",
+                    alert: "The gnomish construct sounds the alarm and lumbers toward you.",
+                    death: "The gnomish construct falls to the ground."
+
+                }
+            )
+        };
+
+        return new Creep(options);
+    },
     getOrc: function(rgb, level) {
         var options = {
             name: 'orc',
@@ -1216,14 +1351,103 @@ module.exports = {
             rgb: rgb,
 
             numActions: 1,
-            stats: new CoreStats(level || 1),
+            stats: new CoreStats(level),
             messages: new Messages(
                 "Orc",
                 {
                     hit: "The orc slashes into with its curved scimitar",
                     miss: "The orc slashes at the air next to your face",
                     alert: "The orc yells, 'Ruuuush' and runs toward you",
-                    death: "The orc cries out for it's bretheren"
+                    death: "The orc cries out for its bretheren"
+                }
+            )
+        };
+
+        return new Creep(options);
+    },
+    getOrcBoss: function(rgb, level) {
+        var options = {
+            name: 'orc boss',
+            repr: 'O',
+            radiusSquared: 16,
+            rgb: rgb,
+
+            numActions: 1,
+            stats: new HardStats(level),
+            messages: new Messages(
+                "Orc Boss",
+                {
+                    hit: "The orc boss slams you with its club",
+                    miss: "The orc boss misses you!",
+                    alert: "The orc boss yells, 'For Gulb!' and races toward you",
+                    death: "The orc boss cries out for its bretheren"
+                }
+            )
+        };
+
+        return new Creep(options);
+    },
+    getOrcHunter: function(rgb, level) {
+        var options = {
+            name: 'orc hunter',
+            repr: 'h',
+            radiusSquared: 64,
+            rgb: rgb,
+
+            alertRange: 2,
+            numActions: 2,
+            stats: new FastStats(level),
+            messages: new Messages(
+                "Orc Hunter",
+                {
+                    hit: "The orc hunter slips its dagger into your side",
+                    miss: "The orc hunter misses you!",
+                    alert: "An orc hunter sounds the hunt is on",
+                    death: "The orc hunter cries out for its bretheren"
+                }
+            )
+        };
+
+        return new Creep(options);
+    },
+    getRat: function(rgb, level) {
+        var options = {
+            name: 'giant rat',
+            repr: 'r',
+            radiusSquared: 4,
+            rgb: rgb,
+
+            numActions: 1,
+            stats: new EasyStats(level),
+            messages: new Messages(
+                "Rat",
+                {
+                    hit: "The rat bites into your flesh with its yellow teeth",
+                    miss: "The rat lunges for you but misses!",
+                    alert: "The rat squeaks hungrily and closes.",
+                    death: "The rat squeaks and dies"
+                }
+            )
+        };
+
+        return new Creep(options);
+    },
+    getRatKing: function(rgb, level) {
+        var options = {
+            name: 'rat king',
+            repr: 'R',
+            radiusSquared: 25,
+            rgb: rgb,
+
+            numActions: 1,
+            stats: new HardStats(level),
+            messages: new Messages(
+                "Rat",
+                {
+                    hit: "The rat king bites into your flesh with its yellow teeth",
+                    miss: "The rat king lunges for you but misses!",
+                    alert: "The rat king squeaks regally and closes.",
+                    death: "The rat king squeaks and dies"
                 }
             )
         };
@@ -1232,7 +1456,7 @@ module.exports = {
     }
 };
 
-},{"../RGB":7,"./CoreStats":11,"./Creep":12,"./Messages":19}],15:[function(require,module,exports){
+},{"../RGB":7,"./CoreStats":11,"./Creep":12,"./Messages":19,"./stats/EasyStats":20,"./stats/FastStats":21,"./stats/SlowStats":22}],15:[function(require,module,exports){
 var Experience = require('./Experience');
 var Utility = require('./../Utility');
 var Chat = require('../Chat');
@@ -1325,7 +1549,6 @@ function Hero(deathCallback) {
     this.numActions = 1;
 	this.stats = new CoreStats(1, CoreStats.HeroStatGain, CoreStats.HeoStatSeed);
     this.health = this.stats.getMaxHealth();
-    console.log("made hero with hp:", this.health);
     this.rgb = new RGB(255, 255, 255);
     this.repr = '@';
     this.dimensions = [
@@ -1375,7 +1598,6 @@ util.extend(Hero, {
         return Math.round((this.powerUpCount * 100)/this.requiredPowerUps);
     },
     canPowerUp: function() {
-        console.log(this.powerUpCount, "===", this.requiredPowerUps);
         return this.powerUpCount === this.requiredPowerUps;
     },
     powerUp: function() {
@@ -1386,11 +1608,9 @@ util.extend(Hero, {
         this.poweredUp = true;
     },
     addPowerUpCount: function() {
-        console.log("Adding to powerup count");
         if (!this.poweredUp) {
             this.powerUpCount = Math.min(this.powerUpCount + 1, this.requiredPowerUps);
         }
-        console.log("Powerups:", this.powerUpCount);
     },
     removePowerUpCount: function() {
         this.powerUpCount = Math.max(this.powerUpCount - 1, 0);
@@ -1409,9 +1629,8 @@ util.extend(Hero, {
         this.numActions = number;
     },
 	applyDamage: function(damage, rgb) {
-        // calculate the amount of damage you can do
-        console.log("Applying", damage, " damage to", this.getName());
         // first subtract from shield if there is one
+        Chat.warn("You take " + damage + " damage!");
         if (this.shield > 0) {
             if (this.shield > damage) {
                 this.shield -= damage;
@@ -1473,6 +1692,7 @@ function HeroController(tileMap, creepMap, hero) {
     this.tileMap = tileMap;
     this.creepMap = creepMap;
     this.character = hero;
+    this.score = 0;
 }
 
 HeroController.prototype = new Controller();
@@ -1508,8 +1728,12 @@ util.extend(HeroController, {
         if (target.isDead()) {
             console.log("We killed it!");
             this.character.gainXPForKill(target);
+            this.score += target.getMaxHealth();
             this.getCreepMap().deleteCreepAtLoc(loc);
         }
+    },
+    getScore: function() {
+        return this.score;
     },
     moveOrAttack: function(dir) {
         var toMove = this.getCharacter().location.add(dir);
@@ -1566,6 +1790,60 @@ Messages.prototype = {
 
 module.exports = Messages;
 },{}],20:[function(require,module,exports){
+var CoreStats = require('../CoreStats');
+
+function EasyStats(level) {
+    this.str = CoreStats.EasySeed.str;
+    this.agi = CoreStats.EasySeed.agi;
+    this.con = CoreStats.EasySeed.con;
+    this.level = 0;
+    this.statGain = CoreStats.EasyGain;
+    for (var i = 0; i < level; i++) {
+        this.levelUp();
+    }
+    this.experience = this.getXPForLevel(level);
+}
+
+EasyStats.prototype = new CoreStats();
+
+module.exports = EasyStats;
+},{"../CoreStats":11}],21:[function(require,module,exports){
+var CoreStats = require('../CoreStats');
+
+function FastStats(level) {
+    this.str = CoreStats.FastSeed.str;
+    this.agi = CoreStats.FastSeed.agi;
+    this.con = CoreStats.FastSeed.con;
+    this.level = 0;
+    this.statGain = CoreStats.FastGain;
+    for (var i = 0; i < level; i++) {
+        this.levelUp();
+    }
+    this.experience = this.getXPForLevel(level);
+}
+
+FastStats.prototype = new CoreStats();
+
+module.exports = FastStats;
+},{"../CoreStats":11}],22:[function(require,module,exports){
+var CoreStats = require('../CoreStats');
+
+function SlowStats(level) {
+    this.str = CoreStats.SlowSeed.str;
+    this.agi = CoreStats.SlowSeed.agi;
+    this.con = CoreStats.SlowSeed.con;
+    this.level = 0;
+    this.statGain = CoreStats.SlowGain;
+    for (var i = 0; i < level; i++) {
+        this.levelUp();
+    }
+    this.experience = this.getXPForLevel(level);
+}
+
+SlowStats.prototype = new CoreStats();
+
+module.exports = SlowStats;
+},{"../CoreStats":11}],23:[function(require,module,exports){
 var Game = require('./Game');
 var Dijkstra = require('./map/Dijkstra');
 var RenderCompositor = require('./render/RenderCompositor');
@@ -1614,13 +1892,15 @@ function turn(code) {
         // do dikjstra's on the TileMap to hero location
         game.dikj = new Dijkstra(game.getTileMap(), game.hero.getLocation(), 
 			function(map, loc, startLoc) {
-				return !!map.getTileAtXY(loc.x, loc.y);
+				return !!map.getTileAtXY(loc.x, loc.y) &&
+				!game.getTileMap().getTileAtXY(loc.x, loc.y).getRGB(game.getHero().getDimension().getRGB()).isBlack();
 			});
 		
 		// do dikjstra's on the CreepMap to hero location within radius squared r^2
 		game.closeQuartersDijk = new Dijkstra(game.getCreepMap(), game.hero.getLocation(), 
 			function(map, loc, startLoc) {
-				return !map.getCreepAtLoc(loc) && !!game.getTileMap().getTileAtXY(loc.x, loc.y) && 
+				return !map.getCreepAtLoc(loc) && !!game.getTileMap().getTileAtXY(loc.x, loc.y) &&
+					!game.getTileMap().getTileAtXY(loc.x, loc.y).getRGB(game.getHero().getDimension().getRGB()).isBlack() &&				
 					loc.distanceSquaredTo(startLoc) < Game.CREEP_AVOID_CREEP_RAD_SQR;
 			});
 
@@ -1658,6 +1938,7 @@ function setupRenderCompositor() {
 							game.getHero(), 
 							game.getHero().getDimension().getRGB(),
 							game.getScore(),
+							game.getDungeonLevel(),
 							game.getCloseQtrDijkstra(),
 							game.getDijkstra()];
 				}
@@ -1707,12 +1988,385 @@ $(function() {
 
     Chat.log("Arrows to move/attack");
     Chat.log("1,2,3 to switch dimensions");
+    Chat.log("Space to activate power up (blue bar)");
+    Chat.ding("Escape the dungeon!");
 });
-},{"./Chat":3,"./Game":4,"./Utility":8,"./map/Dijkstra":28,"./render/RenderCompositor":35}],21:[function(require,module,exports){
-var Location = require('../map/Location');
+},{"./Chat":3,"./Game":4,"./Utility":8,"./map/Dijkstra":33,"./render/RenderCompositor":40}],24:[function(require,module,exports){
+
+// all of the creeps one would find in a cave!
+var CreepFactory = require('../creeps/CreepFactory');
 var Direction = require('../map/Direction');
-var Tile = require('../map/Tile');
-var CoarserMap = require('../map/CoarserMap');
+var Location = require('../map/Location');
+
+
+
+function addGnonesNearPoi(tileMap, creepMap, poi, rgb) {
+    var creep;
+    var creeps = [];
+    for (var i = 0; i < poi.length; i++) {
+        var numCreeps = Math.ceil(Math.random() * 2);
+        for (var j = 0; j < numCreeps; j++) {
+            var start = poi[i];
+            start = start.add(Direction.randomDir());
+            start = start.add(Direction.randomDir());
+            index = 0;
+            while((!tileMap.getTileAtLoc(start) || creepMap.getCreepAtLoc(start)) && ++index < 10) {
+                start = start.add(Direction.randomDir());
+            }
+            if (index < 10) {
+                creep = CreepFactory.getGnome(rgb, 1);
+                if (Math.random() < .1) {
+                    creep = CreepFactory.getOrc(rgb, 3);
+
+                }
+                creeps.push(creep);
+                if (!start.isEqualTo(tileMap.getDownStairsLoc()) && !start.isEqualTo(tileMap.getUpStairsLoc())) {
+                    if (tileMap.getTileAtLoc(start).getRGB().mask(rgb).isNotBlack()) {
+                        creepMap.addCreepToMapAtLoc(start, creep);
+                    }
+                }
+            }
+        }
+    }
+    return creeps;
+}
+
+
+function spawnCreeps(tileMap, creepMap, poi, rgb, heroLevel) {
+    return addGnonesNearPoi(tileMap, creepMap, poi, rgb);
+}
+
+
+module.exports = {
+    spawnCreeps: spawnCreeps
+};
+},{"../creeps/CreepFactory":14,"../map/Direction":34,"../map/Location":35}],25:[function(require,module,exports){
+var CreepMap = require('../map/CreepMap');
+var CreepController = require('../creeps/CreepController');
+
+
+function createCreepControllers(tileMap, creepMap, creeps) {
+    var controllers = [];
+    for (var i = 0; i < creeps.length; i++) {
+        controllers.push(
+            new CreepController(tileMap, creepMap, creeps[i])
+        )
+    }
+    return controllers;
+}
+
+function Level(tileMap, creepMap, creeps) {
+    this.tileMap = tileMap;
+    this.creepMap = creepMap;
+    this.creepControllers = createCreepControllers(tileMap, creepMap, creeps);
+
+}
+
+Level.prototype = {
+	getTileMap: function() {
+		return this.tileMap;
+	},
+	getCreepMap: function() {
+		return this.creepMap;
+	},
+    getCreepControllers: function() {
+        var toRemove = [];
+        for (var i = 0; i < this.creepControllers.length; i++) {
+            if (this.creepControllers[i].getCharacter().isDead()) {
+                toRemove.push(this.creepControllers[i]);
+            }
+        }
+        for (i = 0; i < toRemove.length; i++) {
+            this.creepControllers.splice(this.creepControllers.indexOf(toRemove[i]), 1);
+        }
+        return this.creepControllers;
+    }
+};
+
+module.exports = Level;
+},{"../creeps/CreepController":13,"../map/CreepMap":32}],26:[function(require,module,exports){
+var Level = require('./Level');
+var RGB = require('../RGB');
+var LevelUtils = require('./LevelUtils');
+var TileMap = require('../map/TileMap');
+var CreepMap = require('../map/CreepMap');
+var CaveBuilder = require('./builders/CaveBuilder');
+var CaveSpawner = require('./CaveSpawner');
+var Spawner = require('./Spawner');
+var CreepFactory = require('./../creeps/CreepFactory');
+var CityBuilder = require('./builders/CityBuilder');
+
+function initTileMapAndCreepMap(level) {
+    var randWidth = Math.round(Math.random() * (10 + level/2));
+    var randHeight = Math.round(Math.random() * (10 + level/2));
+    var width = 15 + 2 * level + randWidth;
+    var height = 15 + 2 * level + randHeight;
+    var tileMap = new TileMap(width, height);
+    var creepMap = new CreepMap(width, height);
+    var upStairsLoc = LevelUtils.getRandomCorner(tileMap);
+    var downStairsLoc = LevelUtils.getRandomCorner(tileMap);
+    var upStairsCorner = LevelUtils.getQuadForLocation(upStairsLoc, tileMap);
+    var index = 0;
+    while (upStairsCorner === LevelUtils.getQuadForLocation(downStairsLoc, tileMap)) {
+        if (index++ > 10) {
+            console.log("Breaking due to noob");
+            break;
+        }
+        downStairsLoc = LevelUtils.getRandomCorner(tileMap);
+    }
+    LevelUtils.addStairsToTileMap(tileMap, upStairsLoc, downStairsLoc);
+    return {
+        tileMap: tileMap,
+        creepMap: creepMap
+    };
+}
+
+
+function makeSimpleMonotoneLevel(level, heroLevel) {
+    var rgb;
+    if (level % 3 === 0) {
+        rgb = LevelUtils.getRGBForLevel(0, true, false, false);
+    } else if (level % 3 === 1) {
+        rgb = LevelUtils.getRGBForLevel(0, false, true, false);
+    } else if (level % 3 === 2) {
+        rgb = LevelUtils.getRGBForLevel(0, false, false, true);
+    }
+    var tileCreepMap = initTileMapAndCreepMap(level);
+    var creeps = [];
+    var tileMap = tileCreepMap.tileMap;
+    var creepMap = tileCreepMap.creepMap;
+    var upStairsLoc = tileMap.getUpStairsLoc();
+    var downStairsLoc = tileMap.getDownStairsLoc();
+
+    // spawn cave
+    var poi = CaveBuilder.build(tileMap, rgb, [upStairsLoc, downStairsLoc]);
+
+    // spawn rats
+    var spawnFunction = CreepFactory.getRat;
+    creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, rgb, spawnFunction, 3, heroLevel));
+    creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, rgb, spawnFunction, 1, heroLevel + 2));
+
+    return new Level(tileMap, creepMap, creeps);
+}
+
+function makeDoubleDimensionLevel(level, heroLevel) {
+    var firstDimRGB, secondDimRGB;
+    if (level % 3 === 0) {
+        firstDimRGB = LevelUtils.getRGBForLevel(level, true, false, false);
+        secondDimRGB = LevelUtils.getRGBForLevel(level, false, false, true);
+    } else if (level % 3 === 1) {
+        firstDimRGB = LevelUtils.getRGBForLevel(level, true, false, false);
+        secondDimRGB = LevelUtils.getRGBForLevel(level, false, true, false);
+    } if (level % 3 === 2) {
+        firstDimRGB = LevelUtils.getRGBForLevel(level, false, false, false);
+        secondDimRGB = LevelUtils.getRGBForLevel(level, false, true, true);
+    }
+    var tileCreepMap = initTileMapAndCreepMap(level);
+    var creeps = [];
+    var tileMap = tileCreepMap.tileMap;
+    var creepMap = tileCreepMap.creepMap;
+    var upStairsLoc = tileMap.getUpStairsLoc();
+    var downStairsLoc = tileMap.getDownStairsLoc();
+
+    // orc level
+    var poi = CaveBuilder.build(tileMap, firstDimRGB, [upStairsLoc, downStairsLoc]);
+    var spawnFunction;
+    if (heroLevel > 5) {
+        spawnFunction = CreepFactory.getOrcHunter;
+        creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, firstDimRGB, spawnFunction, 1, heroLevel + 1));
+    }
+    if (heroLevel > 10) {
+        spawnFunction = CreepFactory.getOrcBoss;
+        creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, firstDimRGB, spawnFunction, 1, heroLevel));
+    }
+    spawnFunction = CreepFactory.getOrc;
+    creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, firstDimRGB, spawnFunction, 3, heroLevel));
+    creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, firstDimRGB, spawnFunction, 1, heroLevel + 1));
+
+    // gnome level
+    poi = CaveBuilder.build(tileMap, secondDimRGB, [upStairsLoc, downStairsLoc]);
+    if (heroLevel > 5) {
+        spawnFunction = CreepFactory.getConstruct;
+        creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, secondDimRGB, spawnFunction, 2, heroLevel));
+    }
+    if (heroLevel > 10) {
+        spawnFunction = CreepFactory.getConstruct;
+        creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, secondDimRGB, spawnFunction, 1, heroLevel + 2));
+    }
+    spawnFunction = CreepFactory.getGnome;
+    creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, secondDimRGB, spawnFunction, 3, heroLevel));
+    creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, secondDimRGB, spawnFunction, 1, heroLevel + 1));
+
+    return new Level(tileMap, creepMap, creeps);
+}
+
+function makeRatKingLevel(level, heroLevel) {
+    var firstDimRGB = LevelUtils.getRGBForLevel(level, true, false, false);
+    var secondDimRGB = LevelUtils.getRGBForLevel(level, false, true, false);
+    var thirdDimRGB = LevelUtils.getRGBForLevel(level, false, false, true);
+    var tileCreepMap = initTileMapAndCreepMap(level);
+    var creeps = [];
+    var tileMap = tileCreepMap.tileMap;
+    var creepMap = tileCreepMap.creepMap;
+    var upStairsLoc = tileMap.getUpStairsLoc();
+    var downStairsLoc = tileMap.getDownStairsLoc();
+
+
+    // red level
+    var poi = CaveBuilder.build(tileMap, firstDimRGB, [upStairsLoc, downStairsLoc]);
+    var spawnFunction;
+    // rat king!
+    spawnFunction = CreepFactory.getRatKing;
+    creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, RGB.White, spawnFunction, 1, heroLevel + 4));
+    spawnFunction = CreepFactory.getRat;
+    creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, firstDimRGB, spawnFunction, 3, heroLevel + 3));
+
+    // green level
+    poi = CaveBuilder.build(tileMap, secondDimRGB, [upStairsLoc, downStairsLoc]);
+    spawnFunction = CreepFactory.getRat;
+    creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, secondDimRGB, spawnFunction, 3, heroLevel + 3));
+
+    // blue level
+    poi = CaveBuilder.build(tileMap, thirdDimRGB, [upStairsLoc, downStairsLoc]);
+    spawnFunction = CreepFactory.getRat;
+    creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, thirdDimRGB, spawnFunction, 3, heroLevel + 3));
+
+    return new Level(tileMap, creepMap, creeps);
+}
+
+
+function getLevel(dungeonLevel, heroLevel) {
+    if (dungeonLevel <= 2) {
+        return makeSimpleMonotoneLevel(dungeonLevel, heroLevel);
+    } else if (dungeonLevel <= 5) {
+        return makeDoubleDimensionLevel(dungeonLevel, heroLevel);
+    } else if (dungeonLevel % 10 === 0) {
+        return makeRatKingLevel(dungeonLevel, heroLevel);
+    } else {
+        return makeDoubleDimensionLevel(dungeonLevel, heroLevel);
+    }
+}
+
+
+module.exports = {
+    getLevel: getLevel
+};
+},{"../RGB":7,"../map/CreepMap":32,"../map/TileMap":38,"./../creeps/CreepFactory":14,"./CaveSpawner":24,"./Level":25,"./LevelUtils":27,"./Spawner":28,"./builders/CaveBuilder":29,"./builders/CityBuilder":30}],27:[function(require,module,exports){
+var RGB = require('../RGB');
+var Location = require('../map/Location');
+
+module.exports = {
+    getRGBForLevel: function(level, red, green, blue) {
+        var val = Math.min(150 + 3 * level, 255);
+        return new RGB(
+            red ? val : 0,
+            green ? val : 0,
+            blue ? val: 0
+        )
+    },
+    getRandomSingleRGBForLevel: function(level) {
+        var red, green, blue;
+        var val = Math.random();
+        if (val < .33) {
+            red = true;
+        } else if ( val < .67) {
+            green = true;
+        } else {
+            blue = true;
+        }
+        return this.getRGBForLevel(level, red, green, blue);
+    },
+    getRandomCorner: function(tileMap) {
+        var width = tileMap.width;
+        var height = tileMap.height;
+        var loc;
+        var val = Math.random();
+        if (val < .25) {
+            loc = new Location(
+                Math.ceil(Math.random() * (width /4 - 2)),
+                Math.ceil(Math.random() * (height /4 - 2))
+            )
+        } else if (val < .5) {
+            loc = new Location(
+                width - Math.ceil(Math.random() * (width /4 - 2) + 1),
+                Math.ceil(Math.random() * (height /4 - 2))
+            )
+        } else if (val < .75) {
+            loc = new Location(
+                Math.ceil(Math.random() * (width /4 - 2)),
+                height - Math.ceil(Math.random() * (height / 4 - 2) + 1)
+            )
+        } else {
+            loc = new Location(
+                width - Math.ceil(Math.random() * (width / 4 - 2) + 1),
+                height - Math.ceil(Math.random() * (height / 4 - 2) + 1)
+            )
+        }
+        return tileMap.projectLocOnMap(loc);
+    },
+    getQuadForLocation: function(loc, tileMap) {
+        if (loc.x < tileMap.width / 2) {
+            if (loc.y < tileMap.height / 2) {
+                return 2;
+            } else {
+                return 1;
+            }
+        } else {
+            if (loc.y < tileMap.height / 2) {
+                return 3;
+            } else {
+                return 4;
+            }
+        }
+
+    },
+    addStairsToTileMap: function(tileMap, upStairs, downStairs, upStairsRGB, downStarisRGB) {
+        tileMap.addStairsUp(upStairs, upStairsRGB);
+        tileMap.addStairsDownAtLoc(downStairs, downStarisRGB);
+    }
+};
+
+},{"../RGB":7,"../map/Location":35}],28:[function(require,module,exports){
+
+var Direction = require('./../map/Direction');
+
+
+function addCreepsNearPoi(tileMap, creepMap, poi, rgb, creationFunction, max, level) {
+    var creep;
+    var creeps = [];
+    for (var i = 0; i < poi.length; i++) {
+        var numCreeps = Math.ceil(Math.random() * max);
+        for (var j = 0; j < numCreeps; j++) {
+            var start = poi[i];
+            start = start.add(Direction.randomDir());
+            start = start.add(Direction.randomDir());
+            index = 0;
+            while((!tileMap.getTileAtLoc(start) || creepMap.getCreepAtLoc(start)) && ++index < 10) {
+                start = start.add(Direction.randomDir());
+            }
+            if (index < 10) {
+                creep = creationFunction(rgb, level);
+                if (!start.isEqualTo(tileMap.getDownStairsLoc()) && !start.isEqualTo(tileMap.getUpStairsLoc())) {
+                    if (tileMap.getTileAtLoc(start).getRGB().mask(rgb).isNotBlack()) {
+                        creepMap.addCreepToMapAtLoc(start, creep);
+                        creeps.push(creep);
+                    }
+                }
+            }
+        }
+    }
+    return creeps;
+}
+
+
+module.exports = {
+    spawn: addCreepsNearPoi
+};
+
+},{"./../map/Direction":34}],29:[function(require,module,exports){
+var Location = require('../../map/Location');
+var Direction = require('../../map/Direction');
+var CoarserMap = require('../../map/CoarserMap');
 
 var CUT_SIZE = 7;
 
@@ -1882,196 +2536,168 @@ function buildCaveSystem(tileMap, rgb, includeLocs) {
 }
 
 module.exports = {
-    buildCaveSystem: buildCaveSystem
+    build: buildCaveSystem
 };
-},{"../map/CoarserMap":26,"../map/Direction":29,"../map/Location":30,"../map/Tile":32}],22:[function(require,module,exports){
+},{"../../map/CoarserMap":31,"../../map/Direction":34,"../../map/Location":35}],30:[function(require,module,exports){
+var Location = require('../../map/Location');
+var Direction = require('../../map/Direction');
+var CoarserMap = require('../../map/CoarserMap');
 
-// all of the creeps one would find in a cave!
-var CreepFactory = require('../creeps/CreepFactory');
-var Direction = require('../map/Direction');
-var Location = require('../map/Location');
+var CUT_SIZE = 8;
 
 
 
-function addGnonesNearPoi(tileMap, creepMap, poi, rgb) {
-    var creep;
-    var creeps = [];
-    for (var i = 0; i < poi.length; i++) {
-        var numCreeps = Math.ceil(Math.random() * 2);
-        for (var j = 0; j < numCreeps; j++) {
-            var start = poi[i];
-            start = start.add(Direction.randomDir());
-            start = start.add(Direction.randomDir());
-            index = 0;
-            while((!tileMap.getTileAtLoc(start) || creepMap.getCreepAtLoc(start)) && ++index < 10) {
-                start = start.add(Direction.randomDir());
+function buildNodeAroundLoc(tileMap, loc, rgb) {
+    //console.log("buildingNodeAroundLoc", loc.x, loc.y);
+    loc = tileMap.projectLocOnMap(loc);
+    // random height/width
+    var width = 1 + Math.round(Math.random() * 4);
+    var height = 1 + Math.round(Math.random() * 4);
+
+
+    // fill in the tiles
+    for (var x = -width; x <= width; x++) {
+        for (var y = -height; y <= height; y++) {
+            var newLoc = new Location(loc.x + x, loc.y + y);
+            tileMap.mergeFloorTileAtLoc(newLoc, rgb)
+        }
+    }
+}
+
+function connectLocs(tileMap, locA, locB, rgb) {
+    locA = tileMap.projectLocOnMap(locA);
+    locB = tileMap.projectLocOnMap(locB);
+    var jaggedPath = Math.random() > .75;
+    var doubleJagged = jaggedPath && Math.random() > .5;
+    while (!locA.isEqualTo(locB)) {
+        var toB = locA.directionTo(locB);
+
+        tileMap.mergeFloorTileAtLoc(locA, rgb);
+        if (jaggedPath && Math.random() < .25) {
+            tileMap.mergeFloorTileAtLoc(locA.add(toB.rotateLeft()), rgb);
+        }
+        if (doubleJagged && Math.random() < .25) {
+            tileMap.mergeFloorTileAtLoc(locA.add(toB.rotateRight()), rgb);
+        }
+        locA = locA.add(toB);
+    }
+}
+
+
+// searches for a 'true' node in the coarseMap to the South, East, or SouthEast and connects
+function connectCoarseNode(tileMap, coarseMap, loc, rgb) {
+    if (!coarseMap.getValAtLoc(loc)) {
+        return;
+    }
+    // connect EAST
+    if (coarseMap.getValAtLoc(loc.add(Direction.EAST))) {
+        connectLocs(
+            tileMap,
+            coarseMap.getMapLocCenterFromCoarseMapLoc(loc),
+            coarseMap.getMapLocCenterFromCoarseMapLoc(loc.add(Direction.EAST)),
+            rgb
+        );
+    } else if (coarseMap.getValAtLoc(loc.add(Direction.EAST, 2))) {
+        connectLocs(
+            tileMap,
+            coarseMap.getMapLocCenterFromCoarseMapLoc(loc),
+            coarseMap.getMapLocCenterFromCoarseMapLoc(loc.add(Direction.EAST, 2)),
+            rgb
+        );
+    }
+    // connect SOUTH
+    if (coarseMap.getValAtLoc(loc.add(Direction.SOUTH))) {
+        connectLocs(
+            tileMap,
+            coarseMap.getMapLocCenterFromCoarseMapLoc(loc),
+            coarseMap.getMapLocCenterFromCoarseMapLoc(loc.add(Direction.SOUTH)),
+            rgb
+        );
+    } else if (coarseMap.getValAtLoc(loc.add(Direction.SOUTH, 2))) {
+        connectLocs(
+            tileMap,
+            coarseMap.getMapLocCenterFromCoarseMapLoc(loc),
+            coarseMap.getMapLocCenterFromCoarseMapLoc(loc.add(Direction.SOUTH, 2)),
+            rgb
+        );
+    }
+    // connect SOUTH EAST
+    if (coarseMap.getValAtLoc(loc.add(Direction.SOUTH).add(Direction.EAST))) {
+        connectLocs(
+            tileMap,
+            coarseMap.getMapLocCenterFromCoarseMapLoc(loc),
+            coarseMap.getMapLocCenterFromCoarseMapLoc(loc.add(Direction.SOUTH).add(Direction.EAST)),
+            rgb
+        );
+    } else if (coarseMap.getValAtLoc(loc.add(Direction.SOUTH, 2).add(Direction.EAST, 2))) {
+        connectLocs(
+            tileMap,
+            coarseMap.getMapLocCenterFromCoarseMapLoc(loc),
+            coarseMap.getMapLocCenterFromCoarseMapLoc(loc.add(Direction.SOUTH, 2).add(Direction.EAST, 2)),
+            rgb
+        );
+    }
+
+}
+
+
+
+function buildCitySystem(tileMap, rgb, includeLocs) {
+    // build a coarse map
+    var x, y, loc;
+    var coarseMap = new CoarserMap(tileMap, CUT_SIZE + Math.floor(Math.random() * 6));
+    var poi = [];
+
+
+    // assign teh includedLocs and build path to center of coarse tile
+    if (includeLocs.length > 0) {
+        for (var i = 0; i < includeLocs.length; i++) {
+            console.log("here");
+            loc = includeLocs[i];
+            var coarseLoc = coarseMap.getCoarseTileLocForMapLoc(loc);
+            coarseMap.setValAtLoc(coarseLoc, true);
+            console.log(loc, coarseMap.getMapLocCenterFromCoarseMapLoc(coarseLoc));
+            connectLocs(tileMap, loc, coarseMap.getMapLocCenterFromCoarseMapLoc(coarseLoc), rgb);
+            if (Math.random() > .5) {
+                buildNodeAroundLoc(tileMap, loc, rgb, 5)
             }
-            if (index < 10) {
-                creep = CreepFactory.getGnome(rgb, 1);
-                if (Math.random() < .1) {
-                    creep = CreepFactory.getOrc(rgb, 3);
+        }
+    }
 
-                }
-                creeps.push(creep);
-                if (!start.isEqualTo(tileMap.getDownStairsLoc()) && !start.isEqualTo(tileMap.getUpStairsLoc())) {
-                    if (tileMap.getTileAtLoc(start).getRGB().mask(rgb).isNotBlack()) {
-                        creepMap.addCreepToMapAtLoc(start, creep);
-                    }
-                }
+    // randomly assign nodes
+    var last = false;
+    //console.log('coarseMap height/width:', coarseMap.height, coarseMap.width);
+    for (x = 0; x < coarseMap.width; x++) {
+        for (y = 0; y < coarseMap.height; y++) {
+            if (Math.random() > .5 || !last) {
+                //console.log('doing it at ', x, y);
+                last = true;
+                loc = new Location(x, y);
+                coarseMap.setValAtLoc(loc, true);
+                poi.push(coarseMap.getMapLocCenterFromCoarseMapLoc(loc));
+                buildNodeAroundLoc(tileMap, coarseMap.getMapLocCenterFromCoarseMapLoc(loc), rgb)
+            } else {
+                last = false;
             }
         }
     }
-    return creeps;
-}
 
-
-function spawnCreeps(tileMap, creepMap, poi, rgb, heroLevel) {
-    return addGnonesNearPoi(tileMap, creepMap, poi, rgb);
-}
-
-
-module.exports = {
-    spawnCreeps: spawnCreeps
-};
-},{"../creeps/CreepFactory":14,"../map/Direction":29,"../map/Location":30}],23:[function(require,module,exports){
-var CreepMap = require('../map/CreepMap');
-var CreepController = require('../creeps/CreepController');
-
-
-function createCreepControllers(tileMap, creepMap, creeps) {
-    var controllers = [];
-    for (var i = 0; i < creeps.length; i++) {
-        controllers.push(
-            new CreepController(tileMap, creepMap, creeps[i])
-        )
-    }
-    return controllers;
-}
-
-function Level(tileMap, creepMap, creeps) {
-    this.tileMap = tileMap;
-    this.creepMap = creepMap;
-    this.creepControllers = createCreepControllers(tileMap, creepMap, creeps);
-
-}
-
-Level.prototype = {
-	getTileMap: function() {
-		return this.tileMap;
-	},
-	getCreepMap: function() {
-		return this.creepMap;
-	},
-    getCreepControllers: function() {
-        var toRemove = [];
-        for (var i = 0; i < this.creepControllers.length; i++) {
-            if (this.creepControllers[i].getCharacter().isDead()) {
-                toRemove.push(this.creepControllers[i]);
-            }
+    // connect nodes
+    for (x = 0; x < coarseMap.width; x++) {
+        for (y = 0; y < coarseMap.height; y++) {
+            loc = new Location(x, y);
+            connectCoarseNode(tileMap, coarseMap, loc, rgb);
         }
-        for (i = 0; i < toRemove.length; i++) {
-            this.creepControllers.splice(this.creepControllers.indexOf(toRemove[i]), 1);
-        }
-        return this.creepControllers;
-    }
-};
-
-module.exports = Level;
-},{"../creeps/CreepController":13,"../map/CreepMap":27}],24:[function(require,module,exports){
-var Level = require('./Level');
-var utils = require('./../Utility');
-
-function TestLevel(tileMap, creepMap, creeps) {
-    Level.call(
-        this,
-        tileMap,
-        creepMap,
-        creeps
-    );
-}
-
-utils.inherit(TestLevel, Level);
-
-module.exports = TestLevel;
-},{"./../Utility":8,"./Level":23}],25:[function(require,module,exports){
-var TileMap = require('../map/TileMap');
-var CreepMap = require('../map/CreepMap');
-var Tile = require('../map/Tile');
-var Location = require('../map/Location');
-var CaveBuilder = require('./CaveBuilder');
-var CaveSpawner = require('./CaveSpawner');
-var RGB = require('../RGB');
-var TestLevel = require('./TestLevel');
-
-function createTestTileMap(tileMap, rgb, addStairs) {
-    var downStairs = new Location(2, 2);
-    var upStairs = new Location(tileMap.width - 3, tileMap.height - 3);
-    if (Math.random() < .25) {
-        upStairs = new Location(tileMap.width - 3, 2);
-    } else if (Math.random() < .25) {
-        upStairs = new Location(2, tileMap.height - 3);
-    }
-    var poi = CaveBuilder.buildCaveSystem(tileMap, rgb, addStairs ? [upStairs, downStairs]: []);
-
-    /*
-    for (var x = 0; x < width; x++) {
-        for (var y = 0; y < height; y++) {
-            var rgb = new RGB(
-                Math.round(Math.random() * 255),
-                Math.round(Math.random() * 255),
-                Math.round(Math.random() * 255)
-            );
-            var tile = new Tile(Tile.FLOOR_TILE, rgb);
-            tileMap.addTileAtLoc(new Location(x, y), tile);
-        }
-    }
-    */
-    if (addStairs) {
-        tileMap.addStairsDownAtLoc(downStairs);
-        tileMap.addStairsUp(upStairs);
     }
 
     return poi;
+
 }
-
-function createTestCreepMap(tileMap, creepMap, poi, rgb) {
-    return CaveSpawner.spawnCreeps(tileMap, creepMap, poi, rgb);
-}
-
-
-function createLevel(height, width, dungeonLevel, heroLevel) {
-    if (!height) {
-        height = 20;
-    }
-    if (!width) {
-        width = 20;
-    }
-    var tileMap = new TileMap(height, width);
-    var creepMap = new CreepMap(height, width);
-
-    var red = new RGB(100, 0, 0);
-    var green = new RGB(0, 100, 0);
-    var blue = new RGB(0, 0, 100);
-
-    var poi = createTestTileMap(tileMap, RGB.Red, true);
-    var creeps = createTestCreepMap(tileMap, creepMap, poi, red);
-
-    poi = createTestTileMap(tileMap, RGB.Green, false);
-    creeps = creeps.concat(createTestCreepMap(tileMap, creepMap, poi, green));
-
-    poi = createTestTileMap(tileMap, RGB.Blue, false);
-    creeps = creeps.concat(createTestCreepMap(tileMap, creepMap, poi, blue));
-
-    return new TestLevel(tileMap, creepMap, creeps);
-}
-
 
 module.exports = {
-    createTileMap: createTestTileMap,
-    createTestCreepMap: createTestCreepMap,
-    createLevel: createLevel
+    build: buildCitySystem
 };
-},{"../RGB":7,"../map/CreepMap":27,"../map/Location":30,"../map/Tile":32,"../map/TileMap":33,"./CaveBuilder":21,"./CaveSpawner":22,"./TestLevel":24}],26:[function(require,module,exports){
+},{"../../map/CoarserMap":31,"../../map/Direction":34,"../../map/Location":35}],31:[function(require,module,exports){
 var Map = require('./Map');
 var Location = require('./Location');
 
@@ -2110,7 +2736,7 @@ CoarserMap.prototype = {
 
 
 module.exports = CoarserMap;
-},{"./Location":30,"./Map":31}],27:[function(require,module,exports){
+},{"./Location":35,"./Map":36}],32:[function(require,module,exports){
 var Location = require('./Location');
 var Map = require('./Map');
 
@@ -2187,7 +2813,7 @@ CreepMap.prototype = {
 };
 
 module.exports = CreepMap;
-},{"./Location":30,"./Map":31}],28:[function(require,module,exports){
+},{"./Location":35,"./Map":36}],33:[function(require,module,exports){
 var Location = require('./Location');
 
 /* Runs Dijkstra to compute moveMap. Each value in moveMap is one of the following offsets
@@ -2297,7 +2923,7 @@ Dijkstra.prototype = {
 };
 
 module.exports = Dijkstra;
-},{"./Location":30}],29:[function(require,module,exports){
+},{"./Location":35}],34:[function(require,module,exports){
 function Direction(x, y) {
     var result;
     if (Math.abs(x) + Math.abs(y) > 1) {
@@ -2398,7 +3024,7 @@ Direction.randomDir = function() {
 
 
 module.exports = Direction;
-},{}],30:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 var Direction = require('./Direction');
 
 function Location(x, y) {
@@ -2451,7 +3077,7 @@ Location.prototype = {
 };
 
 module.exports = Location;
-},{"./Direction":29}],31:[function(require,module,exports){
+},{"./Direction":34}],36:[function(require,module,exports){
 var Location = require('./Location');
 
 var Map = {
@@ -2501,7 +3127,7 @@ var Map = {
 
 
 module.exports = Map;
-},{"./Location":30}],32:[function(require,module,exports){
+},{"./Location":35}],37:[function(require,module,exports){
 var GameObject = require('../GameObject');
 var RGB = require('../RGB');
 var util = require('./../Utility');
@@ -2523,7 +3149,7 @@ util.inherit(Tile, GameObject);
 
 module.exports = Tile;
 
-},{"../GameObject":5,"../RGB":7,"./../Utility":8}],33:[function(require,module,exports){
+},{"../GameObject":5,"../RGB":7,"./../Utility":8}],38:[function(require,module,exports){
 var Location = require('./Location');
 var Map = require('./Map');
 var Tile = require('./Tile');
@@ -2609,7 +3235,7 @@ TileMap.prototype = {
 };
 
 module.exports = TileMap;
-},{"./Location":30,"./Map":31,"./Tile":32}],34:[function(require,module,exports){
+},{"./Location":35,"./Map":36,"./Tile":37}],39:[function(require,module,exports){
 /* Draws the game hud. */
 var RGB = require('./../RGB');
 var Location = require('./../map/Location');
@@ -2864,7 +3490,7 @@ HudRenderer.HUD_HEALTH_SYM_COUNT = 5;
 /**** End HUD symbol bar stuff ****/
 
 module.exports = HudRenderer;
-},{"./../RGB":7,"./../map/Location":30}],35:[function(require,module,exports){
+},{"./../RGB":7,"./../map/Location":35}],40:[function(require,module,exports){
 /* Composes the master canvas with the hidden sub-canvases for game, hud, etc. */
 var Renderer = require('./Renderer');
 var HudRenderer = require('./HudRenderer');
@@ -2928,7 +3554,7 @@ RenderCompositor.prototype = {
 RenderCompositor.HUD_PERCENT = .25;
 
 module.exports = RenderCompositor;
-},{"./HudRenderer":34,"./Renderer":36}],36:[function(require,module,exports){
+},{"./HudRenderer":39,"./Renderer":41}],41:[function(require,module,exports){
 /* Renders the game to the canvas. */
 var Location = require('./../map/Location');
 var Tile = require('./../map/Tile');
@@ -3013,7 +3639,7 @@ function Renderer(canvas) {
 }
 
 Renderer.prototype = {
-    render: function(tileMap, creepMap, hero, filter, score, closeQtrDijkstra, dijkstra) {
+    render: function(tileMap, creepMap, hero, filter, score, dungeonLvl, closeQtrDijkstra, dijkstra) {
 		this.context.save();
 		this.centerLoc = hero.getLocation();
 		var canvasLoc;
@@ -3088,6 +3714,13 @@ Renderer.prototype = {
 						 filter.toString(), 
 						 Renderer.GAME_SCORE_FONT,
 						 Renderer.GAME_SCORE_FONT_HEIGHT);
+		// Draw dungeon lvl
+		drawText.call(this, Renderer.DUNGEON_LVL_TXT + dungeonLvl, 
+			new Location(0,
+						 -this.canvas.height/(2 * this.zoomFactor) + Renderer.GAME_INFO_BUFFER_SPACE_Y), 
+						 filter.toString(), 
+						 Renderer.GAME_SCORE_FONT,
+						 Renderer.GAME_SCORE_FONT_HEIGHT);
 		
 		this.context.restore();
     }
@@ -3110,6 +3743,7 @@ Renderer.FONT = "12px Arial";
 Renderer.FONT_HEIGHT = parseInt(Renderer.FONT) * .5;
 Renderer.GAME_TITLE = "RGB";
 Renderer.SCORE_TXT = "Score: ";
+Renderer.DUNGEON_LVL_TXT = "Dungeon: ";
 Renderer.GAME_INFO_COLOR = RGB.LightGreen.toString();
 Renderer.GAME_TITLE_FONT = "24px Impact";
 Renderer.GAME_TITLE_FONT_HEIGHT = parseInt(Renderer.GAME_TITLE_FONT) * 1.0;
@@ -3119,4 +3753,4 @@ Renderer.GAME_INFO_BUFFER_SPACE_X = 40;
 Renderer.GAME_INFO_BUFFER_SPACE_Y = 20;
 
 module.exports = Renderer;
-},{"../RGB":7,"./../map/Location":30,"./../map/Tile":32}]},{},[20])
+},{"../RGB":7,"./../map/Location":35,"./../map/Tile":37}]},{},[23])
