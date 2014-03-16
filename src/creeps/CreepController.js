@@ -62,7 +62,7 @@ util.extend(CreepController, {
             // once we see the hero, don't stop chasing till he's dead!
             Chat.warn(this.character.getAlertMessage());
             this.getCharacter().setAggro(true);
-            var neighbors = this.getCreepsInRadiusSquared();
+            var neighbors = this.getCreepsInRadiusSquared(this.character.alertRange);
             for (var i = 0; i < neighbors.length; i++) {
                 if (!this.getCharacter().getRGB().mask(neighbors[i].getRGB()).isBlack()) {
                     neighbors[i].setAggro(true);

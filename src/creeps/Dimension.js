@@ -15,6 +15,7 @@ Utility.extend(Dimension, {
     levelUp: function() {
         this.level++;
         this.rgb.add(this.unitRGB);
+        Chat.ding("You feel your presence in this dimension grow stronger");
     },
     getRGB: function() {
         return this.rgb;
