@@ -82,7 +82,7 @@ function Renderer(canvas) {
 }
 
 Renderer.prototype = {
-    render: function(tileMap, creepMap, hero, filter, closeQtrDijkstra, dijkstra) {
+    render: function(tileMap, creepMap, hero, filter, score, closeQtrDijkstra, dijkstra) {
 		this.context.save();
 		this.centerLoc = hero.getLocation();
 		var canvasLoc;
@@ -151,7 +151,7 @@ Renderer.prototype = {
 						 Renderer.GAME_TITLE_FONT,
 						 Renderer.GAME_TITLE_FONT_HEIGHT);
 		// Draw score using current filter
-		drawText.call(this, Renderer.SCORE_TXT, 
+		drawText.call(this, Renderer.SCORE_TXT + score, 
 			new Location(-this.canvas.width/(2 * this.zoomFactor) + Renderer.GAME_INFO_BUFFER_SPACE_X,
 						 -this.canvas.height/(2 * this.zoomFactor) + Renderer.GAME_INFO_BUFFER_SPACE_Y), 
 						 filter.toString(), 

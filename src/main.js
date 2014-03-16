@@ -89,6 +89,7 @@ function setupRenderCompositor() {
 					        game.getCreepMap(), 
 							game.getHero(), 
 							game.getHero().getDimension().getRGB(),
+							game.getScore(),
 							game.getCloseQtrDijkstra(),
 							game.getDijkstra()];
 				}
