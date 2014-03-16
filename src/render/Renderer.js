@@ -133,12 +133,12 @@ Renderer.prototype = {
 				/* Debug: draw dijkstra move map data. Move symbol = N,S,E,W,
 				   U for undefined, and B for BAD if unknown offset. closeQtrDijkstra/dijkstra will
 				   be null on first couple renders. */
-				/*if (closeQtrDijkstra) {
+				if (closeQtrDijkstra) {
 					var moveSymbol = closeQtrDijkstra.getDijkstraSymbol(loc);
 					this.context.save();
 					drawText.call(this, moveSymbol, toCanvasSpace(loc, this.centerLoc), "#00FF00", "4px Arial");
 					this.context.restore();
-				}*/
+				}
 				// Debug: end draw dijkstra move map data
 			}
 		}
