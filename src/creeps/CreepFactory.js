@@ -17,7 +17,7 @@ module.exports = {
             rgb: rgb,
 
             numActions: 1,
-            stats: new CoreStats(level || 1),
+            stats: new CoreStats(level),
             messages: new Messages(
                 "Gnome",
                 {
@@ -41,7 +41,7 @@ module.exports = {
             rgb: rgb,
 
             numActions: .5,
-            stats: new SlowStats(),
+            stats: new SlowStats(level),
             messages: new Messages(
                 "Gnomish Construct",
                 {
@@ -65,7 +65,7 @@ module.exports = {
             rgb: rgb,
 
             numActions: 1,
-            stats: new CoreStats(level || 1),
+            stats: new CoreStats(level),
             messages: new Messages(
                 "Orc",
                 {
@@ -132,7 +132,7 @@ module.exports = {
             rgb: rgb,
 
             numActions: 1,
-            stats: new EasyStats(),
+            stats: new EasyStats(level),
             messages: new Messages(
                 "Rat",
                 {
@@ -148,13 +148,13 @@ module.exports = {
     },
     getRatKing: function(rgb, level) {
         var options = {
-            name: 'giant rat',
-            repr: 'r',
+            name: 'rat king',
+            repr: 'R',
             radiusSquared: 25,
             rgb: rgb,
 
             numActions: 1,
-            stats: new HardStats(),
+            stats: new HardStats(level),
             messages: new Messages(
                 "Rat",
                 {

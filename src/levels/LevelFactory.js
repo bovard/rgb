@@ -56,7 +56,8 @@ function makeSimpleMonotoneLevel(level, heroLevel) {
 
     // spawn rats
     var spawnFunction = CreepFactory.getRat;
-    creeps = Spawner.spawn(tileMap, creepMap, poi, rgb, spawnFunction, 5, heroLevel);
+    creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, rgb, spawnFunction, 3, heroLevel));
+    creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, rgb, spawnFunction, 1, heroLevel + 2));
 
     return new Level(tileMap, creepMap, creeps);
 }
@@ -93,6 +94,7 @@ function makeDoubleDimensionLevel(level, heroLevel) {
     }
     spawnFunction = CreepFactory.getOrc;
     creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, firstDimRGB, spawnFunction, 3, heroLevel));
+    creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, firstDimRGB, spawnFunction, 1, heroLevel + 1));
 
     // gnome level
     poi = CaveBuilder.build(tileMap, secondDimRGB, [upStairsLoc, downStairsLoc]);
@@ -106,6 +108,7 @@ function makeDoubleDimensionLevel(level, heroLevel) {
     }
     spawnFunction = CreepFactory.getGnome;
     creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, secondDimRGB, spawnFunction, 3, heroLevel));
+    creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, secondDimRGB, spawnFunction, 1, heroLevel + 1));
 
     return new Level(tileMap, creepMap, creeps);
 }
@@ -121,32 +124,25 @@ function makeRatKingLevel(level, heroLevel) {
     var upStairsLoc = tileMap.getUpStairsLoc();
     var downStairsLoc = tileMap.getDownStairsLoc();
 
+
     // red level
     var poi = CaveBuilder.build(tileMap, firstDimRGB, [upStairsLoc, downStairsLoc]);
     var spawnFunction;
-    if (heroLevel > 5) {
-        spawnFunction = CreepFactory.getOrcHunter;
-        creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, firstDimRGB, spawnFunction, 1, heroLevel + 1));
-    }
-    if (heroLevel > 10) {
-        spawnFunction = CreepFactory.getOrcBoss;
-        creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, firstDimRGB, spawnFunction, 1, heroLevel));
-    }
-    spawnFunction = CreepFactory.getOrc;
-    creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, firstDimRGB, spawnFunction, 3, heroLevel));
+    // rat king!
+    spawnFunction = CreepFactory.getRatKing;
+    creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, RGB.White, spawnFunction, 1, heroLevel + 4));
+    spawnFunction = CreepFactory.getRat;
+    creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, firstDimRGB, spawnFunction, 3, heroLevel + 3));
 
-    // gnome level
+    // green level
     poi = CaveBuilder.build(tileMap, secondDimRGB, [upStairsLoc, downStairsLoc]);
-    if (heroLevel > 5) {
-        spawnFunction = CreepFactory.getConstruct;
-        creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, secondDimRGB, spawnFunction, 2, heroLevel));
-    }
-    if (heroLevel > 10) {
-        spawnFunction = CreepFactory.getConstruct;
-        creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, secondDimRGB, spawnFunction, 1, heroLevel + 2));
-    }
-    spawnFunction = CreepFactory.getGnome;
-    creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, secondDimRGB, spawnFunction, 3, heroLevel));
+    spawnFunction = CreepFactory.getRat;
+    creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, secondDimRGB, spawnFunction, 3, heroLevel + 3));
+
+    // blue level
+    poi = CaveBuilder.build(tileMap, thirdDimRGB, [upStairsLoc, downStairsLoc]);
+    spawnFunction = CreepFactory.getRat;
+    creeps = creeps.concat(Spawner.spawn(tileMap, creepMap, poi, thirdDimRGB, spawnFunction, 3, heroLevel + 3));
 
     return new Level(tileMap, creepMap, creeps);
 }
@@ -157,6 +153,8 @@ function getLevel(dungeonLevel, heroLevel) {
         return makeSimpleMonotoneLevel(dungeonLevel, heroLevel);
     } else if (dungeonLevel <= 5) {
         return makeDoubleDimensionLevel(dungeonLevel, heroLevel);
+    } else if (dungeonLevel % 10 === 0) {
+        return makeRatKingLevel(dungeonLevel, heroLevel);
     }
 }
 
