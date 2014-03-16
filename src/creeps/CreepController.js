@@ -35,12 +35,12 @@ util.extend(CreepController, {
         }
         var target = this.getCreepMap().getCreepAtLoc(loc);
 
-        console.log("creep trying to hit");
         if(this.getCharacter().getStats().resolveHit(target.getStats())) {
             var dmg = this.getCharacter().getStats().resolveDamage(target.getStats());
             target.applyDamage(dmg, this.getCharacter().getRGB());
+            Chat.warn(this.character.getHitMessage());
         } else {
-            Chat.debug(this.getCharacter().getName() + " misses you");
+            Chat.debug(this.character.getMissMessage());
         }
 
     },
@@ -52,7 +52,7 @@ util.extend(CreepController, {
         this.attack(dirToHero);
     },
     aggroHero: function() {
-        var ourLoc = this.getCharacter().getLocation();
+        var ourLoc = this.character.getLocation();
         var theirLoc = this.creepMap.getHero().getLocation();
         if (!ourLoc || !theirLoc) {
             console.warn("something wrong here!");
@@ -60,9 +60,9 @@ util.extend(CreepController, {
         var sees = ourLoc && theirLoc && ourLoc.distanceSquaredTo(theirLoc) <= this.getCharacter().getRadiusSquared();
         if (sees && !this.getCharacter().isAggroed()) {
             // once we see the hero, don't stop chasing till he's dead!
-            Chat.warn(this.getCharacter().getName() + " sees you!");
+            Chat.warn(this.character.getAlertMessage());
             this.getCharacter().setAggro(true);
-            var neighbors = this.getCreepsInRadiusSquared();
+            var neighbors = this.getCreepsInRadiusSquared(this.character.alertRange);
             for (var i = 0; i < neighbors.length; i++) {
                 if (!this.getCharacter().getRGB().mask(neighbors[i].getRGB()).isBlack()) {
                     neighbors[i].setAggro(true);

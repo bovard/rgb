@@ -1,8 +1,9 @@
 var Game = require('./Game');
 var Dijkstra = require('./map/Dijkstra');
-var Renderer = require('./render/Renderer');
+var RenderCompositor = require('./render/RenderCompositor');
 var Chat = require('./Chat');
-var StatusRenderer = require('./render/StatusRenderer');
+var util = require('./Utility');
+//var StatusRenderer = require('./render/StatusRenderer');
 
 Chat.setOutputFunction(function(message, color) {
     console.log(message, color);
@@ -10,7 +11,7 @@ Chat.setOutputFunction(function(message, color) {
 
 var gameOverState = false;
 var needsRestart = true;
-var renderer = null;
+var rendererCompositor = null;
 
 var game;
 
@@ -19,61 +20,91 @@ $(document).keyup(function(event) {
         restart();
         return;
     }
+    console.log("KeyCode", event.keyCode);
 
-    if ([37, 38, 39, 40, 49, 50, 51].indexOf(event.keyCode) !== -1) {
+    if (game && game.input[event.keyCode]) {
         turn(event.keyCode);
     }
 });
 
 
 function turn(code) {
-    // if code is no good, return
+    if (!game.hero.isActive()) {
+        game.hero.tick();
+    }
 
     game.takeHeroTurn(code);
 
-    if (game.hero.actionsPerformed < game.hero.numActions) {
+    if (game.hero.isActive()) {
         console.log("not done yet!");
+        render();
         return;
     }
-
-    game.hero.actionsPerformed = 0;
-
     render();
 
     if (!needsRestart) {
         // do dikjstra's on the TileMap to hero location
-        var dikj = new Dijkstra(game.getTileMap(), game.hero.getLocation());
+        game.dikj = new Dijkstra(game.getTileMap(), game.hero.getLocation(), 
+			function(map, loc, startLoc) {
+				return !!map.getTileAtXY(loc.x, loc.y);
+			});
+		
+		// do dikjstra's on the CreepMap to hero location within radius squared r^2
+		game.closeQuartersDijk = new Dijkstra(game.getCreepMap(), game.hero.getLocation(), 
+			function(map, loc, startLoc) {
+				return !map.getCreepAtLoc(loc) && !!game.getTileMap().getTileAtXY(loc.x, loc.y) && 
+					loc.distanceSquaredTo(startLoc) < Game.CREEP_AVOID_CREEP_RAD_SQR;
+			});
 
-        game.takeCreepTurns(dikj);
+        game.takeCreepTurns(game.dikj, game.closeQuartersDijk);
         render();
     }
 }
 
 
 function render() {
-    renderer.render(game.getTileMap(), game.getCreepMap(), game.getHero(), game.getHero().getDimension().getRGB());
-    StatusRenderer.renderHeroStatusToDiv(heroStatDev, game.getHero());
-    StatusRenderer.renderCreepStatiToDivs(
-        [
-            creep1StatDiv,
-            creep2StatDiv,
-            creep3StatDiv,
-            creep4StatDiv
-        ],
-        game.getHeroController().getCreepsInRadiusSquared(1),
-        game.getHero()
-    )
-
+	rendererCompositor.compose();
 }
 
 
 function restart() {
+    $('#chat').empty();
     needsRestart = false;
     game = new Game(gameOver);
+	setupRenderCompositor();
     render();
 }
 
-
+function setupRenderCompositor() {
+	var canvas = $("#gameCanvas")[0];
+	console.log('found canvas', canvas);
+	
+	// Only need to setup compositor once
+	if (!rendererCompositor) {
+		var renderData = {
+			game: {
+				canvas: util.dom("canvas", {width: "600", height: "800"}),
+				data: function() {
+					return [game.getTileMap(), 
+					        game.getCreepMap(), 
+							game.getHero(), 
+							game.getHero().getDimension().getRGB(),
+							game.getScore(),
+							game.getCloseQtrDijkstra(),
+							game.getDijkstra()];
+				}
+			},
+			hud: {
+				canvas: util.dom("canvas", {width: "200", height: "800"}),
+				data: function() {
+					return [game.getHero(), 
+					        game.getHeroController().getCreepsInRadiusSquared(1)];
+				}
+			}
+		};
+		rendererCompositor = new RenderCompositor(canvas, renderData);
+	}
+}
 
 function gameOver() {
     render();
@@ -89,16 +120,14 @@ var creep3StatDiv;
 var creep4StatDiv;
 
 // starts the game!
-$(function() {
-    var canvas = $("#gameCanvas")[0];
+$(function() { 
     heroStatDev = $("#heroDiv");
     creep1StatDiv = $("#creep1Div");
     creep2StatDiv = $("#creep2Div");
     creep3StatDiv = $("#creep3Div");
     creep4StatDiv = $("#creep4Div");
-    console.log('found canvas', canvas);
-    renderer = new Renderer(canvas);
-    restart();
+    
+	restart();
 
     // hook up the chat!
     Chat.setOutputFunction(function(text, color) {

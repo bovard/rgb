@@ -19,16 +19,16 @@ function CoreStats(level, statGain, seed) {
 }
 
 CoreStats.HeroStatGain = {
-    str: 1.1,
-    agi: 1.1,
-    con: 1.1
+    str: 1.2,
+    agi: 1.2,
+    con: 1.2
 };
 
 CoreStats.HeoStatSeed = {
-    str: 10,
-    agi: 10,
-    con: 10
-}
+    str: 12,
+    agi: 12,
+    con: 12
+};
 
 CoreStats.prototype = new Experience();
 

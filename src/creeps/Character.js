@@ -8,11 +8,25 @@ function Character(stats, numActions, radiusSquared, name) {
     this.numActions = numActions;
     this.radiusSquared = radiusSquared;
     this.name = name;
+    this.actionDelay = 0;
 }
 
 Character.prototype = new GameObject();
 
 utils.extend(Character, {
+    tick: function() {
+        this.actionDelay -= 1;
+        this.actionDelay = Math.max(this.actionDelay, 0);
+    },
+    isActive: function() {
+        return this.actionDelay < this.numActions;
+    },
+    takeAction: function() {
+        this.actionDelay += 1 / this.numActions;
+    },
+    addToActionDelay: function(amount) {
+        this.actionDelay += amount;
+    },
     setHealth: function(health) { this.health = health; },
     addHealth: function(toAdd) {
         this.health += toAdd;
@@ -34,7 +48,6 @@ utils.extend(Character, {
         }
 
     },
-
     getLocation: function() { return this.location; },
     setLocation: function(loc) { this.location = loc },
     getStats: function() {return this.stats;},
