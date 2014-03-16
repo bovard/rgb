@@ -6,6 +6,7 @@ function HeroController(tileMap, creepMap, hero) {
     this.tileMap = tileMap;
     this.creepMap = creepMap;
     this.character = hero;
+    this.score = 0;
 }
 
 HeroController.prototype = new Controller();
@@ -41,8 +42,12 @@ util.extend(HeroController, {
         if (target.isDead()) {
             console.log("We killed it!");
             this.character.gainXPForKill(target);
+            this.score += target.getMaxHealth();
             this.getCreepMap().deleteCreepAtLoc(loc);
         }
+    },
+    getScore: function() {
+        return this.score;
     },
     moveOrAttack: function(dir) {
         var toMove = this.getCharacter().location.add(dir);
