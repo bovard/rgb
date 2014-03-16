@@ -3,6 +3,7 @@ var TestLevel = require('./levels/TestLevel');
 var Direction = require('./map/Direction');
 var InputTrigger = require('./InputTrigger');
 var TestLevelCreator = require('./levels/TestLevelCreator');
+var LevelFactory = require('./levels/LevelFactory');
 var HeroController = require('./creeps/HeroController');
 var Chat = require('./Chat');
 
@@ -11,8 +12,8 @@ function Game(deathCallback) {
     this.hero = new Hero(deathCallback);
     this.heroController = new HeroController(null, null, this.hero);
     this.levels = [];
-    this.generateNewLevel();
     this.levelIndex = 0;
+    this.generateNewLevel();
     this.moveHeroToLevel(0);
     this.chat = chat;
 	this.input = {};
@@ -183,7 +184,11 @@ Game.prototype = {
         }, this);
 	},
     generateNewLevel: function() {
-        this.levels.push(TestLevelCreator.createLevel(50, 50));
+        if (!this.levels.length) {
+            this.levels.push(LevelFactory.getLevel(0, this.hero.getLevel()));
+        } else {
+            this.levels.push(LevelFactory.getLevel(this.levelIndex + 1, this.hero.getLevel()));
+        }
     },
     moveHeroToLevel: function(index) {
         if (this.level) {

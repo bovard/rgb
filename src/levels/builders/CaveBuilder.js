@@ -1,7 +1,6 @@
-var Location = require('../map/Location');
-var Direction = require('../map/Direction');
-var Tile = require('../map/Tile');
-var CoarserMap = require('../map/CoarserMap');
+var Location = require('../../map/Location');
+var Direction = require('../../map/Direction');
+var CoarserMap = require('../../map/CoarserMap');
 
 var CUT_SIZE = 7;
 
@@ -171,5 +170,5 @@ function buildCaveSystem(tileMap, rgb, includeLocs) {
 }
 
 module.exports = {
-    buildCaveSystem: buildCaveSystem
+    build: buildCaveSystem
 };

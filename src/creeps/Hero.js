@@ -16,7 +16,6 @@ function Hero(deathCallback) {
     this.numActions = 1;
 	this.stats = new CoreStats(1, CoreStats.HeroStatGain, CoreStats.HeoStatSeed);
     this.health = this.stats.getMaxHealth();
-    console.log("made hero with hp:", this.health);
     this.rgb = new RGB(255, 255, 255);
     this.repr = '@';
     this.dimensions = [
@@ -66,7 +65,6 @@ util.extend(Hero, {
         return Math.round((this.powerUpCount * 100)/this.requiredPowerUps);
     },
     canPowerUp: function() {
-        console.log(this.powerUpCount, "===", this.requiredPowerUps);
         return this.powerUpCount === this.requiredPowerUps;
     },
     powerUp: function() {
@@ -77,11 +75,9 @@ util.extend(Hero, {
         this.poweredUp = true;
     },
     addPowerUpCount: function() {
-        console.log("Adding to powerup count");
         if (!this.poweredUp) {
             this.powerUpCount = Math.min(this.powerUpCount + 1, this.requiredPowerUps);
         }
-        console.log("Powerups:", this.powerUpCount);
     },
     removePowerUpCount: function() {
         this.powerUpCount = Math.max(this.powerUpCount - 1, 0);
@@ -100,8 +96,6 @@ util.extend(Hero, {
         this.numActions = number;
     },
 	applyDamage: function(damage, rgb) {
-        // calculate the amount of damage you can do
-        console.log("Applying", damage, " damage to", this.getName());
         // first subtract from shield if there is one
         if (this.shield > 0) {
             if (this.shield > damage) {

@@ -2,7 +2,7 @@ var TileMap = require('../map/TileMap');
 var CreepMap = require('../map/CreepMap');
 var Tile = require('../map/Tile');
 var Location = require('../map/Location');
-var CaveBuilder = require('./CaveBuilder');
+var CaveBuilder = require('./builders/CaveBuilder');
 var CaveSpawner = require('./CaveSpawner');
 var RGB = require('../RGB');
 var TestLevel = require('./TestLevel');
@@ -15,7 +15,7 @@ function createTestTileMap(tileMap, rgb, addStairs) {
     } else if (Math.random() < .25) {
         upStairs = new Location(2, tileMap.height - 3);
     }
-    var poi = CaveBuilder.buildCaveSystem(tileMap, rgb, addStairs ? [upStairs, downStairs]: []);
+    var poi = CaveBuilder.build(tileMap, rgb, addStairs ? [upStairs, downStairs]: []);
 
     /*
     for (var x = 0; x < width; x++) {
