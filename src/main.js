@@ -143,6 +143,7 @@ $(function() {
     Chat.log("Arrows to move/attack");
     Chat.log("1,2,3 to switch dimensions");
     Chat.log("Space to activate power up (blue bar)");
-	Chat.log("^ = upstairs to next dungeon");
-	Chat.log("/ = downstairs to previous dungeon");
+	Chat.log("^ = upstairs to next dungeon floor");
+	Chat.log("/ = downstairs to previous dungeon floor");
+    Chat.ding("Escape the dungeon!");
 });
