@@ -146,6 +146,12 @@ Game.prototype = {
             }
         }
     },
+    getScore: function() {
+        return Math.round(Math.random() * 12234 + 1);
+    },
+    getDungeonLevel: function() {
+        return this.levelIndex + 1;
+    },
 	initInput: function() {
 		this.input[37] = new InputTrigger(function() {
             this.hero.takeAction();
