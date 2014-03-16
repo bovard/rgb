@@ -19,16 +19,66 @@ function CoreStats(level, statGain, seed) {
 }
 
 CoreStats.HeroStatGain = {
-    str: 1.1,
-    agi: 1.1,
-    con: 1.1
+    str: 1.2,
+    agi: 1.2,
+    con: 1.2
 };
 
 CoreStats.HeoStatSeed = {
+    str: 12,
+    agi: 12,
+    con: 12
+};
+
+CoreStats.EasyGain = {
+    str: .8,
+    agi: .8,
+    con: .8
+};
+
+CoreStats.EasySeed = {
+    str: 8,
+    agi: 8,
+    con: 8
+};
+
+CoreStats.FastSeed = {
     str: 10,
     agi: 10,
-    con: 10
-}
+    con: 5
+};
+
+CoreStats.FastGain = {
+    str: 1,
+    agi: 1,
+    con:.5
+};
+
+
+CoreStats.SlowSeed = {
+    str: 20,
+    agi: 10,
+    con: 20
+};
+
+CoreStats.SlowGain = {
+    str: 2,
+    agi: .9,
+    con: 2
+};
+
+
+CoreStats.HardSeed = {
+    str: 12,
+    agi: 12,
+    con: 12
+};
+
+CoreStats.HardGain = {
+    str: 1.2,
+    agi: 1.2,
+    con: 1.2
+};
 
 CoreStats.prototype = new Experience();
 

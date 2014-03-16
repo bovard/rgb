@@ -7,46 +7,64 @@ function calculate(dij) {
 	   representing start location. */
 	var open = [];
 	open.push(dij.startLoc);
-	dij.moveMap[dij.startLoc[0]][dij.startLoc[1]] = [0,0];
+	dij.moveMap[dij.startLoc.x][dij.startLoc.y] = new Location(0,0);
 	
 	/* While open is not empty, take out the first loc in the list, expand it, 
 	   and add expanded locs to end of list. Once open is empty, moveMap should be 
 	   initialized. */
 	while (open.length) {
 		var curr = open.shift();
-		var expanded = expand(curr, dij.map, dij.moveMap);
+		var expanded = expand(curr, dij.map, dij.moveMap, dij.isTraversable, dij.startLoc);
 		open = open.concat(expanded);
 	}
 }
 
 /* Finds all non-diagonal adjacent locs that are 1) unexplored in move map and 
-   2) have a corresponding tile in map. */
-function expand(loc, map, moveMap) {
+   2) class member isTraversable function returns true. The second condition 
+   makes the algorithm much more flexible and allows for definitions of obstacles 
+   external to this class. */
+function expand(loc, map, moveMap, isTraversable, startLoc) {
 	var expanded = [];
-	var offsets = [[0,1],[0,-1],[1,0],[-1,0]];
+	var offsets = [new Location(0,1), new Location(0,-1), new Location(1,0), new Location(-1,0)];
 	var newLoc;
 	
 	for (var i = 0; i < 4; i++) {
+		try {
 		// newLoc = loc + offset
-		newLoc = [loc[0] + offsets[i][0], loc[1] + offsets[i][1]];
+		newLoc = loc.addLoc(offsets[i]); 
 		// Is unexplored and has tile?
-		if (!!map.getTileAtXY(newLoc[0], newLoc[1]) && !moveMap[newLoc[0]][newLoc[1]]) {
-			// set moveMap[newLoc] = reflected offset (offset * -1)
-			moveMap[newLoc[0]][newLoc[1]] = [offsets[i][0] * -1, offsets[i][1] * -1];
-			// add newLoc to expanded
-			expanded.push(newLoc);
+		if (!moveMap[newLoc.x][newLoc.y]) {
+			if (!map.locOnMap(newLoc)) return;
+			/* set moveMap[newLoc] = reflected offset (offset * -1) regardless of 
+			   whether it is traversable. This solves the problem of obstacles 
+			   that can move (that is, obstacle locs adjacent to traversable locs 
+			   will still need SP data). */
+			moveMap[newLoc.x][newLoc.y] = new Location(offsets[i].x * -1, offsets[i].y * -1);
+			// add newLoc to expanded if newLoc is traversable
+			if (isTraversable(map, newLoc, startLoc)) {
+				expanded.push(newLoc);
+			}			
+		}
+		} catch(err) {
+			var testtest = 1;
 		}
 	}
 	
 	return expanded;
 }
 
-
-function Dijkstra(map, loc) {
-    var x = loc.x;
-    var y = loc.y;
+/* map - tileMap, creepMap, etc, whatever contains obstacle data  
+   loc - location to build SP graph to
+   isTraversable - has the form
+   
+   function(map, loc, startLoc) 
+   
+   and returns true/false whether the specified loc should be considered 
+   traversible in the map, given the specified startLoc in case that matters. */
+function Dijkstra(map, loc, isTraversable) {
     this.map = map;
-	this.startLoc = [x,y];
+	this.isTraversable = isTraversable;
+	this.startLoc = loc;
     this.moveMap = new Array(this.map.width);
 	
     for (var i = 0; i < this.map.width; i++) {
@@ -59,9 +77,33 @@ function Dijkstra(map, loc) {
 Dijkstra.prototype = {
     getNextTile: function(loc) {
 		// Return passed in loc + offset in moveMap
-        return new Location(loc.x + this.moveMap[loc.x][loc.y][0], loc.y + this.moveMap[loc.x][loc.y][1]);
-    }
-
+		if (!this.moveMap[loc.x][loc.y]) {
+			return;
+		}
+		return loc.addLoc(this.moveMap[loc.x][loc.y]);
+    },
+	//Debug function: allows drawing move map for debugging 
+	getDijkstraSymbol: function(loc) {
+		var offsets = [new Location(0,1), new Location(0,-1), new Location(1,0), new Location(-1,0)];
+		var offset = this.moveMap[loc.x][loc.y];
+		var symbol;
+		if (offset) {
+			if (offset.isEqualTo(offsets[0])) {
+				symbol = "S";
+			} else if (offset.isEqualTo(offsets[1])) {
+				symbol = "N";
+			} else if (offset.isEqualTo(offsets[2])) {
+				symbol = "E";
+			} else if (offset.isEqualTo(offsets[3])) {
+				symbol = "W";
+			} else {
+				symbol = "<" + offset.x + "," + offset.y + ">";
+			}
+		} else {
+			symbol = "U";
+		}
+		return symbol;
+	}
 };
 
 module.exports = Dijkstra;
