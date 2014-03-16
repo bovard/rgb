@@ -25,10 +25,10 @@ function addGnonesNearPoi(tileMap, creepMap, poi, rgb) {
                     creep = CreepFactory.getOrc(rgb, 3);
 
                 }
-                creeps.push(creep);
                 if (!start.isEqualTo(tileMap.getDownStairsLoc()) && !start.isEqualTo(tileMap.getUpStairsLoc())) {
                     if (tileMap.getTileAtLoc(start).getRGB().mask(rgb).isNotBlack()) {
                         creepMap.addCreepToMapAtLoc(start, creep);
+						creeps.push(creep);
                     }
                 }
             }

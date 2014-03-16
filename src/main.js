@@ -46,13 +46,18 @@ function turn(code) {
         // do dikjstra's on the TileMap to hero location
         game.dikj = new Dijkstra(game.getTileMap(), game.hero.getLocation(), 
 			function(map, loc, startLoc) {
-				return !!map.getTileAtXY(loc.x, loc.y);
+				return 
+					!!map.getTileAtXY(loc.x, loc.y) &&
+					false; // !game.getTileMap().getTileAtXY(loc.x, loc.y).getRGB(game.getHero().getDimension().getRGB()).isBlack();
 			});
 		
 		// do dikjstra's on the CreepMap to hero location within radius squared r^2
 		game.closeQuartersDijk = new Dijkstra(game.getCreepMap(), game.hero.getLocation(), 
 			function(map, loc, startLoc) {
-				return !map.getCreepAtLoc(loc) && !!game.getTileMap().getTileAtXY(loc.x, loc.y) && 
+				return 
+					!map.getCreepAtLoc(loc) && 
+					!!game.getTileMap().getTileAtXY(loc.x, loc.y) && 
+					// !game.getTileMap().getTileAtXY(loc.x, loc.y).getRGB(game.getHero().getDimension().getRGB()).isBlack() &&
 					loc.distanceSquaredTo(startLoc) < Game.CREEP_AVOID_CREEP_RAD_SQR;
 			});
 
