@@ -1757,7 +1757,7 @@ util.extend(Hero, {
     },
 	applyDamage: function(damage, rgb) {
         // first subtract from shield if there is one
-        Chat.warn("You take " + damage + " damage!");
+        Chat.warn("You take " + Math.round(damage) + " damage!");
         if (this.shield > 0) {
             if (this.shield > damage) {
                 this.shield -= damage;
