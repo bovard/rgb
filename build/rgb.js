@@ -315,6 +315,13 @@ Game.prototype = {
             this.level.getTileMap().getDownStairsLoc() :
             this.level.getTileMap().getUpStairsLoc();
         this.levelIndex = index;
+        if (this.levelIndex == 1) {
+            Chat.warn("There is nothing here!");
+            Chat.log("(Hint: Press 2 to enter the green dimension)")
+        } else if (this.levelIndex === 2) {
+            Chat.warn("There is nothing here!");
+            Chat.log("(Hint: Press 3 to enter the blue dimension)")
+        }
         this.level.getCreepMap().addHeroToMapAtLoc(loc, this.hero);
         this.heroController.setCreepMap(this.level.getCreepMap());
         this.heroController.setTileMap(this.level.getTileMap());
