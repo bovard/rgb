@@ -118,14 +118,14 @@ CoreStats.LumberingMonstrosityGain = {
 
 CoreStats.NinjaSeed = {
     str: 13,
-    agi: 30,
+    agi: 20,
     con: 5
 };
 
 CoreStats.NinjaGain = {
     str: 1.0,
-    agi: 2.0,
-    con: 0.1,
+    agi: 1.5,
+    con: 0.1
 };
 
 CoreStats.prototype = new Experience();
