@@ -262,6 +262,12 @@ Game.prototype = {
             Chat.warn("There is nothing here!");
             Chat.log("(Hint: Press 3 to enter the blue dimension)")
         }
+        // delete any creeps found at the location
+        var creep = this.level.getCreepMap().getCreepAtLoc(loc);
+        if (creep) {
+            creep.applyDamage(10000);
+            this.level.getCreepMap().deleteCreepAtLoc(loc);
+        }
         this.level.getCreepMap().addHeroToMapAtLoc(loc, this.hero);
         this.heroController.setCreepMap(this.level.getCreepMap());
         this.heroController.setTileMap(this.level.getTileMap());
